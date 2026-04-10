@@ -12,7 +12,6 @@ import './MessageInput.css';
  */
 function MessageInput({ onSend, isTyping }) {
   const inputRef = useRef(null);
-  const valueRef = useRef('');
 
   // Auto-focus on mount
   useEffect(() => {
@@ -34,7 +33,6 @@ function MessageInput({ onSend, isTyping }) {
     onSend(text);
     if (inputRef.current) {
       inputRef.current.value = '';
-      valueRef.current = '';
     }
   };
 
@@ -59,7 +57,6 @@ function MessageInput({ onSend, isTyping }) {
         placeholder="Type your question here..."
         disabled={isTyping}
         onKeyDown={handleKeyDown}
-        onChange={(e) => { valueRef.current = e.target.value; }}
         autoComplete="off"
         aria-label="Type your question here"
       />
