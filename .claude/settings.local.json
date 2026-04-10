@@ -18,7 +18,9 @@
       "Bash(npx jest:*)",
       "Bash(npx kill-port:*)",
       "Bash(fuser -k 3001/tcp)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(python eval/run_eval.py --precomputed)"
     ]
   }
 }
