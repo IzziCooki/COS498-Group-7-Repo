@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const Conversation = {
   create(data) {
+    if (!data.user_id) throw new Error('Conversation.create: user_id is required');
     const id = data.id || uuidv4();
     const now = new Date().toISOString();
     const stmt = db.prepare(`

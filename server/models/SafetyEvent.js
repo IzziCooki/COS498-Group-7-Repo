@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 
 const SafetyEvent = {
   create(data) {
+    if (!data.user_id) throw new Error('SafetyEvent.create: user_id is required');
+    if (!data.event_type) throw new Error('SafetyEvent.create: event_type is required');
     const id = data.id || uuidv4();
     const now = new Date().toISOString();
     const stmt = db.prepare(`
