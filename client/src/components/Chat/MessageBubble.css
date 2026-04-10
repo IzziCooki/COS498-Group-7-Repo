@@ -1,0 +1,116 @@
+/* MessageBubble styles */
+
+.message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+  animation: fadeIn 300ms ease forwards;
+  max-width: 100%;
+}
+
+.message-row--user {
+  flex-direction: row-reverse;
+}
+
+.message-row--assistant {
+  flex-direction: row;
+}
+
+/* Small avatar label for the assistant */
+.message-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px; /* align with bottom of bubble, above timestamp */
+}
+
+/* The bubble itself */
+.bubble {
+  max-width: min(75%, 560px);
+  padding: 16px 20px;
+  border-radius: 18px;
+  word-break: break-word;
+}
+
+.bubble--user {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-bottom-right-radius: 4px;
+}
+
+.bubble--assistant {
+  background-color: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px var(--color-shadow);
+}
+
+.bubble__text {
+  font-size: 20px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.bubble__time {
+  font-size: 13px;
+  opacity: 0.7;
+  display: block;
+}
+
+.bubble--user .bubble__time {
+  color: var(--color-white);
+  text-align: right;
+}
+
+.bubble--assistant .bubble__time {
+  color: var(--color-text-light);
+}
+
+/* Safety alert banner */
+.safety-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: var(--color-danger-light);
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  width: 100%;
+  max-width: min(75%, 600px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.safety-alert__icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fade-in animation defined in globals but repeated here for safety */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
