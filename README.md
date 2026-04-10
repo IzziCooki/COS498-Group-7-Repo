@@ -1,3 +1,6 @@
+###DEMO: https://agent.deanhauser.dev/
+
+
 # PC Pal - Your Friendly Tech Helper
 
 PC Pal is an AI-powered IT tutor designed for elderly and beginner PC users. It provides patient, step-by-step guidance through a web chat interface, using simple language and a warm, encouraging tone.
