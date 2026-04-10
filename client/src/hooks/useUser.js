@@ -14,14 +14,13 @@ const USER_ID_KEY = 'pcpal_userId';
 export function useUser() {
   const [user, setUser] = useState(null);
   const [isOnboarded, setIsOnboarded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => Boolean(localStorage.getItem(USER_ID_KEY)));
 
   // On mount: check localStorage for a saved userId
   useEffect(() => {
     const savedId = localStorage.getItem(USER_ID_KEY);
 
     if (!savedId) {
-      setIsLoading(false);
       return;
     }
 
