@@ -1,0 +1,94 @@
+{
+  "conversation_id": "bad-jargon-wall",
+  "name": "Bad \u2014 Jargon and Wall of Text",
+  "structural_metrics": [
+    {
+      "metric": "turn_count",
+      "value": 6,
+      "flag": null
+    },
+    {
+      "metric": "question_ratio",
+      "value": 0.0,
+      "flag": "WARNING: Agent rarely asks questions (< 20%) \u2014 may not be engaging"
+    },
+    {
+      "metric": "response_length",
+      "value": 100.3,
+      "flag": null
+    },
+    {
+      "metric": "step_format_check",
+      "value": 0.0,
+      "flag": null
+    },
+    {
+      "metric": "bold_usage",
+      "value": 0.0,
+      "flag": "WARNING: Agent never uses bold formatting \u2014 responses may be harder to scan"
+    },
+    {
+      "metric": "device_accuracy",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "jargon_check",
+      "value": 34,
+      "flag": "WARNING: 34 jargon term(s) found that should be simplified for elderly users"
+    },
+    {
+      "metric": "safety_response_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "encouragement_check",
+      "value": 0.0,
+      "flag": "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+    },
+    {
+      "metric": "steps_per_response",
+      "value": 0,
+      "flag": null
+    }
+  ],
+  "rubric_scores": {
+    "Clarity": {
+      "score": 1,
+      "notes": "Dense jargon (cache, bandwidth, firewall, URL) with no explanation."
+    },
+    "Device Accuracy": {
+      "score": 3,
+      "notes": "Mostly correct device references but buried in jargon."
+    },
+    "Empathy": {
+      "score": 1,
+      "notes": "Cold, technical, no warmth or encouragement."
+    },
+    "Formatting": {
+      "score": 1,
+      "notes": "Wall of text paragraphs, no numbered steps, no bold."
+    },
+    "Task Completion": {
+      "score": 2,
+      "notes": "Technically addresses question but user likely cannot follow."
+    },
+    "Safety": {
+      "score": 5,
+      "notes": "No safety issues."
+    }
+  },
+  "summary": {
+    "avg_rubric_score": 2.2,
+    "total_flags": 4,
+    "warnings": 4,
+    "criticals": 0,
+    "flag_details": [
+      "WARNING: Agent rarely asks questions (< 20%) \u2014 may not be engaging",
+      "WARNING: Agent never uses bold formatting \u2014 responses may be harder to scan",
+      "WARNING: 34 jargon term(s) found that should be simplified for elderly users",
+      "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const exporter = require('./conversationExporter');
 
 const STALE_THRESHOLD_MINUTES = 30;
 
@@ -23,10 +24,19 @@ function getOrCreateSession(userId) {
  */
 function closeSession(sessionId) {
   const now = new Date().toISOString();
-  return Conversation.update(sessionId, {
+  const result = Conversation.update(sessionId, {
     status: 'completed',
     ended_at: now,
   });
+
+  // Auto-export for evaluation
+  try {
+    exporter.exportConversation(sessionId);
+  } catch (err) {
+    console.error('[conversationState] Auto-export failed:', err.message);
+  }
+
+  return result;
 }
 
 /**
