@@ -10,7 +10,7 @@ import './MessageBubble.css';
  * Shows a red safety alert banner when safetyAlert is present.
  */
 function MessageBubble({ message, osType = 'Windows' }) {
-  const { role, text, timestamp, safetyAlert, guideId } = message;
+  const { role, text, timestamp, safetyAlert, guideId, imageUrls } = message;
   const isUser = role === 'user';
 
   const formattedTime = timestamp
@@ -29,8 +29,16 @@ function MessageBubble({ message, osType = 'Windows' }) {
 
       <div className={`bubble ${isUser ? 'bubble--user' : 'bubble--assistant'}`}>
         <p className="bubble__text">{text}</p>
-        <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>
+
+        {imageUrls && (
+          <div className="bubble__images">
+            <img src={imageUrls.keyboard} alt="Keyboard guide" className="bubble__guide-image" />
+            <img src={imageUrls.screen} alt="Screen guide" className="bubble__guide-image" />
+          </div>
+        )}
+
         {guideId && <VisualGuide taskId={guideId} osType={osType} />}
+        <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>
       </div>
 
       {!isUser && (
