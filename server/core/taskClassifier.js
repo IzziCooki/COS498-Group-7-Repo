@@ -1,17 +1,18 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const { anthropicApiKey } = require('../config');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { geminiApiKey } = require('../config');
 
-if (!anthropicApiKey) {
-  console.warn('[taskClassifier] anthropicApiKey is not set — Claude API calls will fail. Running in degraded mode.');
+if (!geminiApiKey) {
+  console.warn('[taskClassifier] GEMINI_API_KEY is not set — classification calls will fail. Running in degraded mode.');
 }
 
-const client = new Anthropic({ apiKey: anthropicApiKey });
+const genAI = new GoogleGenerativeAI(geminiApiKey);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 const VALID_TASK_TYPES = ['learn_skill', 'troubleshoot', 'follow_up', 'accessibility', 'unknown'];
 const VALID_URGENCY = ['low', 'medium', 'high'];
 
 /**
- * Classifies a user message into a task type using Claude.
+ * Classifies a user message into a task type using Gemini.
  *
  * @param {string} text         The user's message
  * @param {object} userProfile  The user's profile object (from User model)
@@ -27,7 +28,7 @@ async function classifyMessage(text, userProfile) {
       ].join(', ')
     : 'No profile available';
 
-  const systemPrompt = `You are a classifier for PC Pal, an AI tutor that helps elderly users with their computers.
+  const prompt = `You are a classifier for PC Pal, an AI tutor that helps elderly users with their computers.
 
 Your job is to classify the user's message into one of the following task types:
 - learn_skill: The user wants to learn how to do something new (e.g., "How do I send an email?")
@@ -48,23 +49,17 @@ Response format:
 Urgency guidelines:
 - high: safety concerns, complete inability to use computer, critical system failures
 - medium: frustrating problems, partial functionality loss
-- low: general learning questions, minor inconveniences, curiosity`;
+- low: general learning questions, minor inconveniences, curiosity
 
-  const userMessage = `User profile: ${profileSummary}
+User profile: ${profileSummary}
 
 User message: "${text}"
 
 Classify this message.`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 200,
-      messages: [{ role: 'user', content: userMessage }],
-      system: systemPrompt,
-    });
-
-    const rawText = response.content[0]?.text?.trim() || '';
+    const result = await model.generateContent(prompt);
+    const rawText = result.response.text().trim();
 
     // Strip markdown code fences if present
     const jsonText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -73,7 +68,7 @@ Classify this message.`;
     try {
       parsed = JSON.parse(jsonText);
     } catch (parseErr) {
-      console.error('[taskClassifier] Failed to parse Claude response:', rawText);
+      console.error('[taskClassifier] Failed to parse Gemini response:', rawText);
       return { taskType: 'unknown', topic: 'unclassified', urgency: 'low' };
     }
 
@@ -83,7 +78,7 @@ Classify this message.`;
 
     return { taskType, topic, urgency };
   } catch (err) {
-    console.error('[taskClassifier] Claude API error:', err.message);
+    console.error('[taskClassifier] Gemini API error:', err.message);
     return { taskType: 'unknown', topic: 'unclassified', urgency: 'low' };
   }
 }
