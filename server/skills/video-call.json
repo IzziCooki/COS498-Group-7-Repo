@@ -1,0 +1,9 @@
+{
+  "id": "video-call",
+  "name": "Make a Video Call",
+  "description": "Help the user make a video call using Zoom, FaceTime, or other apps",
+  "triggers": ["video call", "facetime", "zoom", "video chat", "see someone", "call with camera", "teams", "skype", "google meet"],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to make a video call. Ask which app they use if unclear. For iPhone suggest FaceTime, for others suggest Zoom. Explain how to open the app, start a call, and make sure their camera and microphone are on. Reassure them it is normal to feel nervous the first time."
+}
