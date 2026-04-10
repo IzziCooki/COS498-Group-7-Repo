@@ -1,0 +1,37 @@
+# Dependabot configuration
+# Keeps npm dependencies up-to-date for both the server (root) and the React client.
+# PRs are opened weekly on Mondays and assigned to the team so everyone stays aware.
+
+version: 2
+
+updates:
+  # Root package (Express server + Claude SDK)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  # React / Vite client
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  # Keep GitHub Actions themselves up-to-date
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
