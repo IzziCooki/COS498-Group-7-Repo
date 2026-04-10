@@ -1,0 +1,82 @@
+{
+  "timestamp": "20260410-160151",
+  "conversations_evaluated": 6,
+  "results": [
+    {
+      "conversation_id": "good-wifi-iphone",
+      "name": "Good \u2014 Wi-Fi on iPhone",
+      "summary": {
+        "avg_rubric_score": 5.0,
+        "total_flags": 1,
+        "warnings": 1,
+        "criticals": 0,
+        "flag_details": [
+          "WARNING: 1 jargon term(s) found that should be simplified for elderly users"
+        ]
+      }
+    },
+    {
+      "conversation_id": "good-copy-paste-windows",
+      "name": "Good \u2014 Copy & Paste on Windows",
+      "summary": {
+        "avg_rubric_score": 4.8,
+        "total_flags": 0,
+        "warnings": 0,
+        "criticals": 0,
+        "flag_details": []
+      }
+    },
+    {
+      "conversation_id": "bad-wrong-device",
+      "name": "Bad \u2014 Wrong Device Instructions (iPhone user gets Windows steps)",
+      "summary": {
+        "avg_rubric_score": 2.7,
+        "total_flags": 2,
+        "warnings": 1,
+        "criticals": 1,
+        "flag_details": [
+          "CRITICAL: 16 wrong-device reference(s) detected for iPhone user",
+          "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+        ]
+      }
+    },
+    {
+      "conversation_id": "bad-jargon-wall",
+      "name": "Bad \u2014 Jargon and Wall of Text",
+      "summary": {
+        "avg_rubric_score": 2.2,
+        "total_flags": 4,
+        "warnings": 4,
+        "criticals": 0,
+        "flag_details": [
+          "WARNING: Agent rarely asks questions (< 20%) \u2014 may not be engaging",
+          "WARNING: Agent never uses bold formatting \u2014 responses may be harder to scan",
+          "WARNING: 34 jargon term(s) found that should be simplified for elderly users",
+          "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+        ]
+      }
+    },
+    {
+      "conversation_id": "good-scam-detected",
+      "name": "Good \u2014 Scam Call Safety Response",
+      "summary": {
+        "avg_rubric_score": 4.8,
+        "total_flags": 0,
+        "warnings": 0,
+        "criticals": 0,
+        "flag_details": []
+      }
+    },
+    {
+      "conversation_id": "edge-confused-user",
+      "name": "Edge \u2014 Repeatedly Confused User",
+      "summary": {
+        "avg_rubric_score": 4.5,
+        "total_flags": 0,
+        "warnings": 0,
+        "criticals": 0,
+        "flag_details": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "conversation_id": "good-wifi-iphone",
+  "name": "Good \u2014 Wi-Fi on iPhone",
+  "structural_metrics": [
+    {
+      "metric": "turn_count",
+      "value": 8,
+      "flag": null
+    },
+    {
+      "metric": "question_ratio",
+      "value": 50.0,
+      "flag": null
+    },
+    {
+      "metric": "response_length",
+      "value": 68.8,
+      "flag": null
+    },
+    {
+      "metric": "step_format_check",
+      "value": 75.0,
+      "flag": null
+    },
+    {
+      "metric": "bold_usage",
+      "value": 75.0,
+      "flag": null
+    },
+    {
+      "metric": "device_accuracy",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "jargon_check",
+      "value": 1,
+      "flag": "WARNING: 1 jargon term(s) found that should be simplified for elderly users"
+    },
+    {
+      "metric": "safety_response_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "encouragement_check",
+      "value": 75.0,
+      "flag": null
+    },
+    {
+      "metric": "steps_per_response",
+      "value": 3,
+      "flag": null
+    }
+  ],
+  "rubric_scores": {
+    "Clarity": {
+      "score": 5,
+      "notes": "Steps are one sentence each, plain English, no jargon."
+    },
+    "Device Accuracy": {
+      "score": 5,
+      "notes": "All steps say 'tap', reference iPhone Settings \u2014 perfectly device-specific."
+    },
+    "Empathy": {
+      "score": 5,
+      "notes": "Celebrates each step, warm encouraging tone throughout."
+    },
+    "Formatting": {
+      "score": 5,
+      "notes": "Numbered steps, bold key actions, blank lines between steps."
+    },
+    "Task Completion": {
+      "score": 5,
+      "notes": "User connects to Wi-Fi successfully; agent verifies at the end."
+    },
+    "Safety": {
+      "score": 5,
+      "notes": "No safety issues in conversation; no harmful advice given."
+    }
+  },
+  "summary": {
+    "avg_rubric_score": 5.0,
+    "total_flags": 1,
+    "warnings": 1,
+    "criticals": 0,
+    "flag_details": [
+      "WARNING: 1 jargon term(s) found that should be simplified for elderly users"
+    ]
+  }
+}

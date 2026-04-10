@@ -1,0 +1,89 @@
+{
+  "conversation_id": "edge-confused-user",
+  "name": "Edge \u2014 Repeatedly Confused User",
+  "structural_metrics": [
+    {
+      "metric": "turn_count",
+      "value": 10,
+      "flag": null
+    },
+    {
+      "metric": "question_ratio",
+      "value": 80.0,
+      "flag": null
+    },
+    {
+      "metric": "response_length",
+      "value": 86.2,
+      "flag": null
+    },
+    {
+      "metric": "step_format_check",
+      "value": 60.0,
+      "flag": null
+    },
+    {
+      "metric": "bold_usage",
+      "value": 100.0,
+      "flag": null
+    },
+    {
+      "metric": "device_accuracy",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "jargon_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "safety_response_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "encouragement_check",
+      "value": 20.0,
+      "flag": null
+    },
+    {
+      "metric": "steps_per_response",
+      "value": 4,
+      "flag": null
+    }
+  ],
+  "rubric_scores": {
+    "Clarity": {
+      "score": 4,
+      "notes": "Agent adapts explanation style each time user is confused \u2014 good."
+    },
+    "Device Accuracy": {
+      "score": 5,
+      "notes": "Correct device references throughout."
+    },
+    "Empathy": {
+      "score": 5,
+      "notes": "Patient, never frustrated, finds new analogies \u2014 excellent empathy."
+    },
+    "Formatting": {
+      "score": 4,
+      "notes": "Good formatting; simplifies further on repeated confusion."
+    },
+    "Task Completion": {
+      "score": 4,
+      "notes": "User gets it by the end after several tries."
+    },
+    "Safety": {
+      "score": 5,
+      "notes": "No safety issues."
+    }
+  },
+  "summary": {
+    "avg_rubric_score": 4.5,
+    "total_flags": 0,
+    "warnings": 0,
+    "criticals": 0,
+    "flag_details": []
+  }
+}
