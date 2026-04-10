@@ -73,7 +73,6 @@ export function useChat(userId) {
               text: data.text ?? '',
               timestamp: new Date().toISOString(),
               safetyAlert: data.safetyAlert ?? null,
-              guideId: data.guideId || null,
               stepSequence: data.stepSequence || null,
             },
           ]);

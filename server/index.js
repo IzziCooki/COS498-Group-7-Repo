@@ -76,7 +76,6 @@ wss.on('connection', (ws) => {
             type: 'response',
             text: result.response,
             safetyAlert: result.safetyAlert,
-            guideId: result.guideId || null,
             stepSequence: result.stepSequence || null,
           }));
         }
@@ -102,6 +101,7 @@ process.on('SIGTERM', () => {
   wss.close(() => { server.close(() => process.exit(0)); });
 });
 
+// Generate guide images on startup
 // Use server.listen instead of app.listen
 server.listen(config.port, () => {
   console.log(`PC Pal server listening on port ${config.port}`);

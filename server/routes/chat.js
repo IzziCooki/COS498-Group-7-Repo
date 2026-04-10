@@ -19,7 +19,6 @@ router.post('/', async (req, res) => {
     res.json({
       response: result.response,
       safetyAlert: result.safetyAlert,
-      guideId: result.guideId || null,
       stepSequence: result.stepSequence || null,
     });
   } catch (err) {
