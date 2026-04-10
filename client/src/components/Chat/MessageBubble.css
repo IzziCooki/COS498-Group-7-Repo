@@ -1,20 +1,5 @@
 /* MessageBubble styles */
 
-.bubble__images {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.bubble__guide-image {
-  width: 100%;
-  max-width: 540px;
-  border-radius: 10px;
-  border: 2px solid var(--color-border, #e0e0e0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .message-row {
   display: flex;
   align-items: flex-end;
