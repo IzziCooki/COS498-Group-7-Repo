@@ -1,3 +1,4 @@
+const { execSync } = require('child_process');
 const conversationState = require('./conversationState');
 const userProfileManager = require('./userProfileManager');
 const vocabularyFilter = require('./vocabularyFilter');
@@ -325,11 +326,57 @@ function respond(text, userId, sessionId) {
     };
   }
 
-  // Default fallback
-  const defaultResponse = "That's a great question! I'm running in demo mode right now, so I can help you with these topics:\n\n• Copy and paste\n• Take a screenshot\n• Send an email\n• Open settings\n• Make text bigger\n• Connect to Wi-Fi\n\nJust ask about any of those, or type 'help' to see everything I can do!";
-  const filtered = vocabularyFilter.filterResponse(defaultResponse, vocabLevel);
+  // Default: use Claude CLI to answer any question
+  const cliResponse = askClaudeCli(text, user);
+  const filtered = vocabularyFilter.filterResponse(cliResponse, vocabLevel);
   conversationState.addMessage(sessionId, 'assistant', filtered);
   return { response: filtered, safetyAlert: null, guideId: null, stepSequence: null };
+}
+
+/**
+ * Call the claude CLI to answer a question.
+ * Uses the user's Claude Code session — no API key needed.
+ *
+ * @param {string} text - the user's question
+ * @param {object} user - user profile object
+ * @returns {string} the AI response text
+ */
+function askClaudeCli(text, user) {
+  const name = user?.name || 'friend';
+  const os = user?.os_type || 'a computer';
+  const comfort = user?.comfort_level || 1;
+
+  const prompt = `You are PC Pal, a warm and patient tech tutor for elderly computer users. You are helping ${name}, who uses ${os} and has a comfort level of ${comfort}/5 (1=brand new, 5=comfortable).
+
+Rules:
+- Use simple, everyday language. No jargon.
+- Be warm, patient, and encouraging — like a helpful grandchild.
+- Keep your answer concise (under 150 words).
+- If the question is about a computer task, give numbered steps.
+- Never be condescending.
+
+User's question: ${text}
+
+Respond directly to the user:`;
+
+  try {
+    const result = execSync(
+      `claude -p ${escapeShellArg(prompt)} --max-turns 1`,
+      { encoding: 'utf-8', timeout: 30000, stdio: ['pipe', 'pipe', 'pipe'] }
+    );
+    return result.trim() || "I'm sorry, I couldn't come up with an answer right now. Could you try asking in a different way?";
+  } catch (err) {
+    console.error('[mockResponder] Claude CLI error:', err.message);
+    return "I'm having a little trouble thinking right now. Could you try asking me again?";
+  }
+}
+
+/**
+ * Escape a string for safe use as a shell argument.
+ */
+function escapeShellArg(arg) {
+  // Wrap in double quotes and escape internal double quotes and backslashes
+  return '"' + arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
 }
 
 module.exports = { respond };
