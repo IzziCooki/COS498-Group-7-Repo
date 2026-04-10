@@ -10,6 +10,9 @@ server/db/pcpal.db
 server/db/pcpal.db-wal
 server/db/pcpal.db-shm
 
+# Generated guide images (regenerated on startup)
+server/assets/generated/
+
 # Build output
 client/dist/
 
