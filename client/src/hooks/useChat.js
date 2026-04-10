@@ -13,10 +13,12 @@ export function useChat(userId) {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const messageIdRef = useRef(0);
+  const reconnectAttemptsRef = useRef(0);
 
   const nextId = () => {
     messageIdRef.current += 1;
@@ -35,6 +37,8 @@ export function useChat(userId) {
 
     ws.onopen = () => {
       setIsConnected(true);
+      setConnectionFailed(false);
+      reconnectAttemptsRef.current = 0;
       // Send init message so the server knows who we are
       ws.send(JSON.stringify({ type: 'init', userId }));
     };
@@ -93,8 +97,14 @@ export function useChat(userId) {
     ws.onclose = () => {
       setIsConnected(false);
       setIsTyping(false);
-      // Attempt to reconnect after 3 seconds
-      reconnectTimeoutRef.current = setTimeout(connect, 3000);
+      const attempts = reconnectAttemptsRef.current;
+      if (attempts >= 5) {
+        setConnectionFailed(true);
+        return;
+      }
+      reconnectAttemptsRef.current = attempts + 1;
+      const delay = Math.min(1000 * Math.pow(2, attempts), 30000);
+      reconnectTimeoutRef.current = setTimeout(connect, delay);
     };
 
     ws.onerror = (err) => {
@@ -157,5 +167,5 @@ export function useChat(userId) {
     [],
   );
 
-  return { messages, sendMessage, isConnected, isTyping };
+  return { messages, sendMessage, isConnected, isTyping, connectionFailed };
 }

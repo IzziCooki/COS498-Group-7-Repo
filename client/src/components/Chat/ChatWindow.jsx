@@ -14,7 +14,6 @@ import './ChatWindow.css';
 function ChatWindow({ userId }) {
   const { messages, sendMessage, isConnected, isTyping } = useChat(userId);
   const bottomRef = useRef(null);
-  const listRef = useRef(null);
 
   // Auto-scroll to the newest message
   useEffect(() => {
@@ -33,7 +32,7 @@ function ChatWindow({ userId }) {
       )}
 
       {/* Scrollable message list */}
-      <div className="chat-messages" ref={listRef} role="log" aria-live="polite" aria-label="Chat messages">
+      <div className="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
         {messages.length === 0 && (
           <div className="chat-empty">
             <p className="chat-empty__text">

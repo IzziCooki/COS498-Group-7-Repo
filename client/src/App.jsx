@@ -3,7 +3,6 @@ import { useUser } from './hooks/useUser';
 import OnboardingFlow from './components/Onboarding/OnboardingFlow';
 import Header from './components/Layout/Header';
 import ChatWindow from './components/Chat/ChatWindow';
-import './styles/globals.css';
 
 /**
  * App — root component for PC Pal.
@@ -54,7 +53,7 @@ function App() {
       }}
     >
       <Header user={user} />
-      <ChatWindow userId={user?.id} />
+      {user && <ChatWindow userId={user.id} />}
     </div>
   );
 }
