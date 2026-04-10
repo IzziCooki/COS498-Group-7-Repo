@@ -1,4 +1,5 @@
 const http = require('http');
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
@@ -6,6 +7,8 @@ const config = require('./config');
 require('./db/database');
 
 const agentOrchestrator = require('./core/agentOrchestrator');
+const imageAnnotator = require('./core/imageAnnotator');
+const { getImagesForSkill } = require('./core/skillImages');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
 
@@ -13,6 +16,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve annotated screenshot images
+app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -72,11 +78,17 @@ wss.on('connection', (ws) => {
         const result = await agentOrchestrator.processMessage(msg.text, userId);
 
         if (ws.readyState === ws.OPEN) {
+          // Look up annotated images if a skill matched
+          const images = (result.matchedSkillId && result.userOsType)
+            ? getImagesForSkill(result.matchedSkillId, result.userOsType)
+            : null;
+
           ws.send(JSON.stringify({
             type: 'response',
             text: result.response,
             safetyAlert: result.safetyAlert,
             stepSequence: result.stepSequence || null,
+            images: images,
           }));
         }
       }
@@ -101,7 +113,11 @@ process.on('SIGTERM', () => {
   wss.close(() => { server.close(() => process.exit(0)); });
 });
 
-// Generate guide images on startup
+// Generate annotated screenshots on startup
+imageAnnotator.generateAllAnnotations()
+  .then(() => console.log('[imageAnnotator] All annotated images ready'))
+  .catch(err => console.error('[imageAnnotator] Failed:', err.message));
+
 // Use server.listen instead of app.listen
 server.listen(config.port, () => {
   console.log(`PC Pal server listening on port ${config.port}`);
