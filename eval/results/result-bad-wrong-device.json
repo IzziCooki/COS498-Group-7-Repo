@@ -1,0 +1,92 @@
+{
+  "conversation_id": "bad-wrong-device",
+  "name": "Bad \u2014 Wrong Device Instructions (iPhone user gets Windows steps)",
+  "structural_metrics": [
+    {
+      "metric": "turn_count",
+      "value": 7,
+      "flag": null
+    },
+    {
+      "metric": "question_ratio",
+      "value": 33.3,
+      "flag": null
+    },
+    {
+      "metric": "response_length",
+      "value": 48.3,
+      "flag": null
+    },
+    {
+      "metric": "step_format_check",
+      "value": 33.3,
+      "flag": null
+    },
+    {
+      "metric": "bold_usage",
+      "value": 33.3,
+      "flag": null
+    },
+    {
+      "metric": "device_accuracy",
+      "value": 16,
+      "flag": "CRITICAL: 16 wrong-device reference(s) detected for iPhone user"
+    },
+    {
+      "metric": "jargon_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "safety_response_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "encouragement_check",
+      "value": 0.0,
+      "flag": "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+    },
+    {
+      "metric": "steps_per_response",
+      "value": 5,
+      "flag": null
+    }
+  ],
+  "rubric_scores": {
+    "Clarity": {
+      "score": 3,
+      "notes": "Reasonably clear instructions but completely wrong device."
+    },
+    "Device Accuracy": {
+      "score": 1,
+      "notes": "iPhone user given Windows instructions (Start menu, click, taskbar)."
+    },
+    "Empathy": {
+      "score": 3,
+      "notes": "Polite tone but does not acknowledge user confusion."
+    },
+    "Formatting": {
+      "score": 3,
+      "notes": "Some numbered steps present."
+    },
+    "Task Completion": {
+      "score": 1,
+      "notes": "User cannot complete task \u2014 wrong device instructions."
+    },
+    "Safety": {
+      "score": 5,
+      "notes": "No safety issues."
+    }
+  },
+  "summary": {
+    "avg_rubric_score": 2.7,
+    "total_flags": 2,
+    "warnings": 1,
+    "criticals": 1,
+    "flag_details": [
+      "CRITICAL: 16 wrong-device reference(s) detected for iPhone user",
+      "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+    ]
+  }
+}
