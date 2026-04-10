@@ -1,0 +1,9 @@
+{
+  "id": "wifi",
+  "name": "Connect to Wi-Fi",
+  "description": "Help the user connect to a wireless internet network",
+  "triggers": ["wifi", "wi-fi", "internet", "connect to internet", "no internet", "get online", "wireless", "network", "can't connect"],
+  "category": "connectivity",
+  "difficulty": "beginner",
+  "prompt": "The user needs help connecting to Wi-Fi. Explain that Wi-Fi is like an invisible cable that connects their device to the internet. Walk them through finding Wi-Fi settings, selecting a network, and entering the password. Remind them the password is often on a sticker on their router/internet box."
+}

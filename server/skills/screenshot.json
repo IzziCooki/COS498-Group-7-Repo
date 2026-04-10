@@ -1,0 +1,9 @@
+{
+  "id": "screenshot",
+  "name": "Take a Screenshot",
+  "description": "Help the user capture what is on their screen",
+  "triggers": ["screenshot", "screen shot", "capture screen", "print screen", "snip", "picture of screen", "save my screen"],
+  "category": "basics",
+  "difficulty": "beginner",
+  "prompt": "The user wants to take a screenshot. Explain that a screenshot is like taking a photo of whatever is showing on their screen. Give the exact key combination for their device. Mention where the screenshot gets saved."
+}

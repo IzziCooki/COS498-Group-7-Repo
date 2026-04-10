@@ -1,0 +1,9 @@
+{
+  "id": "browser",
+  "name": "Open a Web Browser",
+  "description": "Help the user open a web browser and visit websites",
+  "triggers": ["browser", "chrome", "edge", "firefox", "safari", "web browser", "visit website", "go to website", "open internet", "search the web", "google"],
+  "category": "basics",
+  "difficulty": "beginner",
+  "prompt": "The user wants to open a web browser or visit a website. Explain what a browser is (the app that lets you visit websites). Tell them which browser comes with their device. Show how to open it, use the address bar, and type a website address."
+}

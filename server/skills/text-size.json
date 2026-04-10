@@ -1,0 +1,9 @@
+{
+  "id": "text-size",
+  "name": "Make Text Bigger",
+  "description": "Help the user increase text and display size for easier reading",
+  "triggers": ["bigger", "zoom", "larger", "text size", "can't read", "too small", "enlarge", "magnify", "font size", "hard to read", "make bigger"],
+  "category": "accessibility",
+  "difficulty": "beginner",
+  "prompt": "The user wants to make text bigger. Give them BOTH the quick method (pinch-to-zoom on phone, Ctrl/Cmd+Plus on computer) AND the permanent method (through Settings > Display). Emphasize that this is a very common and smart thing to do."
+}
