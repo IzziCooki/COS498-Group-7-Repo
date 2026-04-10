@@ -12,7 +12,7 @@ import './ChatWindow.css';
  * - Auto-scrolls to the latest message
  * - Shows "PC Pal is typing..." indicator
  */
-function ChatWindow({ userId, osType = 'Windows' }) {
+function ChatWindow({ userId }) {
   const { messages, sendMessage, isConnected, isTyping, activeSequence } = useChat(userId);
   const bottomRef = useRef(null);
 
@@ -45,7 +45,7 @@ function ChatWindow({ userId, osType = 'Windows' }) {
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} osType={osType} />
+          <MessageBubble key={msg.id} message={msg} />
         ))}
 
         {/* Typing indicator */}

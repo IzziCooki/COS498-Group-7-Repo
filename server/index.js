@@ -1,5 +1,4 @@
 const http = require('http');
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
@@ -7,7 +6,6 @@ const config = require('./config');
 require('./db/database');
 
 const agentOrchestrator = require('./core/agentOrchestrator');
-const imageGenerator = require('./core/imageGenerator');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
 
@@ -20,9 +18,6 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PC Pal server running' });
 });
-
-// Serve generated guide images
-app.use('/images', express.static(path.join(__dirname, 'assets', 'generated')));
 
 // REST routes
 app.use('/api/users', usersRouter);
@@ -77,19 +72,11 @@ wss.on('connection', (ws) => {
         const result = await agentOrchestrator.processMessage(msg.text, userId);
 
         if (ws.readyState === ws.OPEN) {
-          const guideId = result.guideId || null;
-          const imageUrls = guideId ? {
-            keyboard: `/images/${guideId}_keyboard.png`,
-            screen: `/images/${guideId}_screen.png`,
-          } : null;
-
           ws.send(JSON.stringify({
             type: 'response',
             text: result.response,
             safetyAlert: result.safetyAlert,
-            guideId,
             stepSequence: result.stepSequence || null,
-            imageUrls,
           }));
         }
       }
@@ -115,10 +102,6 @@ process.on('SIGTERM', () => {
 });
 
 // Generate guide images on startup
-imageGenerator.generateAllGuideImages()
-  .then(() => console.log('[imageGenerator] All guide images ready'))
-  .catch(err => console.error('[imageGenerator] Failed to generate images:', err.message));
-
 // Use server.listen instead of app.listen
 server.listen(config.port, () => {
   console.log(`PC Pal server listening on port ${config.port}`);
