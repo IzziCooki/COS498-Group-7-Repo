@@ -400,6 +400,13 @@ async function processMessage(text, userId) {
     // Step 2: Get user
     const user = userProfileManager.getOrCreateUser(userId);
 
+    // Mock mode: skip Claude API, use pre-written responses
+    if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
+      const mockResponder = require('./mockResponder');
+      const session = conversationState.getOrCreateSession(userId);
+      return mockResponder.respond(text, userId, session.id);
+    }
+
     // Step 3: Get/create session
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
