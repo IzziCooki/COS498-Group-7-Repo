@@ -14,6 +14,7 @@ export function useChat(userId) {
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [connectionFailed, setConnectionFailed] = useState(false);
+  const [activeSequence, setActiveSequence] = useState(null);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -71,8 +72,17 @@ export function useChat(userId) {
               text: data.text ?? '',
               timestamp: new Date().toISOString(),
               safetyAlert: data.safetyAlert ?? null,
+              guideId: data.guideId || null,
+              stepSequence: data.stepSequence || null,
             },
           ]);
+          if (data.stepSequence) {
+            if (data.stepSequence.completed) {
+              setActiveSequence(null);
+            } else {
+              setActiveSequence(data.stepSequence);
+            }
+          }
           break;
 
         case 'error':
@@ -167,5 +177,5 @@ export function useChat(userId) {
     [],
   );
 
-  return { messages, sendMessage, isConnected, isTyping, connectionFailed };
+  return { messages, sendMessage, isConnected, isTyping, connectionFailed, activeSequence };
 }
