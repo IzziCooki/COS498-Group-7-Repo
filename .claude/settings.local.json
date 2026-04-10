@@ -17,7 +17,8 @@
       "Bash(npm test:*)",
       "Bash(npx jest:*)",
       "Bash(npx kill-port:*)",
-      "Bash(fuser -k 3001/tcp)"
+      "Bash(fuser -k 3001/tcp)",
+      "Bash(grep:*)"
     ]
   }
 }
