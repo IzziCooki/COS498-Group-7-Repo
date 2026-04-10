@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Environment
+.env
+
+# Database
+server/db/pcpal.db
+server/db/pcpal.db-wal
+server/db/pcpal.db-shm
+
+# Build output
+client/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
