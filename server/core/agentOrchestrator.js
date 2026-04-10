@@ -6,7 +6,6 @@ const vocabularyFilter = require('./vocabularyFilter');
 const userProfileManager = require('./userProfileManager');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
-const User = require('../models/User');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] anthropicApiKey is not set — Claude API calls will fail. Running in degraded mode.');
@@ -16,6 +15,12 @@ const client = new Anthropic({ apiKey: anthropicApiKey });
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
+
+// Minor 7: Extract model ID to constant
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+
+// Critical 1: Maximum number of tool-use rounds before aborting the loop
+const MAX_TOOL_ROUNDS = 10;
 
 const tools = [
   {
@@ -44,13 +49,12 @@ const tools = [
 ];
 
 /**
- * Build a personalized system prompt for the given user.
- * @param {string} userId
+ * Build a personalized system prompt using a pre-fetched profile string.
+ * Minor 9: Accepts profileString directly so the caller avoids a duplicate DB query.
+ * @param {string} profileString
  * @returns {string}
  */
-function buildSystemPrompt(userId) {
-  const profileString = userProfileManager.getProfileForPrompt(userId);
-
+function buildSystemPrompt(profileString) {
   return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers.
 Think of yourself as a helpful grandchild teaching a grandparent — kind, encouraging, and never condescending.
 
@@ -112,7 +116,8 @@ async function handleToolCalls(content, userId) {
 
     if (name === 'log_skill_started') {
       try {
-        await SkillEvent.create({
+        // Important 3: No await — SkillEvent.create is a synchronous better-sqlite3 operation
+        SkillEvent.create({
           user_id: userId,
           skill_name: input.skill_name,
           status: 'started',
@@ -125,7 +130,8 @@ async function handleToolCalls(content, userId) {
       }
     } else if (name === 'flag_emergency') {
       try {
-        const event = await SafetyEvent.create({
+        // Important 3: No await — SafetyEvent.create is a synchronous better-sqlite3 operation
+        const event = SafetyEvent.create({
           user_id: userId,
           event_type: 'emergency',
           trigger_text: input.reason,
@@ -157,90 +163,117 @@ async function handleToolCalls(content, userId) {
  * @returns {Promise<{ response: string, safetyAlert: object|null }>}
  */
 async function processMessage(text, userId) {
-  // Step 1: Safety check — short-circuit if unsafe
-  const safetyCheck = safetyMonitor.checkMessage(text, userId);
-  if (!safetyCheck.safe) {
-    return { response: safetyCheck.response, safetyAlert: { type: safetyCheck.type } };
-  }
-
-  // Step 2: Ensure the user exists in the DB
-  const user = userProfileManager.getOrCreateUser(userId);
-
-  // Step 3: Get or create conversation session
-  const session = conversationState.getOrCreateSession(userId);
-  const sessionId = session.id;
-
-  // Step 4: Persist the incoming user message
-  conversationState.addMessage(sessionId, 'user', text);
-
-  // Step 5: Load recent conversation history (last 20 messages)
-  const dbMessages = conversationState.getSessionMessages(sessionId, 20);
-
-  // Step 6: Convert DB messages to Claude's { role, content } format
-  const messages = dbMessages.map(msg => ({
-    role: msg.role,
-    content: msg.body,
-  }));
-
-  // Step 7: Build system prompt
-  const systemPrompt = buildSystemPrompt(userId);
-
-  // Step 8: Call Claude in a tool-use loop
-  let safetyAlert = null;
-  let finalTextResponse = '';
-
+  // Important 5: Entire function body wrapped in try/catch so any synchronous
+  // error (DB setup, session creation, etc.) returns FALLBACK_RESPONSE instead of crashing.
   try {
-    let response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages,
-      tools,
-    });
+    // Step 1: Safety check — short-circuit if unsafe
+    const safetyCheck = safetyMonitor.checkMessage(text, userId);
+    if (!safetyCheck.safe) {
+      return { response: safetyCheck.response, safetyAlert: { type: safetyCheck.type } };
+    }
 
-    // Tool-use loop: keep going as long as Claude returns tool_use blocks
-    while (hasToolUse(response.content)) {
-      const { toolResults, safetyAlert: alert } = await handleToolCalls(response.content, userId);
+    // Step 2: Ensure the user exists in the DB
+    // Minor 9: Keep the user object so buildSystemPrompt can reuse the profile
+    // without a second DB query.
+    const user = userProfileManager.getOrCreateUser(userId);
 
-      // Merge any safety alert from this round
-      if (alert) safetyAlert = alert;
+    // Step 3: Get or create conversation session
+    const session = conversationState.getOrCreateSession(userId);
+    const sessionId = session.id;
 
-      // Append assistant message (with tool_use blocks) and user tool results
-      messages.push({ role: 'assistant', content: response.content });
-      messages.push({
-        role: 'user',
-        content: toolResults.map(r => ({
-          type: 'tool_result',
-          tool_use_id: r.id,
-          content: r.result,
-        })),
-      });
+    // Step 4: Persist the incoming user message
+    conversationState.addMessage(sessionId, 'user', text);
 
-      // Ask Claude to continue after the tool results
-      response = await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+    // Step 5: Load recent conversation history (last 20 messages)
+    const dbMessages = conversationState.getSessionMessages(sessionId, 20);
+
+    // Step 6: Convert DB messages to Claude's { role, content } format
+    const messages = dbMessages.map(msg => ({
+      role: msg.role,
+      content: msg.body,
+    }));
+
+    // Step 7: Build system prompt
+    // Minor 9: Pass the profile string derived from the already-fetched user object
+    // to avoid a duplicate DB query inside buildSystemPrompt.
+    const profileString = userProfileManager.getProfileForPrompt(userId, user);
+    const systemPrompt = buildSystemPrompt(profileString);
+
+    // Step 8: Call Claude in a tool-use loop
+    let safetyAlert = null;
+    let finalTextResponse = '';
+
+    try {
+      let response = await client.messages.create({
+        model: CLAUDE_MODEL,
         max_tokens: 1024,
         system: systemPrompt,
         messages,
         tools,
       });
+
+      // Critical 1: Tool-use loop with iteration cap
+      let toolRounds = 0;
+      while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
+        toolRounds += 1;
+        const { toolResults, safetyAlert: alert } = await handleToolCalls(response.content, userId);
+
+        // Merge any safety alert from this round
+        if (alert) safetyAlert = alert;
+
+        // Append assistant message (with tool_use blocks) and user tool results
+        messages.push({ role: 'assistant', content: response.content });
+        messages.push({
+          role: 'user',
+          content: toolResults.map(r => ({
+            type: 'tool_result',
+            tool_use_id: r.id,
+            content: r.result,
+          })),
+        });
+
+        // Ask Claude to continue after the tool results
+        response = await client.messages.create({
+          model: CLAUDE_MODEL,
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages,
+          tools,
+        });
+      }
+
+      // Critical 1: Warn if the loop was terminated by the cap
+      if (toolRounds >= MAX_TOOL_ROUNDS && hasToolUse(response.content)) {
+        console.error(
+          `[agentOrchestrator] Tool-use loop hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS}) for user ${userId}. Aborting further tool calls.`
+        );
+      }
+
+      finalTextResponse = extractTextFromContent(response.content);
+    } catch (err) {
+      console.error('[agentOrchestrator] Claude API error:', err.message);
+      return { response: FALLBACK_RESPONSE, safetyAlert: null };
     }
 
-    finalTextResponse = extractTextFromContent(response.content);
+    // Step 9: Apply vocabulary and readability filters
+    const vocabLevel = user.vocabulary_level || 'basic';
+    let filteredResponse = vocabularyFilter.filterResponse(finalTextResponse, vocabLevel);
+    filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
+
+    // Critical 2: Guard against empty filtered response before persisting
+    if (!filteredResponse) {
+      return { response: FALLBACK_RESPONSE, safetyAlert };
+    }
+
+    // Step 10: Persist the assistant's response
+    conversationState.addMessage(sessionId, 'assistant', filteredResponse);
+
+    return { response: filteredResponse, safetyAlert };
   } catch (err) {
-    console.error('[agentOrchestrator] Claude API error:', err.message);
+    // Important 5: Catch any synchronous error from DB setup, session creation, etc.
+    console.error('[agentOrchestrator] Unexpected error in processMessage:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null };
   }
-
-  // Step 9: Apply vocabulary and readability filters
-  const vocabLevel = user.vocabulary_level || 'basic';
-  let filteredResponse = vocabularyFilter.filterResponse(finalTextResponse, vocabLevel);
-  filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
-
-  // Step 10: Persist the assistant's response
-  conversationState.addMessage(sessionId, 'assistant', filteredResponse);
-
-  return { response: filteredResponse, safetyAlert };
 }
 
 module.exports = { processMessage };
