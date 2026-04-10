@@ -1,0 +1,9 @@
+{
+  "id": "update-device",
+  "name": "Update Your Device",
+  "description": "Help the user check for and install software updates",
+  "triggers": ["update", "software update", "system update", "upgrade", "out of date", "new version", "update my phone", "update my computer"],
+  "category": "maintenance",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to update their device. Explain why updates are important (they fix problems and keep the device safe). Walk them through checking for updates in Settings. Remind them to plug in their charger and connect to Wi-Fi before updating. Mention that updates can take a while — that is normal."
+}

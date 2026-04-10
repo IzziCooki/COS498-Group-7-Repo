@@ -2,20 +2,18 @@ const { execSync } = require('child_process');
 const conversationState = require('./conversationState');
 const userProfileManager = require('./userProfileManager');
 const vocabularyFilter = require('./vocabularyFilter');
+const { matchSkill, buildSkillPrompt, getSkillsSummary } = require('./skillMatcher');
 
 /**
- * CLI-powered responder.
- * All thinking is done by the AI via `claude -p`.
- * No hardcoded responses, no pattern matching — the AI handles everything.
+ * CLI-powered responder with automatic skill matching.
+ *
+ * Every user message is checked against the skills library.
+ * If a skill matches, its specialized prompt is injected into the AI context.
+ * The AI always generates all output — skills just guide its expertise.
  */
 
 /**
- * Main responder. Sends every message to Claude CLI.
- *
- * @param {string} text - user message
- * @param {string} userId
- * @param {string} sessionId
- * @returns {{ response: string, safetyAlert: object|null, guideId: null, stepSequence: null }}
+ * Main responder.
  */
 function respond(text, userId, sessionId) {
   const user = userProfileManager.getOrCreateUser(userId);
@@ -24,6 +22,12 @@ function respond(text, userId, sessionId) {
   // Save user message
   conversationState.addMessage(sessionId, 'user', text);
 
+  // Auto-match a skill from the user's message
+  const match = matchSkill(text);
+  if (match) {
+    console.log(`[skillMatcher] Matched skill: "${match.skill.name}" (score: ${match.score})`);
+  }
+
   // Load recent conversation history for context
   const recentMessages = conversationState.getSessionMessages(sessionId, 10);
   const historyText = recentMessages
@@ -31,8 +35,8 @@ function respond(text, userId, sessionId) {
     .map(m => `${m.role === 'user' ? 'User' : 'PC Pal'}: ${m.body}`)
     .join('\n');
 
-  // Ask Claude CLI
-  const rawResponse = askClaudeCli(text, user, historyText);
+  // Ask Claude CLI with skill context
+  const rawResponse = askClaudeCli(text, user, historyText, match?.skill || null);
 
   // Filter vocabulary
   const filtered = vocabularyFilter.filterResponse(rawResponse, vocabLevel);
@@ -49,15 +53,9 @@ function respond(text, userId, sessionId) {
 }
 
 /**
- * Call the claude CLI to answer a question.
- * Includes conversation history and user device context.
- *
- * @param {string} text - the user's question
- * @param {object} user - user profile object
- * @param {string} history - recent conversation history
- * @returns {string} the AI response text
+ * Call the claude CLI with automatic skill injection.
  */
-function askClaudeCli(text, user, history) {
+function askClaudeCli(text, user, history, skill) {
   const name = user?.name || 'friend';
   const os = user?.os_type || 'a computer';
   const comfort = user?.comfort_level || 1;
@@ -66,23 +64,37 @@ function askClaudeCli(text, user, history) {
     ? `\nRecent conversation:\n${history}\n`
     : '';
 
+  const skillBlock = skill
+    ? buildSkillPrompt(skill)
+    : '';
+
+  const skillsList = getSkillsSummary();
+
   const prompt = `You are PC Pal, a warm and patient tech tutor for elderly users. You are helping ${name}, who uses a ${os} device and has a comfort level of ${comfort}/5 (1=brand new, 5=comfortable).
 
-CRITICAL: The user's device is ${os}. ALL instructions MUST be specific to ${os}. Do NOT give instructions for other devices. For example:
-- If they use iPhone, give iOS/iPhone instructions (tap, swipe, Settings app, etc.)
-- If they use Android, give Android instructions (tap, swipe, Google apps, etc.)
-- If they use Windows, give Windows instructions (click, Start menu, taskbar, etc.)
-- If they use Mac, give Mac instructions (click, Apple menu, Dock, etc.)
+CRITICAL: The user's device is ${os}. ALL instructions MUST be specific to ${os}. Do NOT give instructions for other devices.
+${skillBlock}
+
+You are an expert in these topics:
+${skillsList}
 
 Rules:
 - Use simple, everyday language. No jargon.
 - Be warm, patient, and encouraging — like a helpful grandchild.
 - Keep your answer concise (under 200 words).
-- Give numbered steps specific to ${os}.
 - Never be condescending.
-- If the user says "done", "ok", "next", "got it" — acknowledge their progress and tell them what to do next.
-- If the user says "start over" or "new question" — cheerfully reset and ask what they'd like help with.
-- If the user asks "what should I learn" — suggest a useful skill for their ${os} device.
+- If the user says "done", "ok", "next", "got it" — acknowledge their progress warmly and tell them what to do next.
+- If the user says "start over" or "new question" — cheerfully ask what they'd like help with.
+- If the user asks "what should I learn" — suggest a useful skill for their ${os} device from your expertise list.
+
+Formatting (VERY IMPORTANT — follow this exactly):
+- Start with a short friendly sentence, then a blank line.
+- For tasks, use numbered steps. Each step on its own line with a blank line between.
+- Put the key action in each step in **bold** using **double asterisks**.
+- Keep each step to ONE short sentence.
+- End with a blank line and a short encouraging closing line.
+- For keyboard shortcuts, write them like: **Ctrl + C**
+- Never write long paragraphs. Short, separated lines only.
 ${historyBlock}
 User's message: ${text}
 
@@ -100,9 +112,6 @@ Respond directly to the user:`;
   }
 }
 
-/**
- * Escape a string for safe use as a shell argument.
- */
 function escapeShellArg(arg) {
   return '"' + arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
 }
