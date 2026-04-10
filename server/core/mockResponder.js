@@ -13,9 +13,9 @@ const UserNote = require('../models/UserNote');
  * that exercise visual guides, step sequences, and skill tracking.
  */
 
-const MOCK_RESPONSES = {
+// Guide metadata — no canned text. All text comes from Claude CLI.
+const GUIDE_DATA = {
   copy_paste: {
-    text: "Great question! Let me show you how to copy and paste. It's one of the most useful things you can do on a computer — it lets you move text from one place to another without retyping it.\n\nI've pulled up a visual guide for you below. Let's go through it step by step!",
     guideId: 'copy_paste',
     steps: [
       'Click at the start of the text you want to copy, then drag your mouse to the end to highlight it in blue.',
@@ -27,7 +27,6 @@ const MOCK_RESPONSES = {
     skillName: 'copy_paste',
   },
   screenshot: {
-    text: "Taking a screenshot is like taking a photo of what's on your screen right now. It's super useful when you need to show someone what you see! Let me show you how.",
     guideId: 'take_screenshot',
     steps: [
       'Make sure what you want to capture is showing on your screen.',
@@ -39,7 +38,6 @@ const MOCK_RESPONSES = {
     skillName: 'take_screenshot',
   },
   email: {
-    text: "Sending an email is a wonderful way to stay in touch! Think of it like writing a letter, but it arrives instantly. Let me walk you through it.",
     guideId: 'send_email',
     steps: [
       'Open your email app (like Gmail or Outlook). Look for an envelope icon.',
@@ -52,7 +50,6 @@ const MOCK_RESPONSES = {
     skillName: 'send_email',
   },
   settings: {
-    text: "Let me show you how to open your computer's Settings. This is where you can change things like your wallpaper, sounds, and display options.",
     guideId: 'open_settings',
     steps: [
       'Click the Start button (the Windows logo) in the bottom-left corner of your screen.',
@@ -63,7 +60,6 @@ const MOCK_RESPONSES = {
     skillName: 'open_settings',
   },
   zoom: {
-    text: "Making text bigger is really easy and makes everything so much more comfortable to read! Here's how to do it.",
     guideId: 'zoom_text',
     steps: [
       'Hold down the Ctrl key on your keyboard.',
@@ -75,7 +71,6 @@ const MOCK_RESPONSES = {
     skillName: 'zoom_text',
   },
   wifi: {
-    text: "Connecting to Wi-Fi is how your computer gets on the internet without any wires. Think of it like a radio signal that carries the internet to your device!",
     guideId: 'find_wifi',
     steps: [
       'Look at the bottom-right corner of your screen for a small globe or signal bars icon.',
@@ -87,12 +82,50 @@ const MOCK_RESPONSES = {
     taskName: 'Connect to Wi-Fi',
     skillName: 'find_wifi',
   },
-  help: {
-    text: "Hello! I'm PC Pal, your friendly tech helper. Here are some things I can help you with:\n\n• Copy and paste text\n• Take a screenshot\n• Send an email\n• Open your computer settings\n• Make text bigger on your screen\n• Connect to Wi-Fi\n• Attach a file to an email\n• Open a web browser\n• Restart your computer\n• Use the taskbar\n\nJust ask me about any of these, or ask me anything else about your computer! I'm here to help, and there's no such thing as a silly question.",
-    guideId: null,
-    steps: null,
-    taskName: null,
-    skillName: null,
+  attach_file: {
+    guideId: 'attach_file',
+    steps: [
+      'Open your email and start a new message (or reply to one).',
+      'Look for a paperclip icon — it\'s usually near the top or bottom of the compose window.',
+      'Click the paperclip. A window will open showing your files.',
+      'Find the file you want to attach and double-click it (or click it and press "Open").',
+      'Wait a moment for the file to upload, then click Send!',
+    ],
+    taskName: 'Attach a File to Email',
+    skillName: 'attach_file',
+  },
+  open_browser: {
+    guideId: 'open_browser',
+    steps: [
+      'Look at the bottom bar of your screen (the taskbar).',
+      'Find the icon that looks like a blue circle or a colorful circle — that\'s your internet browser.',
+      'Click it once. A new window will open.',
+      'Click in the address bar at the top and type a website address (like google.com), then press Enter.',
+    ],
+    taskName: 'Open a Web Browser',
+    skillName: 'open_browser',
+  },
+  restart_computer: {
+    guideId: 'restart_computer',
+    steps: [
+      'Click the Start button (Windows logo) in the bottom-left corner.',
+      'Click the Power icon — it looks like a circle with a line at the top.',
+      'Click "Restart" from the menu that appears.',
+      'Wait patiently — your computer will turn off and back on by itself. This may take a minute or two.',
+    ],
+    taskName: 'Restart Your Computer',
+    skillName: 'restart_computer',
+  },
+  use_taskbar: {
+    guideId: 'use_taskbar',
+    steps: [
+      'Look at the very bottom of your screen — that long strip is called the taskbar.',
+      'On the left side, you\'ll see the Start button (Windows logo). Click it to open the main menu.',
+      'In the middle, you\'ll see icons for your open programs. Click any icon to switch to that program.',
+      'On the right side, you\'ll see the clock, Wi-Fi icon, and speaker icon. Click any of them for quick settings.',
+    ],
+    taskName: 'Use the Taskbar',
+    skillName: 'use_taskbar',
   },
 };
 
@@ -257,44 +290,54 @@ function respond(text, userId, sessionId) {
     return { response, safetyAlert: null, guideId: null, stepSequence: null };
   }
 
-  // Pattern match to a topic
-  let mockData = null;
+  // Pattern match to a guide topic (sets guide metadata, text comes from CLI)
+  let guideData = null;
   if (matches(text, ['copy', 'paste', 'ctrl+c', 'ctrl+v'])) {
-    mockData = MOCK_RESPONSES.copy_paste;
+    guideData = GUIDE_DATA.copy_paste;
   } else if (matches(text, ['screenshot', 'screen shot', 'capture screen', 'print screen'])) {
-    mockData = MOCK_RESPONSES.screenshot;
+    guideData = GUIDE_DATA.screenshot;
   } else if (matches(text, ['email', 'mail', 'send a message', 'write a letter'])) {
-    mockData = MOCK_RESPONSES.email;
+    guideData = GUIDE_DATA.email;
   } else if (matches(text, ['setting', 'preference', 'control panel', 'configure'])) {
-    mockData = MOCK_RESPONSES.settings;
+    guideData = GUIDE_DATA.settings;
   } else if (matches(text, ['bigger', 'zoom', 'larger', 'text size', 'can\'t read', 'too small'])) {
-    mockData = MOCK_RESPONSES.zoom;
+    guideData = GUIDE_DATA.zoom;
   } else if (matches(text, ['wifi', 'wi-fi', 'internet', 'connect', 'online'])) {
-    mockData = MOCK_RESPONSES.wifi;
-  } else if (matches(text, ['help', 'hello', 'hi', 'what can you do', 'hey'])) {
-    mockData = MOCK_RESPONSES.help;
+    guideData = GUIDE_DATA.wifi;
+  } else if (matches(text, ['attach', 'attachment', 'file to email', 'paperclip'])) {
+    guideData = GUIDE_DATA.attach_file;
+  } else if (matches(text, ['browser', 'chrome', 'edge', 'firefox', 'safari', 'web browser'])) {
+    guideData = GUIDE_DATA.open_browser;
+  } else if (matches(text, ['restart', 'reboot', 'shut down', 'turn off'])) {
+    guideData = GUIDE_DATA.restart_computer;
+  } else if (matches(text, ['taskbar', 'task bar', 'bottom bar', 'start button'])) {
+    guideData = GUIDE_DATA.use_taskbar;
   }
 
-  if (mockData) {
-    // Log skill if applicable
-    if (mockData.skillName) {
+  // Get text response from Claude CLI (for ALL messages, with or without a guide)
+  const cliResponse = askClaudeCli(text, user);
+  const filtered = vocabularyFilter.filterResponse(cliResponse, vocabLevel);
+
+  if (guideData) {
+    // Log skill
+    if (guideData.skillName) {
       try {
-        SkillEvent.create({ user_id: userId, skill_name: mockData.skillName, status: 'started' });
-      } catch (e) { /* ignore duplicates */ }
+        SkillEvent.create({ user_id: userId, skill_name: guideData.skillName, status: 'started' });
+      } catch (e) { /* ignore */ }
     }
 
-    // Create step sequence if applicable
+    // Create step sequence
     let stepSequence = null;
-    if (mockData.steps) {
+    if (guideData.steps) {
       try {
         const seq = StepSequence.create({
           conversation_id: sessionId,
-          steps: mockData.steps,
+          steps: guideData.steps,
           current_index: 0,
         });
         stepSequence = {
           id: seq.id,
-          taskName: mockData.taskName,
+          taskName: guideData.taskName,
           steps: seq.steps,
           currentIndex: 0,
           completed: false,
@@ -305,30 +348,26 @@ function respond(text, userId, sessionId) {
     }
 
     // Save a note
-    if (mockData.skillName && mockData.taskName) {
+    if (guideData.skillName && guideData.taskName) {
       try {
         UserNote.create({
           user_id: userId,
-          title: mockData.taskName,
-          content: `You started learning ${mockData.taskName}. Remember to practice!`,
+          title: guideData.taskName,
+          content: `You started learning ${guideData.taskName}. Remember to practice!`,
         });
       } catch (e) { /* ignore */ }
     }
 
-    const filtered = vocabularyFilter.filterResponse(mockData.text, vocabLevel);
     conversationState.addMessage(sessionId, 'assistant', filtered);
-
     return {
       response: filtered,
       safetyAlert: null,
-      guideId: mockData.guideId,
+      guideId: guideData.guideId,
       stepSequence,
     };
   }
 
-  // Default: use Claude CLI to answer any question
-  const cliResponse = askClaudeCli(text, user);
-  const filtered = vocabularyFilter.filterResponse(cliResponse, vocabLevel);
+  // No guide matched — just return the CLI response
   conversationState.addMessage(sessionId, 'assistant', filtered);
   return { response: filtered, safetyAlert: null, guideId: null, stepSequence: null };
 }

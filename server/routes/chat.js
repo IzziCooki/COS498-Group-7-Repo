@@ -16,11 +16,18 @@ router.post('/', async (req, res) => {
     }
 
     const result = await agentOrchestrator.processMessage(text, userId);
+    const guideId = result.guideId || null;
+    const imageUrls = guideId ? {
+      keyboard: `/images/${guideId}_keyboard.png`,
+      screen: `/images/${guideId}_screen.png`,
+    } : null;
+
     res.json({
       response: result.response,
       safetyAlert: result.safetyAlert,
-      guideId: result.guideId || null,
+      guideId,
       stepSequence: result.stepSequence || null,
+      imageUrls,
     });
   } catch (err) {
     console.error('[chat] POST / error:', err.message);
