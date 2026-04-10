@@ -126,6 +126,40 @@
   color: #1a3a8a;
 }
 
+/* Annotated device screenshots */
+.bubble__screenshots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.bubble__screenshot-card {
+  flex: 1 1 200px;
+  max-width: 280px;
+  background: #f8f9fa;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.bubble__screenshot-img {
+  width: 100%;
+  display: block;
+}
+
+.bubble__screenshot-caption {
+  font-size: 15px;
+  color: var(--color-text-light, #666);
+  text-align: center;
+  padding: 8px 10px;
+  margin: 0;
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  background: #fff;
+}
+
 /* Timestamp */
 .bubble__time {
   font-size: 16px;
