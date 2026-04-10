@@ -8,14 +8,12 @@ import './MessageBubble.css';
 function formatMessage(text) {
   if (!text) return null;
 
-  // Split into paragraphs by double newline
   const paragraphs = text.split(/\n\n+/);
 
   return paragraphs.map((para, i) => {
     const trimmed = para.trim();
     if (!trimmed) return null;
 
-    // Check if this paragraph is a numbered step (starts with "1.", "2.", etc.)
     const stepMatch = trimmed.match(/^(\d+)\.\s*(.*)/s);
     if (stepMatch) {
       const num = stepMatch[1];
@@ -28,7 +26,6 @@ function formatMessage(text) {
       );
     }
 
-    // Regular paragraph
     return <p key={i} className="bubble__paragraph">{renderInline(trimmed)}</p>;
   });
 }
@@ -39,7 +36,6 @@ function formatMessage(text) {
 function renderInline(text) {
   if (!text) return null;
 
-  // Split by **bold** markers
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
 
   return parts.map((part, i) => {
@@ -51,14 +47,10 @@ function renderInline(text) {
 }
 
 /**
- * MessageBubble — displays a single chat message.
- *
- * User messages: right-aligned, blue background.
- * Assistant messages: left-aligned, white/formatted background.
- * Shows a red safety alert banner when safetyAlert is present.
+ * MessageBubble — displays a single chat message with formatted text and images.
  */
 function MessageBubble({ message }) {
-  const { role, text, timestamp, safetyAlert } = message;
+  const { role, text, timestamp, safetyAlert, images } = message;
   const isUser = role === 'user';
 
   const formattedTime = timestamp
@@ -80,6 +72,24 @@ function MessageBubble({ message }) {
         ) : (
           <div className="bubble__formatted">{formatMessage(text)}</div>
         )}
+
+        {/* Annotated device screenshots */}
+        {images && images.length > 0 && (
+          <div className="bubble__screenshots">
+            {images.map((img, i) => (
+              <div key={i} className="bubble__screenshot-card">
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  className="bubble__screenshot-img"
+                  loading="lazy"
+                />
+                <p className="bubble__screenshot-caption">{img.alt}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>
       </div>
 

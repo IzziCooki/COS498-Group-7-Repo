@@ -49,7 +49,14 @@ function respond(text, userId, sessionId) {
 
   // Save and return
   conversationState.addMessage(sessionId, 'assistant', filtered);
-  return { response: filtered, safetyAlert: null, guideId: null, stepSequence: null };
+  return {
+    response: filtered,
+    safetyAlert: null,
+    guideId: null,
+    stepSequence: null,
+    matchedSkillId: match?.skill?.id || null,
+    userOsType: user.os_type || null,
+  };
 }
 
 /**
