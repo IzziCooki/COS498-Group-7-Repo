@@ -1,0 +1,68 @@
+# Security workflow – runs npm audit for both root (server) and client packages.
+# Runs on a weekly schedule, on pushes to main/master, and can be triggered manually.
+# Audit failures at "high" severity or above will fail the job; lower severities are
+# reported but non-blocking (exit code captured separately).
+
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'   # every Monday at 08:00 UTC
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:       # allow manual runs from the Actions tab
+
+# Restrict GITHUB_TOKEN to read-only by default
+permissions:
+  contents: read
+
+jobs:
+  # ── Audit root (server) dependencies ──────────────────────────────────────
+  audit-server:
+    name: Audit – Server Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      # Fail on high/critical vulnerabilities; moderate and below are informational.
+      - name: Run npm audit (server)
+        run: npm audit --audit-level=high
+
+  # ── Audit client dependencies ──────────────────────────────────────────────
+  audit-client:
+    name: Audit – Client Dependencies
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+
+      # Fail on high/critical vulnerabilities; moderate and below are informational.
+      - name: Run npm audit (client)
+        run: npm audit --audit-level=high
