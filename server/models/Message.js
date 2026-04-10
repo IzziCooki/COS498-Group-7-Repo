@@ -3,6 +3,9 @@ const { v4: uuidv4 } = require('uuid');
 
 const Message = {
   create(data) {
+    if (!data.conversation_id) throw new Error('Message.create: conversation_id is required');
+    if (!data.role) throw new Error('Message.create: role is required');
+    if (!data.body) throw new Error('Message.create: body is required');
     const id = data.id || uuidv4();
     const now = new Date().toISOString();
     const stmt = db.prepare(`

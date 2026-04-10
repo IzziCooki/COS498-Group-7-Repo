@@ -19,11 +19,17 @@ const StepSequence = {
   },
 
   findById(id) {
-    return db.prepare('SELECT * FROM step_sequences WHERE id = ?').get(id) || null;
+    const row = db.prepare('SELECT * FROM step_sequences WHERE id = ?').get(id) || null;
+    if (row && typeof row.steps === 'string') row.steps = JSON.parse(row.steps);
+    return row;
   },
 
   findByConversationId(conversationId) {
-    return db.prepare('SELECT * FROM step_sequences WHERE conversation_id = ?').all(conversationId);
+    const rows = db.prepare('SELECT * FROM step_sequences WHERE conversation_id = ?').all(conversationId);
+    return rows.map(row => {
+      if (typeof row.steps === 'string') row.steps = JSON.parse(row.steps);
+      return row;
+    });
   },
 
   update(id, fields) {

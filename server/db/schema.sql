@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
   accessibility_needs TEXT DEFAULT '[]',
   comfort_level INTEGER DEFAULT 1,
   onboarded INTEGER DEFAULT 0,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   task_type TEXT,
   status TEXT DEFAULT 'active',
   context_summary TEXT,
-  started_at TEXT,
+  started_at TEXT DEFAULT (datetime('now')),
   ended_at TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS messages (
   conversation_id TEXT NOT NULL,
   role TEXT NOT NULL,
   body TEXT NOT NULL,
-  created_at TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (conversation_id) REFERENCES conversations(id)
 );
 
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS skill_events (
   user_id TEXT NOT NULL,
   skill_name TEXT NOT NULL,
   status TEXT DEFAULT 'started',
-  practiced_at TEXT,
+  practiced_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -53,6 +53,6 @@ CREATE TABLE IF NOT EXISTS safety_events (
   user_id TEXT NOT NULL,
   event_type TEXT NOT NULL,
   trigger_text TEXT,
-  created_at TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

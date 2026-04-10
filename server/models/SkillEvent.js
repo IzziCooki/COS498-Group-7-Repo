@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 
 const SkillEvent = {
   create(data) {
+    if (!data.user_id) throw new Error('SkillEvent.create: user_id is required');
+    if (!data.skill_name) throw new Error('SkillEvent.create: skill_name is required');
     const id = data.id || uuidv4();
     const now = new Date().toISOString();
     const stmt = db.prepare(`
