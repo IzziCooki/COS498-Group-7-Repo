@@ -27,6 +27,7 @@ const userProfileManager = {
    * @returns {object} user record
    */
   getOrCreateUser(id) {
+    if (!id) throw new Error('id is required');
     const existing = User.findById(id);
     if (existing) return existing;
     return User.create({ id });

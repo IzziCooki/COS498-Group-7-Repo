@@ -4,7 +4,9 @@ const EMERGENCY_KEYWORDS = [
   "fallen",
   "can't breathe",
   "chest pain",
-  "help me",
+  "someone help me",
+  "please help",
+  "I need help now",
   "911",
   "emergency",
   "hurt",
@@ -58,11 +60,15 @@ function checkMessage(text, userId) {
   // Check for emergency keywords first (higher priority)
   for (const { keyword, regex } of compiledEmergencyPatterns) {
     if (regex.test(text)) {
-      SafetyEvent.create({
-        user_id: userId,
-        event_type: 'emergency',
-        trigger_text: text.slice(0, 500), // cap stored text
-      });
+      try {
+        SafetyEvent.create({
+          user_id: userId,
+          event_type: 'emergency',
+          trigger_text: text.slice(0, 500), // cap stored text
+        });
+      } catch (dbErr) {
+        console.error('[safetyMonitor] Failed to log emergency event to DB:', dbErr);
+      }
       return {
         safe: false,
         type: 'emergency',
@@ -74,11 +80,15 @@ function checkMessage(text, userId) {
   // Check for scam patterns
   for (const pattern of SCAM_PATTERNS) {
     if (pattern.test(text)) {
-      SafetyEvent.create({
-        user_id: userId,
-        event_type: 'scam',
-        trigger_text: text.slice(0, 500),
-      });
+      try {
+        SafetyEvent.create({
+          user_id: userId,
+          event_type: 'scam',
+          trigger_text: text.slice(0, 500),
+        });
+      } catch (dbErr) {
+        console.error('[safetyMonitor] Failed to log scam event to DB:', dbErr);
+      }
       return {
         safe: false,
         type: 'scam',

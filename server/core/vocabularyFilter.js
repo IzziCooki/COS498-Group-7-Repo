@@ -32,6 +32,10 @@ function buildWordRegex(term) {
 function filterResponse(text, vocabLevel) {
   if (!text || vocabLevel === 'standard') return text;
 
+  if (vocabLevel !== 'basic' && vocabLevel !== 'intermediate') {
+    console.warn(`[vocabularyFilter] Unexpected vocabulary level: "${vocabLevel}". Expected "basic", "intermediate", or "standard".`);
+  }
+
   let result = text;
   const keysToApply = vocabLevel === 'basic'
     ? Object.keys(substitutions)
@@ -71,10 +75,8 @@ function enforceReadability(text) {
     while ((match = breakPattern.exec(sentence)) !== null) {
       const upToBreak = sentence.slice(lastIndex, match.index).trim();
       if (upToBreak) parts.push(upToBreak);
-      // The conjunction starts the next segment
-      lastIndex = match.index + match[0].length - match[1].length - 1; // keep one space + conjunction
-      // Actually start the next segment with the conjunction
-      lastIndex = match.index + 1; // skip the leading space
+      // Start the next segment with the conjunction (skip the leading space)
+      lastIndex = match.index + 1;
     }
     // Push the remaining text
     const tail = sentence.slice(lastIndex).trim();
