@@ -1,0 +1,9 @@
+{
+  "id": "settings",
+  "name": "Open Settings",
+  "description": "Help the user find and navigate device settings",
+  "triggers": ["settings", "preferences", "control panel", "configure", "change settings", "system settings", "options"],
+  "category": "basics",
+  "difficulty": "beginner",
+  "prompt": "The user wants to open Settings on their device. Show them exactly how to get there. Mention that Settings is where they can change wallpaper, sounds, display, Wi-Fi, and many other things. Encourage them to explore — they can't break anything by looking."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "app-install",
+  "name": "Install an App",
+  "description": "Help the user download and install an app from the app store",
+  "triggers": ["install", "download app", "get app", "app store", "play store", "new app", "add app", "download"],
+  "category": "basics",
+  "difficulty": "beginner",
+  "prompt": "The user wants to install an app. Explain the app store for their device (App Store for iPhone, Google Play for Android, Microsoft Store for Windows). Walk through searching for the app, tapping Install/Get, and waiting for it to download. Mention that most apps are free but some cost money — look for the price before tapping."
+}

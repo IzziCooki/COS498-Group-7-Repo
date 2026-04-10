@@ -1,0 +1,9 @@
+{
+  "id": "text-message",
+  "name": "Send a Text Message",
+  "description": "Help the user send a text message or iMessage",
+  "triggers": ["text message", "text someone", "send text", "sms", "imessage", "message someone", "how to text"],
+  "category": "communication",
+  "difficulty": "beginner",
+  "prompt": "The user wants to send a text message. Walk them through opening the Messages app, starting a new conversation, typing the phone number or selecting a contact, writing the message, and tapping Send. Mention the difference between the green bubble (SMS) and blue bubble (iMessage) on iPhone if relevant."
+}

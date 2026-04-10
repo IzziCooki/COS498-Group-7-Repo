@@ -1,0 +1,9 @@
+{
+  "id": "attach-file",
+  "name": "Attach a File to Email",
+  "description": "Help the user attach a photo, document, or file to an email",
+  "triggers": ["attach", "attachment", "attach file", "attach photo", "send photo", "send file", "send picture", "paperclip", "add file to email"],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to attach a file or photo to an email. Explain the paperclip icon and what it does. Walk through the process of finding the file, selecting it, and confirming it is attached before sending."
+}

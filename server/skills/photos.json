@@ -1,0 +1,9 @@
+{
+  "id": "photos",
+  "name": "View and Share Photos",
+  "description": "Help the user find, view, and share photos on their device",
+  "triggers": ["photo", "photos", "picture", "pictures", "gallery", "camera roll", "share photo", "find photo", "send photo", "where are my photos"],
+  "category": "media",
+  "difficulty": "beginner",
+  "prompt": "The user wants help with photos. Help them open their Photos/Gallery app, find photos, and optionally share them. Mention that photos are usually organized by date. Show how to share a photo via email or message."
+}
