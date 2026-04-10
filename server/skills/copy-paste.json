@@ -1,0 +1,9 @@
+{
+  "id": "copy-paste",
+  "name": "Copy and Paste",
+  "description": "Help the user copy and paste text, images, or files",
+  "triggers": ["copy", "paste", "ctrl+c", "ctrl+v", "cmd+c", "cmd+v", "duplicate text", "move text"],
+  "category": "basics",
+  "difficulty": "beginner",
+  "prompt": "The user needs help with copying and pasting. Teach them step by step. Mention that this is one of the most useful skills on any device. Explain what the clipboard is in simple terms (a temporary invisible notepad). Show the keyboard shortcut prominently in bold."
+}
