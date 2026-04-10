@@ -64,6 +64,103 @@ jobs:
       - name: Build (Vite)
         run: npm run build
 
+  # ── Server: runtime smoke test – actually starts the Express server ─────────
+  server-smoke-test:
+    name: Server – Runtime Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Start Express server in background
+        run: |
+          # Provide dummy env vars so the server starts without real API keys
+          ANTHROPIC_API_KEY=dummy GEMINI_API_KEY=dummy PORT=3001 \
+            node server/index.js &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for Express server to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/api/health > /dev/null 2>&1; then
+              echo "Server is up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not start within 30 seconds" >&2
+          exit 1
+
+      - name: Assert health endpoint returns status ok
+        run: |
+          RESPONSE=$(curl -sf http://localhost:3001/api/health)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep -q '"status":"ok"'
+
+      - name: Stop Express server
+        if: always()
+        run: kill "$SERVER_PID" 2>/dev/null || true
+
+  # ── Client: runtime smoke test – actually starts the Vite dev server ────────
+  client-smoke-test:
+    name: Client – Runtime Smoke Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+
+      - name: Start Vite dev server in background
+        run: |
+          npm run dev -- --port 5173 &
+          echo "VITE_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for Vite dev server to be ready
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5173 > /dev/null 2>&1; then
+              echo "Vite dev server is up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Vite dev server did not start within 60 seconds" >&2
+          exit 1
+
+      - name: Assert Vite dev server responds with HTTP 200
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:5173)
+          echo "HTTP status: $STATUS"
+          [ "$STATUS" = "200" ]
+
+      - name: Stop Vite dev server
+        if: always()
+        run: kill "$VITE_PID" 2>/dev/null || true
+
   # ── Claude AI agent smoke-test (requires ANTHROPIC_API_KEY secret) ─────────
   # This job is skipped automatically in forks and when the secret is not set.
   claude-agent-check:
@@ -102,13 +199,13 @@ jobs:
             console.log('agentOrchestrator loaded OK');
           "
 
-  # ── Summary gate: all three jobs must pass ────────────────────────────────
+  # ── Summary gate: all jobs must pass ─────────────────────────────────────
   # Add this job as the required status check in branch protection settings.
   # It passes when every required job succeeds (or is intentionally skipped).
   ci-pass:
     name: CI – All Checks Passed
     runs-on: ubuntu-latest
-    needs: [server-test, client-lint-build, claude-agent-check]
+    needs: [server-test, client-lint-build, server-smoke-test, client-smoke-test, claude-agent-check]
     # Run even when claude-agent-check is skipped (secret not set)
     if: always()
 
@@ -117,12 +214,17 @@ jobs:
         run: |
           server="${{ needs.server-test.result }}"
           client="${{ needs.client-lint-build.result }}"
+          server_smoke="${{ needs.server-smoke-test.result }}"
+          client_smoke="${{ needs.client-smoke-test.result }}"
           agent="${{ needs.claude-agent-check.result }}"
           echo "server-test:        $server"
           echo "client-lint-build:  $client"
+          echo "server-smoke-test:  $server_smoke"
+          echo "client-smoke-test:  $client_smoke"
           echo "claude-agent-check: $agent"
-          # Fail if server or client jobs did not succeed
-          if [ "$server" != "success" ] || [ "$client" != "success" ]; then
+          # Fail if any required job did not succeed
+          if [ "$server" != "success" ] || [ "$client" != "success" ] || \
+             [ "$server_smoke" != "success" ] || [ "$client_smoke" != "success" ]; then
             echo "One or more required jobs failed."
             exit 1
           fi
