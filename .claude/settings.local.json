@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git:*)",
+      "Bash(npm install:*)",
+      "Bash(npm view:*)",
+      "Bash(npm create:*)",
+      "Bash(node -e ':*)",
+      "Bash(node -e \"const db = require\\('./db/database'\\); console.log\\('DB initialized ok, open:', db.open\\);\")",
+      "Bash(node:*)",
+      "Bash(grep -n \"package\\\\|anthropic\\\\|sdk\" package.json)",
+      "Bash(ls *.json)",
+      "Bash(ls server/*.json)",
+      "Bash(timeout 30 npm run build)",
+      "Bash(npx vite:*)",
+      "Bash(npm test:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(fuser -k 3001/tcp)"
+    ]
+  }
+}

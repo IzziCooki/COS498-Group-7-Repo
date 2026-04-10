@@ -1,5 +1,5 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const { anthropicApiKey } = require('../config');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { geminiApiKey } = require('../config');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
@@ -7,26 +7,25 @@ const userProfileManager = require('./userProfileManager');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
 
-if (!anthropicApiKey) {
-  console.warn('[agentOrchestrator] anthropicApiKey is not set — Claude API calls will fail. Running in degraded mode.');
+if (!geminiApiKey) {
+  console.warn('[agentOrchestrator] GEMINI_API_KEY is not set — AI calls will fail. Running in degraded mode.');
 }
 
-const client = new Anthropic({ apiKey: anthropicApiKey });
+const genAI = new GoogleGenerativeAI(geminiApiKey);
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
 
-// Minor 7: Extract model ID to constant
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
-// Critical 1: Maximum number of tool-use rounds before aborting the loop
 const MAX_TOOL_ROUNDS = 10;
 
-const tools = [
+// Gemini function declarations (equivalent to Claude tools)
+const toolDeclarations = [
   {
     name: 'log_skill_started',
     description: 'Log that the user has started learning a new skill. Call this when you begin teaching a new topic.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: {
         skill_name: { type: 'string', description: 'Name of the skill being taught' },
@@ -36,9 +35,8 @@ const tools = [
   },
   {
     name: 'flag_emergency',
-    description:
-      'Flag a potential emergency. Use this if the user expresses distress, mentions falling, injury, or medical concerns.',
-    input_schema: {
+    description: 'Flag a potential emergency. Use this if the user expresses distress, mentions falling, injury, or medical concerns.',
+    parameters: {
       type: 'object',
       properties: {
         reason: { type: 'string', description: 'Why this was flagged as an emergency' },
@@ -50,7 +48,6 @@ const tools = [
 
 /**
  * Build a personalized system prompt using a pre-fetched profile string.
- * Minor 9: Accepts profileString directly so the caller avoids a duplicate DB query.
  * @param {string} profileString
  * @returns {string}
  */
@@ -74,84 +71,49 @@ Guidelines for every response:
 }
 
 /**
- * Extract the first plain-text block from a Claude response content array.
- * Returns an empty string if no text block is found.
- * @param {Array} content
- * @returns {string}
- */
-function extractTextFromContent(content) {
-  for (const block of content) {
-    if (block.type === 'text') {
-      return block.text;
-    }
-  }
-  return '';
-}
-
-/**
- * Check whether a Claude response content array contains any tool_use blocks.
- * @param {Array} content
- * @returns {boolean}
- */
-function hasToolUse(content) {
-  return content.some(block => block.type === 'tool_use');
-}
-
-/**
- * Handle all tool_use blocks in a Claude response.
- * Returns an array of tool result objects and a safetyAlert if flag_emergency was called.
- * @param {Array} content
+ * Handle a function call from Gemini.
+ * @param {string} name - function name
+ * @param {object} args - function arguments
  * @param {string} userId
- * @returns {{ toolResults: Array, safetyAlert: object|null }}
+ * @returns {{ result: string, safetyAlert: object|null }}
  */
-async function handleToolCalls(content, userId) {
-  const toolResults = [];
+function handleFunctionCall(name, args, userId) {
+  let result = 'done';
   let safetyAlert = null;
 
-  for (const block of content) {
-    if (block.type !== 'tool_use') continue;
-
-    const { id, name, input } = block;
-    let result = 'done';
-
-    if (name === 'log_skill_started') {
-      try {
-        // Important 3: No await — SkillEvent.create is a synchronous better-sqlite3 operation
-        SkillEvent.create({
-          user_id: userId,
-          skill_name: input.skill_name,
-          status: 'started',
-        });
-        result = `Logged skill started: ${input.skill_name}`;
-        console.log(`[agentOrchestrator] Skill started logged: "${input.skill_name}" for user ${userId}`);
-      } catch (err) {
-        console.error('[agentOrchestrator] Failed to log skill_started event:', err.message);
-        result = 'Failed to log skill event';
-      }
-    } else if (name === 'flag_emergency') {
-      try {
-        // Important 3: No await — SafetyEvent.create is a synchronous better-sqlite3 operation
-        const event = SafetyEvent.create({
-          user_id: userId,
-          event_type: 'emergency',
-          trigger_text: input.reason,
-        });
-        safetyAlert = { type: 'emergency', reason: input.reason, eventId: event ? event.id : null };
-        result = `Emergency flagged: ${input.reason}`;
-        console.warn(`[agentOrchestrator] Emergency flagged for user ${userId}: ${input.reason}`);
-      } catch (err) {
-        console.error('[agentOrchestrator] Failed to log flag_emergency event:', err.message);
-        result = 'Failed to log emergency event';
-      }
-    } else {
-      console.warn(`[agentOrchestrator] Unknown tool called: ${name}`);
-      result = `Unknown tool: ${name}`;
+  if (name === 'log_skill_started') {
+    try {
+      SkillEvent.create({
+        user_id: userId,
+        skill_name: args.skill_name,
+        status: 'started',
+      });
+      result = `Logged skill started: ${args.skill_name}`;
+      console.log(`[agentOrchestrator] Skill started logged: "${args.skill_name}" for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to log skill_started event:', err.message);
+      result = 'Failed to log skill event';
     }
-
-    toolResults.push({ id, result });
+  } else if (name === 'flag_emergency') {
+    try {
+      const event = SafetyEvent.create({
+        user_id: userId,
+        event_type: 'emergency',
+        trigger_text: args.reason,
+      });
+      safetyAlert = { type: 'emergency', reason: args.reason, eventId: event ? event.id : null };
+      result = `Emergency flagged: ${args.reason}`;
+      console.warn(`[agentOrchestrator] Emergency flagged for user ${userId}: ${args.reason}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to log flag_emergency event:', err.message);
+      result = 'Failed to log emergency event';
+    }
+  } else {
+    console.warn(`[agentOrchestrator] Unknown function called: ${name}`);
+    result = `Unknown function: ${name}`;
   }
 
-  return { toolResults, safetyAlert };
+  return { result, safetyAlert };
 }
 
 /**
@@ -163,8 +125,6 @@ async function handleToolCalls(content, userId) {
  * @returns {Promise<{ response: string, safetyAlert: object|null }>}
  */
 async function processMessage(text, userId) {
-  // Important 5: Entire function body wrapped in try/catch so any synchronous
-  // error (DB setup, session creation, etc.) returns FALLBACK_RESPONSE instead of crashing.
   try {
     // Step 1: Safety check — short-circuit if unsafe
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
@@ -173,8 +133,6 @@ async function processMessage(text, userId) {
     }
 
     // Step 2: Ensure the user exists in the DB
-    // Minor 9: Keep the user object so buildSystemPrompt can reuse the profile
-    // without a second DB query.
     const user = userProfileManager.getOrCreateUser(userId);
 
     // Step 3: Get or create conversation session
@@ -187,90 +145,84 @@ async function processMessage(text, userId) {
     // Step 5: Load recent conversation history (last 20 messages)
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
 
-    // Step 6: Convert DB messages to Claude's { role, content } format
-    const messages = dbMessages.map(msg => ({
-      role: msg.role,
-      content: msg.body,
+    // Step 6: Convert DB messages to Gemini's history format
+    // Gemini uses 'user' and 'model' roles (not 'assistant')
+    const history = dbMessages.slice(0, -1).map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.body }],
     }));
 
     // Step 7: Build system prompt
-    // Minor 9: Pass the profile string derived from the already-fetched user object
-    // to avoid a duplicate DB query inside buildSystemPrompt.
     const profileString = userProfileManager.getProfileForPrompt(userId, user);
     const systemPrompt = buildSystemPrompt(profileString);
 
-    // Step 8: Call Claude in a tool-use loop
+    // Step 8: Create Gemini chat and send message
     let safetyAlert = null;
     let finalTextResponse = '';
 
     try {
-      let response = await client.messages.create({
-        model: CLAUDE_MODEL,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages,
-        tools,
+      const model = genAI.getGenerativeModel({
+        model: GEMINI_MODEL,
+        systemInstruction: systemPrompt,
+        tools: [{ functionDeclarations: toolDeclarations }],
       });
 
-      // Critical 1: Tool-use loop with iteration cap
+      const chat = model.startChat({ history });
+
+      let response = await chat.sendMessage(text);
+      let result = response.response;
+
+      // Step 9: Handle function calls in a loop
       let toolRounds = 0;
-      while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
+      while (toolRounds < MAX_TOOL_ROUNDS) {
+        const functionCalls = result.functionCalls();
+        if (!functionCalls || functionCalls.length === 0) break;
+
         toolRounds += 1;
-        const { toolResults, safetyAlert: alert } = await handleToolCalls(response.content, userId);
 
-        // Merge any safety alert from this round
-        if (alert) safetyAlert = alert;
+        // Process each function call
+        const functionResponses = [];
+        for (const fc of functionCalls) {
+          const { result: fcResult, safetyAlert: alert } = handleFunctionCall(fc.name, fc.args, userId);
+          if (alert) safetyAlert = alert;
+          functionResponses.push({
+            functionResponse: {
+              name: fc.name,
+              response: { result: fcResult },
+            },
+          });
+        }
 
-        // Append assistant message (with tool_use blocks) and user tool results
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({
-          role: 'user',
-          content: toolResults.map(r => ({
-            type: 'tool_result',
-            tool_use_id: r.id,
-            content: r.result,
-          })),
-        });
-
-        // Ask Claude to continue after the tool results
-        response = await client.messages.create({
-          model: CLAUDE_MODEL,
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages,
-          tools,
-        });
+        // Send function results back to Gemini
+        response = await chat.sendMessage(functionResponses);
+        result = response.response;
       }
 
-      // Critical 1: Warn if the loop was terminated by the cap
-      if (toolRounds >= MAX_TOOL_ROUNDS && hasToolUse(response.content)) {
-        console.error(
-          `[agentOrchestrator] Tool-use loop hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS}) for user ${userId}. Aborting further tool calls.`
-        );
+      if (toolRounds >= MAX_TOOL_ROUNDS) {
+        console.error(`[agentOrchestrator] Tool-use loop hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS}) for user ${userId}`);
       }
 
-      finalTextResponse = extractTextFromContent(response.content);
+      finalTextResponse = result.text() || '';
     } catch (err) {
-      console.error('[agentOrchestrator] Claude API error:', err.message);
+      console.error('[agentOrchestrator] Gemini API error:', err.message);
       return { response: FALLBACK_RESPONSE, safetyAlert: null };
     }
 
-    // Step 9: Apply vocabulary and readability filters
+    // Step 10: Apply vocabulary and readability filters
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalTextResponse, vocabLevel);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
-    // Critical 2: Guard against empty filtered response before persisting
+    // Guard against empty response
     if (!filteredResponse) {
       return { response: FALLBACK_RESPONSE, safetyAlert };
     }
 
-    // Step 10: Persist the assistant's response
+    // Step 11: Persist the assistant's response
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
 
     return { response: filteredResponse, safetyAlert };
   } catch (err) {
-    // Important 5: Catch any synchronous error from DB setup, session creation, etc.
     console.error('[agentOrchestrator] Unexpected error in processMessage:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null };
   }
