@@ -16,7 +16,12 @@ router.post('/', async (req, res) => {
     }
 
     const result = await agentOrchestrator.processMessage(text, userId);
-    res.json({ response: result.response, safetyAlert: result.safetyAlert });
+    res.json({
+      response: result.response,
+      safetyAlert: result.safetyAlert,
+      guideId: result.guideId || null,
+      stepSequence: result.stepSequence || null,
+    });
   } catch (err) {
     console.error('[chat] POST / error:', err.message);
     res.status(500).json({ error: 'Failed to process chat message.' });

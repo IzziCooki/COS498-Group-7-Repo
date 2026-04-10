@@ -76,6 +76,8 @@ wss.on('connection', (ws) => {
             type: 'response',
             text: result.response,
             safetyAlert: result.safetyAlert,
+            guideId: result.guideId || null,
+            stepSequence: result.stepSequence || null,
           }));
         }
       }
