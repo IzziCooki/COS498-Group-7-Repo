@@ -27,7 +27,7 @@ app.use('/api/chat', chatRouter);
 const server = http.createServer(app);
 
 // WebSocket server at /ws
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 64 * 1024 });
 
 wss.on('connection', (ws) => {
   let userId = null;
@@ -37,31 +37,67 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(data);
 
       if (msg.type === 'init') {
+        // Validate userId before associating the connection
+        if (!msg.userId || typeof msg.userId !== 'string' || msg.userId.trim() === '') {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Invalid or missing userId.' }));
+          }
+          return;
+        }
         // Client sends userId to associate the connection
         userId = msg.userId;
-        ws.send(JSON.stringify({ type: 'init_ack', userId }));
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'init_ack', userId }));
+        }
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
         if (!userId) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Not initialized. Send init message first.' }));
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not initialized. Send init message first.' }));
+          }
+          return;
+        }
+        // Validate msg.text before processing
+        if (!msg.text || typeof msg.text !== 'string') {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Invalid or missing message text.' }));
+          }
           return;
         }
         // Send a "typing" indicator
-        ws.send(JSON.stringify({ type: 'typing' }));
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'typing' }));
+        }
 
         const result = await agentOrchestrator.processMessage(msg.text, userId);
 
-        ws.send(JSON.stringify({
-          type: 'response',
-          text: result.response,
-          safetyAlert: result.safetyAlert,
-        }));
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'response',
+            text: result.response,
+            safetyAlert: result.safetyAlert,
+          }));
+        }
       }
     } catch (err) {
       console.error('[ws] Error processing message:', err);
-      ws.send(JSON.stringify({ type: 'error', message: 'Something went wrong.' }));
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Something went wrong.' }));
+      }
     }
   });
+
+  ws.on('close', () => {
+    console.log(`[ws] Connection closed for userId=${userId}`);
+  });
+
+  ws.on('error', (err) => {
+    console.error('[ws] Socket error:', err.message);
+  });
+});
+
+process.on('SIGTERM', () => {
+  wss.close(() => { server.close(() => process.exit(0)); });
 });
 
 // Use server.listen instead of app.listen
