@@ -11,6 +11,7 @@ const imageAnnotator = require('./core/imageAnnotator');
 const { getImagesForSkill } = require('./core/skillImages');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
+const exportRouter = require('./routes/export');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/api/health', (req, res) => {
 // REST routes
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/conversations', exportRouter);
 
 // Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);
