@@ -70,7 +70,7 @@ jobs:
     name: Claude Agent – Smoke Test
     runs-on: ubuntu-latest
     # Only execute when the secret is available (not in forks / unset envs)
-    if: secrets.ANTHROPIC_API_KEY != ''
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
 
     steps:
       - name: Checkout code
@@ -85,7 +85,50 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Verify Claude SDK is importable
+      - name: Verify Claude SDK and agent modules load correctly
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: node -e "require('@anthropic-ai/sdk'); console.log('Claude SDK loaded OK');"
+        run: |
+          node -e "
+            require('@anthropic-ai/sdk');
+            console.log('Claude SDK loaded OK');
+            require('./server/core/taskClassifier');
+            console.log('taskClassifier loaded OK');
+            require('./server/core/safetyMonitor');
+            console.log('safetyMonitor loaded OK');
+            require('./server/core/vocabularyFilter');
+            console.log('vocabularyFilter loaded OK');
+            require('./server/core/agentOrchestrator');
+            console.log('agentOrchestrator loaded OK');
+          "
+
+  # ── Summary gate: all three jobs must pass ────────────────────────────────
+  # Add this job as the required status check in branch protection settings.
+  # It passes when every required job succeeds (or is intentionally skipped).
+  ci-pass:
+    name: CI – All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [server-test, client-lint-build, claude-agent-check]
+    # Run even when claude-agent-check is skipped (secret not set)
+    if: ${{ always() }}
+
+    steps:
+      - name: Verify all required jobs passed
+        run: |
+          server="${{ needs.server-test.result }}"
+          client="${{ needs.client-lint-build.result }}"
+          agent="${{ needs.claude-agent-check.result }}"
+          echo "server-test:        $server"
+          echo "client-lint-build:  $client"
+          echo "claude-agent-check: $agent"
+          # Fail if server or client jobs did not succeed
+          if [ "$server" != "success" ] || [ "$client" != "success" ]; then
+            echo "One or more required jobs failed."
+            exit 1
+          fi
+          # Agent job is optional when the secret is absent (skipped is OK)
+          if [ "$agent" != "success" ] && [ "$agent" != "skipped" ]; then
+            echo "claude-agent-check failed."
+            exit 1
+          fi
+          echo "All checks passed."
