@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useChat } from '../../hooks/useChat';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import StepSequencePanel from './StepSequencePanel';
 import './ChatWindow.css';
 
 /**
@@ -11,8 +12,8 @@ import './ChatWindow.css';
  * - Auto-scrolls to the latest message
  * - Shows "PC Pal is typing..." indicator
  */
-function ChatWindow({ userId }) {
-  const { messages, sendMessage, isConnected, isTyping } = useChat(userId);
+function ChatWindow({ userId, osType = 'Windows' }) {
+  const { messages, sendMessage, isConnected, isTyping, activeSequence } = useChat(userId);
   const bottomRef = useRef(null);
 
   // Auto-scroll to the newest message
@@ -44,7 +45,7 @@ function ChatWindow({ userId }) {
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+          <MessageBubble key={msg.id} message={msg} osType={osType} />
         ))}
 
         {/* Typing indicator */}
@@ -62,6 +63,9 @@ function ChatWindow({ userId }) {
         {/* Invisible anchor to scroll to */}
         <div ref={bottomRef} aria-hidden="true" />
       </div>
+
+      {/* Step sequence guidance panel — shown above input when active */}
+      <StepSequencePanel activeSequence={activeSequence} onSendMessage={sendMessage} />
 
       {/* Input area */}
       <MessageInput onSend={sendMessage} isTyping={isTyping} />

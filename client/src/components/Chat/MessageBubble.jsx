@@ -1,4 +1,5 @@
 import React from 'react';
+import VisualGuide from './VisualGuide';
 import './MessageBubble.css';
 
 /**
@@ -8,8 +9,8 @@ import './MessageBubble.css';
  * Assistant messages: left-aligned, white background.
  * Shows a red safety alert banner when safetyAlert is present.
  */
-function MessageBubble({ message }) {
-  const { role, text, timestamp, safetyAlert } = message;
+function MessageBubble({ message, osType = 'Windows' }) {
+  const { role, text, timestamp, safetyAlert, guideId } = message;
   const isUser = role === 'user';
 
   const formattedTime = timestamp
@@ -29,6 +30,7 @@ function MessageBubble({ message }) {
       <div className={`bubble ${isUser ? 'bubble--user' : 'bubble--assistant'}`}>
         <p className="bubble__text">{text}</p>
         <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>
+        {guideId && <VisualGuide taskId={guideId} osType={osType} />}
       </div>
 
       {!isUser && (

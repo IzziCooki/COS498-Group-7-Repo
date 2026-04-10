@@ -53,7 +53,7 @@ function App() {
       }}
     >
       <Header user={user} />
-      {user && <ChatWindow userId={user.id} />}
+      {user && <ChatWindow userId={user.id} osType={user?.os_type || 'Windows'} />}
     </div>
   );
 }
