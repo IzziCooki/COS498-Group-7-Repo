@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 
 /**
  * useChat — WebSocket chat hook for PC Pal
@@ -20,6 +20,7 @@ export function useChat(userId) {
   const reconnectTimeoutRef = useRef(null);
   const messageIdRef = useRef(0);
   const reconnectAttemptsRef = useRef(0);
+  const connectRef = useRef(null);
 
   const nextId = () => {
     messageIdRef.current += 1;
@@ -114,7 +115,7 @@ export function useChat(userId) {
       }
       reconnectAttemptsRef.current = attempts + 1;
       const delay = Math.min(1000 * Math.pow(2, attempts), 30000);
-      reconnectTimeoutRef.current = setTimeout(connect, delay);
+      reconnectTimeoutRef.current = setTimeout(() => connectRef.current?.(), delay);
     };
 
     ws.onerror = (err) => {
@@ -122,6 +123,12 @@ export function useChat(userId) {
       ws.close();
     };
   }, [userId]);
+
+  // Keep the ref in sync so ws.onclose can call the latest connect without
+  // capturing it as a const (which would be a temporal dead zone violation).
+  useLayoutEffect(() => {
+    connectRef.current = connect;
+  });
 
   useEffect(() => {
     if (!userId) return;
