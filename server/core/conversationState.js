@@ -35,30 +35,7 @@ function closeSession(sessionId) {
  * @returns {number} count of sessions abandoned
  */
 function abandonStale() {
-  const db = require('../db/database');
-  const cutoff = new Date(Date.now() - STALE_THRESHOLD_MINUTES * 60 * 1000).toISOString();
-
-  // Find active conversations where the most recent message (or conversation start) is older than cutoff
-  const staleConversations = db.prepare(`
-    SELECT c.id
-    FROM conversations c
-    LEFT JOIN (
-      SELECT conversation_id, MAX(created_at) AS last_message_at
-      FROM messages
-      GROUP BY conversation_id
-    ) m ON c.id = m.conversation_id
-    WHERE c.status = 'active'
-      AND (
-        COALESCE(m.last_message_at, c.started_at) < ?
-      )
-  `).all(cutoff);
-
-  const now = new Date().toISOString();
-  for (const row of staleConversations) {
-    Conversation.update(row.id, { status: 'abandoned', ended_at: now });
-  }
-
-  return staleConversations.length;
+  return Conversation.abandonStale(STALE_THRESHOLD_MINUTES);
 }
 
 /**
@@ -79,6 +56,9 @@ function getSessionMessages(sessionId, limit = 20) {
  * @returns {object} created message record
  */
 function addMessage(sessionId, role, body) {
+  if (role !== 'user' && role !== 'assistant') {
+    throw new Error(`addMessage: invalid role "${role}". Must be "user" or "assistant".`);
+  }
   return Message.create({
     conversation_id: sessionId,
     role,

@@ -1,6 +1,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { anthropicApiKey } = require('../config');
 
+if (!anthropicApiKey) {
+  console.warn('[taskClassifier] anthropicApiKey is not set — Claude API calls will fail. Running in degraded mode.');
+}
+
 const client = new Anthropic({ apiKey: anthropicApiKey });
 
 const VALID_TASK_TYPES = ['learn_skill', 'troubleshoot', 'follow_up', 'accessibility', 'unknown'];
