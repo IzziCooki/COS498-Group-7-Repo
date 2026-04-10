@@ -1,0 +1,91 @@
+# Main CI workflow – runs on every push to main and on all pull requests.
+# Covers the Express/Node server (tests) and the React/Vite client (lint + build).
+# Claude-AI integration steps are skipped when the ANTHROPIC_API_KEY secret is absent.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+# Restrict GITHUB_TOKEN to read-only by default
+permissions:
+  contents: read
+
+jobs:
+  # ── Server: install root dependencies and run Jest unit tests ──────────────
+  server-test:
+    name: Server – Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm            # caches ~/.npm using root package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Run server unit tests
+        run: npm test
+
+  # ── Client: install dependencies, lint and build the React/Vite app ────────
+  client-lint-build:
+    name: Client – Lint & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client   # all steps run inside ./client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Build (Vite)
+        run: npm run build
+
+  # ── Claude AI agent smoke-test (requires ANTHROPIC_API_KEY secret) ─────────
+  # This job is skipped automatically in forks and when the secret is not set.
+  claude-agent-check:
+    name: Claude Agent – Smoke Test
+    runs-on: ubuntu-latest
+    # Only execute when the secret is available (not in forks / unset envs)
+    if: secrets.ANTHROPIC_API_KEY != ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Verify Claude SDK is importable
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node -e "require('@anthropic-ai/sdk'); console.log('Claude SDK loaded OK');"
