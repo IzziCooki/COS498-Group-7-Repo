@@ -126,3 +126,31 @@ CREATE TABLE IF NOT EXISTS user_goals (
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Real-time conversation quality tracking events
+CREATE TABLE IF NOT EXISTS conversation_quality_events (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  detail TEXT,
+  turn_number INTEGER,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Per-conversation quality summary (updated each turn)
+CREATE TABLE IF NOT EXISTS conversation_quality_summaries (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL,
+  confusion_count INTEGER DEFAULT 0,
+  jargon_slip_count INTEGER DEFAULT 0,
+  device_mismatch_count INTEGER DEFAULT 0,
+  max_response_word_count INTEGER DEFAULT 0,
+  step_overload_count INTEGER DEFAULT 0,
+  total_turns INTEGER DEFAULT 0,
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+);

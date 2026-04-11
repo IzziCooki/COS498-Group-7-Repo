@@ -15,6 +15,7 @@ const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
 const exportRouter = require('./routes/export');
 const buddyRouter = require('./routes/buddy');
+const qualityRouter = require('./routes/quality');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
 app.use('/api/buddy', buddyRouter);
+app.use('/api/quality', qualityRouter);
 
 // Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);

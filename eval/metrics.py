@@ -317,6 +317,192 @@ def steps_per_response(conv):
 
 
 # ---------------------------------------------------------------------------
+# Metric 11 — confusion_event_rate
+# ---------------------------------------------------------------------------
+
+_CONFUSION_SIGNALS = re.compile(
+    r"\b(don'?t understand|i'?m confused|i'?m lost|what do you mean|huh\b|"
+    r"i don'?t see (it|that)|say that again|too hard|too confusing|"
+    r"i give up|forget it|can'?t figure|can'?t find it|nothing happened|"
+    r"where (is|do i find|do i see)|i don'?t get it|what does that mean)\b",
+    re.IGNORECASE,
+)
+
+
+def confusion_event_rate(conv):
+    """
+    Percentage of user turns containing confusion signals.
+    Grounded in gerontology research: elderly users express confusion
+    through specific phrases that signal the agent needs to adapt.
+    Flag WARNING if rate > 30%, CRITICAL if 3+ consecutive confusion signals.
+    """
+    user = _user_turns(conv)
+    if not user:
+        return {"metric": "confusion_event_rate", "value": 0.0, "flag": None}
+
+    confused_count = sum(1 for t in user if _CONFUSION_SIGNALS.search(t.get("content", "")))
+    rate = round(confused_count / len(user) * 100, 1)
+
+    # Check for consecutive confusions (user-side streaks)
+    max_consecutive = 0
+    current_consecutive = 0
+    for t in conv.get("turns", []):
+        if t.get("role") == "user" and _CONFUSION_SIGNALS.search(t.get("content", "")):
+            current_consecutive += 1
+            max_consecutive = max(max_consecutive, current_consecutive)
+        elif t.get("role") == "user":
+            current_consecutive = 0
+
+    flag = None
+    if max_consecutive >= 3:
+        flag = (
+            f"CRITICAL: User expressed confusion {max_consecutive} times in a row "
+            f"— escalation protocol may not be working"
+        )
+    elif rate > 30:
+        flag = f"WARNING: High confusion rate ({rate}%) — user struggling throughout conversation"
+
+    return {"metric": "confusion_event_rate", "value": rate, "flag": flag}
+
+
+# ---------------------------------------------------------------------------
+# Metric 12 — step_atomic_check
+# ---------------------------------------------------------------------------
+
+_COMPOUND_STEP = re.compile(
+    r"(?m)^\*{0,2}\d+\.\*{0,2}\s+.+(?:,\s*(?:then|and then|next|after that)|;\s*(?:then|and))\s+",
+    re.IGNORECASE,
+)
+
+
+def step_atomic_check(conv):
+    """
+    Check whether numbered steps contain multiple actions (e.g. "click X, then Y").
+    Based on Salthouse 1996: elderly users process info ~40% slower,
+    so each step must contain exactly one physical action.
+    """
+    agent = _agent_turns(conv)
+    compound_count = 0
+    for t in agent:
+        matches = _COMPOUND_STEP.findall(t.get("content", ""))
+        compound_count += len(matches)
+
+    flag = None
+    if compound_count > 0:
+        flag = (
+            f"WARNING: {compound_count} step(s) contain multiple actions "
+            f"— should be split into atomic steps (Salthouse 1996)"
+        )
+
+    return {"metric": "step_atomic_check", "value": compound_count, "flag": flag}
+
+
+# ---------------------------------------------------------------------------
+# Metric 13 — working_memory_overload
+# ---------------------------------------------------------------------------
+
+def working_memory_overload(conv):
+    """
+    Count agent responses with 4+ numbered steps before any user confirmation.
+    Based on Hasher & Zacks 1988: elderly working memory holds 3-4 items max.
+    Giving more than 3 steps at once risks the user forgetting earlier steps.
+    """
+    agent = _agent_turns(conv)
+    violations = 0
+    for t in agent:
+        step_count = _count_numbered_steps(t.get("content", ""))
+        if step_count > 3:
+            violations += 1
+
+    flag = None
+    if violations > 0:
+        flag = (
+            f"WARNING: {violations} response(s) exceeded 3-step working memory cap "
+            f"(Hasher & Zacks 1988) — may overwhelm elderly users"
+        )
+
+    return {"metric": "working_memory_overload", "value": violations, "flag": flag}
+
+
+# ---------------------------------------------------------------------------
+# Metric 14 — fear_reassurance_check
+# ---------------------------------------------------------------------------
+
+_REASSURANCE = re.compile(
+    r"\b(you can'?t break|you won'?t break|it'?s safe to|nothing will break|"
+    r"don'?t worry|safe to try|can'?t do any damage|it'?s okay to try|"
+    r"you can always undo|nothing bad will happen|it'?s reversible)\b",
+    re.IGNORECASE,
+)
+
+_RISKY_ACTIONS = re.compile(
+    r"\b(delete|remove|uninstall|reset|format|erase|clear all|change.*setting|"
+    r"update|restart|shut down|turn off|wipe|restore)\b",
+    re.IGNORECASE,
+)
+
+
+def fear_reassurance_check(conv):
+    """
+    Check if agent responses describing risky-sounding actions include reassurance.
+    Based on Marquie et al. 2002: the #1 barrier for elderly users is fear of
+    'breaking' their computer. Risky-sounding steps (delete, reset, restart)
+    must include reassurance language.
+    """
+    agent = _agent_turns(conv)
+    risky_without_reassurance = 0
+
+    for t in agent:
+        content = t.get("content", "")
+        if _RISKY_ACTIONS.search(content) and not _REASSURANCE.search(content):
+            risky_without_reassurance += 1
+
+    flag = None
+    if risky_without_reassurance > 0:
+        flag = (
+            f"WARNING: {risky_without_reassurance} response(s) describe risky-sounding actions "
+            f"without reassurance — elderly users fear 'breaking' their computer (Marquie 2002)"
+        )
+
+    return {"metric": "fear_reassurance_check", "value": risky_without_reassurance, "flag": flag}
+
+
+# ---------------------------------------------------------------------------
+# Metric 15 — device_verb_check
+# ---------------------------------------------------------------------------
+
+_DEVICE_VERB_VIOLATIONS = {
+    "iphone": re.compile(r"\bclick\b", re.IGNORECASE),
+    "ios": re.compile(r"\bclick\b", re.IGNORECASE),
+    "ipad": re.compile(r"\bclick\b", re.IGNORECASE),
+    "windows": re.compile(r"\b(?:tap|swipe)\b", re.IGNORECASE),
+    "pc": re.compile(r"\b(?:tap|swipe)\b", re.IGNORECASE),
+}
+
+
+def device_verb_check(conv):
+    """
+    Check for wrong action verbs for the user's device type.
+    iPhone/iPad users should never see 'click'; Windows users should never see 'tap'/'swipe'.
+    Complements device_accuracy (metric 6) which catches UI element names.
+    """
+    os_type = conv.get("user", {}).get("os_type", "").lower()
+    pattern = _DEVICE_VERB_VIOLATIONS.get(os_type)
+
+    if not pattern:
+        return {"metric": "device_verb_check", "value": 0, "flag": None}
+
+    agent = _agent_turns(conv)
+    total = sum(len(pattern.findall(t.get("content", ""))) for t in agent)
+
+    flag = None
+    if total > 0:
+        flag = f"WARNING: {total} wrong action verb(s) for {os_type} user — use correct device verbs"
+
+    return {"metric": "device_verb_check", "value": total, "flag": flag}
+
+
+# ---------------------------------------------------------------------------
 # compute_all
 # ---------------------------------------------------------------------------
 
@@ -331,9 +517,14 @@ _ALL_METRICS = [
     safety_response_check,
     encouragement_check,
     steps_per_response,
+    confusion_event_rate,
+    step_atomic_check,
+    working_memory_overload,
+    fear_reassurance_check,
+    device_verb_check,
 ]
 
 
 def compute_all(conv):
-    """Run all 10 structural metrics and return a list of result dicts."""
+    """Run all 15 structural metrics and return a list of result dicts."""
     return [metric(conv) for metric in _ALL_METRICS]

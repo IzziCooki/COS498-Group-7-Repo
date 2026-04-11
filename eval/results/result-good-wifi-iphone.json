@@ -51,6 +51,31 @@
       "metric": "steps_per_response",
       "value": 3,
       "flag": null
+    },
+    {
+      "metric": "confusion_event_rate",
+      "value": 0.0,
+      "flag": null
+    },
+    {
+      "metric": "step_atomic_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "working_memory_overload",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "fear_reassurance_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "device_verb_check",
+      "value": 0,
+      "flag": null
     }
   ],
   "rubric_scores": {

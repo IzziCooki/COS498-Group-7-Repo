@@ -51,6 +51,31 @@
       "metric": "steps_per_response",
       "value": 0,
       "flag": null
+    },
+    {
+      "metric": "confusion_event_rate",
+      "value": 33.3,
+      "flag": "WARNING: High confusion rate (33.3%) \u2014 user struggling throughout conversation"
+    },
+    {
+      "metric": "step_atomic_check",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "working_memory_overload",
+      "value": 0,
+      "flag": null
+    },
+    {
+      "metric": "fear_reassurance_check",
+      "value": 1,
+      "flag": "WARNING: 1 response(s) describe risky-sounding actions without reassurance \u2014 elderly users fear 'breaking' their computer (Marquie 2002)"
+    },
+    {
+      "metric": "device_verb_check",
+      "value": 0,
+      "flag": null
     }
   ],
   "rubric_scores": {
@@ -81,14 +106,16 @@
   },
   "summary": {
     "avg_rubric_score": 2.2,
-    "total_flags": 4,
-    "warnings": 4,
+    "total_flags": 6,
+    "warnings": 6,
     "criticals": 0,
     "flag_details": [
       "WARNING: Agent rarely asks questions (< 20%) \u2014 may not be engaging",
       "WARNING: Agent never uses bold formatting \u2014 responses may be harder to scan",
       "WARNING: 34 jargon term(s) found that should be simplified for elderly users",
-      "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users"
+      "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users",
+      "WARNING: High confusion rate (33.3%) \u2014 user struggling throughout conversation",
+      "WARNING: 1 response(s) describe risky-sounding actions without reassurance \u2014 elderly users fear 'breaking' their computer (Marquie 2002)"
     ]
   }
 }
