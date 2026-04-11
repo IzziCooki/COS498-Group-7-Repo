@@ -11,6 +11,12 @@ const StepSequence = require('../models/StepSequence');
 const Conversation = require('../models/Conversation');
 const UserNote = require('../models/UserNote');
 const skillProgression = require('./skillProgression');
+const BuddyPair = require('../models/BuddyPair');
+const ProgressShare = require('../models/ProgressShare');
+const HelpRequest = require('../models/HelpRequest');
+const SkillReview = require('../models/SkillReview');
+const UserGoal = require('../models/UserGoal');
+const User = require('../models/User');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -154,21 +160,76 @@ const tools = [
       required: ['reason'],
     },
   },
+  {
+    name: 'save_user_goal',
+    description: 'Save the user\'s learning goal when they mention WHY they want to learn something. Examples: "I want to email my grandkids", "I need to video call my doctor". Call this whenever the user shares their motivation.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        goal_text: { type: 'string', description: 'The user\'s goal in their own words' },
+        related_skills: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Skill IDs this goal connects to (e.g. ["send_email", "attach_file"])',
+        },
+      },
+      required: ['goal_text'],
+    },
+  },
+  {
+    name: 'schedule_skill_review',
+    description: 'Schedule a spaced repetition review for a skill the user just completed. Always call this after complete_step_sequence. Reviews help the user retain what they learned.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        skill_name: { type: 'string', description: 'Name of the skill to review later' },
+        days_until_review: { type: 'number', description: 'Days until review (default 7, use 3 for comfort level 1-2 users)' },
+      },
+      required: ['skill_name'],
+    },
+  },
+  {
+    name: 'share_progress_with_buddy',
+    description: 'Share a skill completion with the user\'s learning buddy. Only call this if the user has an active buddy pair. Call after complete_step_sequence.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        skill_name: { type: 'string', description: 'Name of the skill completed' },
+        celebration_message: { type: 'string', description: 'A warm celebration message to share, e.g. "Margaret just learned to send an email!"' },
+      },
+      required: ['skill_name', 'celebration_message'],
+    },
+  },
+  {
+    name: 'ask_buddy_for_help',
+    description: 'Send a help request to the user\'s buddy when the user is stuck and asks for human help, or says things like "can my daughter help?" or "I need a real person". Also consider calling after 3+ failed attempts at the same step.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        question: { type: 'string', description: 'What the user needs help with' },
+        context_summary: { type: 'string', description: 'Brief description of what the user was trying to do' },
+      },
+      required: ['question'],
+    },
+  },
 ];
 
 function buildComfortGuidelines(comfortLevel) {
   const level = parseInt(comfortLevel) || 1;
   if (level <= 1) {
     return `This user is BRAND NEW to computers.
-- Use analogies to everyday objects (a folder is like a filing cabinet drawer)
+- Use analogies to everyday objects (a folder is like a filing cabinet drawer, the desktop is like the top of a desk)
 - Explain every step in extreme detail; assume they have never done this before
+- MAXIMUM 2 steps per response — if a task has more steps, pause and wait for confirmation before continuing
 - Always call show_visual_guide when explaining any visual or procedural task
-- Use the start_step_sequence tool for any task with 2 or more steps`;
+- Use the start_step_sequence tool for any task with 2 or more steps
+- After each step, ask "Did that work?" before moving on`;
   } else if (level <= 3) {
     return `This user knows the basics but needs guidance.
 - Use plain language; skip analogies unless they seem confused
 - Break tasks into 3–5 numbered steps using start_step_sequence
-- Call show_visual_guide when starting a new topic they haven't done before`;
+- Call show_visual_guide when starting a new topic they haven't done before
+- Ask "Would you like me to walk you through it step by step, or do you want to try it yourself?" before launching into a full guide`;
   } else {
     return `This user is fairly comfortable with computers.
 - Be concise; fewer steps, less hand-holding
@@ -182,25 +243,57 @@ function buildSystemPrompt(profileString, user, classification) {
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
     : '';
-  const urgencyNote = classification?.urgency === 'high'
-    ? '\nIMPORTANT: This user has an urgent problem. Prioritize a quick, direct solution.'
-    : '';
+  const urgencyNote = '';
+
+  // Check if user has a buddy for collaboration tools context
+  const BuddyPair = require('../models/BuddyPair');
+  let buddyContext = '';
+  try {
+    const activePairs = BuddyPair.findByUserId(user?.id);
+    if (activePairs && activePairs.length > 0) {
+      const buddyNames = activePairs.map(p => p.helper_name || p.learner_name || 'their buddy').join(', ');
+      buddyContext = `\nThis user has a learning buddy: ${buddyNames}. When they complete a skill, use share_progress_with_buddy to celebrate with their buddy. If they get stuck after multiple attempts, offer to use ask_buddy_for_help.`;
+    }
+  } catch (e) {
+    // buddy_pairs table may not exist yet during migration
+  }
+
+  // Check user's goal for context
+  const goalContext = user?.goal_summary
+    ? `\nThis user's learning goal: "${user.goal_summary}". Connect what you teach to this goal whenever relevant.`
+    : '\nWhen starting a new skill, ask the user: "Before we start, what do you want to use this for?" Use their answer to make every step feel relevant to their life.';
 
   return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers.
 Think of yourself as a helpful grandchild teaching a grandparent — kind, encouraging, and never condescending.
 
 Here is the profile of the person you are helping:
 ${profileString}
-${classificationContext}${urgencyNote}
+${classificationContext}${urgencyNote}${buddyContext}${goalContext}
 
 ## Comfort-Level Guidelines
 ${comfortGuidelines}
+
+## Things You Must NEVER Do
+- Never say "simply" or "just" — these words imply the task is easy and make people feel bad when it isn't
+- Never apologize for the user's confusion — instead say "Let's try a different way"
+- Never give a wall of text — keep each message short and focused
+- Never assume they know what a technical term means, even common ones like "browser" or "URL"
+
+## Scaffolding Rules
+- First time teaching a skill: Use full visual guide + step sequence + all context
+- If the user has done this skill before: Ask "Would you like me to walk you through it again, or do you want to try it yourself?" before giving the full guide
+- After 3+ completions of the same skill: Only give a brief hint and let the user drive. Celebrate their independence.
+
+## Urgency Handling
+- If urgency is high: prioritize a quick, direct solution
+- If urgency is medium: acknowledge the frustration first ("That sounds frustrating. Let's fix it together.") then solve
+- If urgency is low: take your time, be thorough, explore
 
 ## Tools Available
 - show_visual_guide: Display a visual step-by-step guide card. Call this BEFORE giving text instructions for visual/procedural tasks. Valid task IDs: ${VALID_GUIDE_IDS.join(', ')}
 - start_step_sequence: Start a numbered walkthrough for multi-step tasks. Provide a task name and array of step descriptions.
 - advance_step: Move to next step when user confirms (says "done", "ok", "got it", "next", etc.)
-- complete_step_sequence: Mark all steps as done. Also logs the skill as completed.
+- complete_step_sequence: Mark all steps as done. Also logs the skill as completed. After completing, always use schedule_skill_review to schedule a review.
 - log_skill_started: Log when you begin teaching a new skill.
 - flag_emergency: Flag emergencies (falls, injuries, medical concerns).
 - suggest_next_skill: Recommend what to learn next based on skill history.
@@ -209,16 +302,21 @@ ${comfortGuidelines}
 - save_note_for_user: Save a tip the user can reference later.
 - get_user_notes: Show the user's saved notes and tips.
 - restart_conversation: Start a fresh conversation when user is lost.
+- save_user_goal: Save when the user mentions why they are learning (e.g. "I want to email my grandkids").
+- schedule_skill_review: After completing a skill, schedule a review for later.
+- share_progress_with_buddy: Share a skill completion with the user's buddy (only if they have one).
+- ask_buddy_for_help: Send a help request to the user's buddy when they are stuck.
 
 ## Response Guidelines
 - Use simple, everyday language. Avoid technical jargon.
 - Explain the "why" behind every step, not just the "what".
 - Keep responses concise but complete.
-- Be warm, patient, and encouraging. Celebrate small wins.
+- Be warm, patient, and encouraging. Celebrate small wins meaningfully — connect the skill to what they can now DO in their life, not just "Great job!"
 - Never be condescending.
 - If the user seems confused, try a different, simpler explanation.
 - If the user expresses distress, use the flag_emergency tool immediately.
-- When teaching a new topic, use log_skill_started.`;
+- When teaching a new topic, use log_skill_started.
+- When the user mentions a life goal or reason for learning, use save_user_goal.`;
 }
 
 function handleFunctionCall(name, args, userId, sessionId) {
@@ -370,6 +468,79 @@ function handleFunctionCall(name, args, userId, sessionId) {
     } catch (err) {
       console.error('[agentOrchestrator] Failed to restart conversation:', err.message);
       result = 'Unable to restart conversation';
+    }
+  } else if (name === 'save_user_goal') {
+    try {
+      UserGoal.create({
+        user_id: userId,
+        goal_text: args.goal_text,
+        related_skills: args.related_skills ? JSON.stringify(args.related_skills) : '[]',
+      });
+      // Also update the user's goal_summary for prompt injection
+      User.update(userId, { goal_summary: args.goal_text });
+      result = `Goal saved: "${args.goal_text}"`;
+      console.log(`[agentOrchestrator] Goal saved for user ${userId}: "${args.goal_text}"`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to save goal:', err.message);
+      result = 'Unable to save goal';
+    }
+  } else if (name === 'schedule_skill_review') {
+    try {
+      const days = args.days_until_review || 7;
+      const dueDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      SkillReview.create({
+        user_id: userId,
+        skill_name: args.skill_name,
+        review_due_at: dueDate,
+      });
+      result = `Review scheduled for "${args.skill_name}" in ${days} days`;
+      console.log(`[agentOrchestrator] Skill review scheduled for user ${userId}: "${args.skill_name}" in ${days} days`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to schedule review:', err.message);
+      result = 'Unable to schedule skill review';
+    }
+  } else if (name === 'share_progress_with_buddy') {
+    try {
+      const pairs = BuddyPair.findByUserId(userId);
+      if (pairs.length === 0) {
+        result = 'User does not have an active buddy. No progress shared.';
+      } else {
+        for (const pair of pairs) {
+          ProgressShare.create({
+            user_id: userId,
+            buddy_pair_id: pair.id,
+            skill_name: args.skill_name,
+            message: args.celebration_message,
+          });
+        }
+        const buddyName = pairs[0].learner_id === userId ? pairs[0].helper_name : pairs[0].learner_name;
+        result = `Progress shared with ${buddyName || 'your buddy'}! They'll see: "${args.celebration_message}"`;
+        console.log(`[agentOrchestrator] Progress shared for user ${userId}: "${args.skill_name}"`);
+      }
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to share progress:', err.message);
+      result = 'Unable to share progress with buddy';
+    }
+  } else if (name === 'ask_buddy_for_help') {
+    try {
+      const pairs = BuddyPair.findByUserId(userId);
+      if (pairs.length === 0) {
+        result = 'User does not have an active buddy. Cannot send help request.';
+      } else {
+        const pair = pairs[0];
+        HelpRequest.create({
+          learner_id: userId,
+          buddy_pair_id: pair.id,
+          question: args.question,
+          context_summary: args.context_summary || null,
+        });
+        const buddyName = pair.learner_id === userId ? pair.helper_name : pair.learner_name;
+        result = `Help request sent to ${buddyName || 'your buddy'}! They'll reply when they can. In the meantime, we can try something else or keep working on this.`;
+        console.log(`[agentOrchestrator] Help request sent for user ${userId}: "${args.question}"`);
+      }
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to send help request:', err.message);
+      result = 'Unable to send help request to buddy';
     }
   } else {
     result = `Unknown function: ${name}`;

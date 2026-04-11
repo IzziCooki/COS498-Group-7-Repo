@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './OnboardingFlow.css';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 5;
 
 const OS_OPTIONS = [
   { value: 'Windows', label: 'Windows' },
@@ -24,6 +24,8 @@ const COMFORT_LABELS = {
  * Step 1: Name
  * Step 2: Device / OS type
  * Step 3: Comfort level (1–5)
+ * Step 4: Learning goal (optional)
+ * Step 5: Buddy opt-in
  * Submit: calls createUser, then completeOnboarding
  */
 function OnboardingFlow({ createUser, completeOnboarding }) {
@@ -31,6 +33,9 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
   const [name, setName] = useState('');
   const [osType, setOsType] = useState('');
   const [comfortLevel, setComfortLevel] = useState(3);
+  const [goalText, setGoalText] = useState('');
+  const [wantsBuddy, setWantsBuddy] = useState(null);
+  const [inviteCode, setInviteCode] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -40,7 +45,7 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
   const canGoNext = () => {
     if (step === 1) return name.trim().length > 0;
     if (step === 2) return osType.length > 0;
-    return true;
+    return true; // steps 3, 4, 5 always have valid defaults or are optional
   };
 
   const handleSubmit = async () => {
@@ -51,7 +56,34 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
         name: name.trim(),
         os_type: osType,
         comfort_level: comfortLevel,
+        goal_summary: goalText.trim() || null,
+        collaboration_opt_in: wantsBuddy ? 1 : 0,
       });
+
+      // If user wants a buddy, generate invite code
+      if (wantsBuddy) {
+        try {
+          const res = await fetch('/api/buddy/invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: newUser.id }),
+          });
+          const data = await res.json();
+          if (data.inviteCode) {
+            setInviteCode(data.inviteCode);
+          }
+        } catch (e) {
+          console.error('Failed to generate invite code:', e);
+        }
+      }
+
+      // Save goal if provided
+      if (goalText.trim()) {
+        try {
+          await fetch('/api/buddy/invite', { method: 'OPTIONS' }); // warm up
+        } catch { /* ignore */ }
+      }
+
       await completeOnboarding(newUser.id);
     } catch (err) {
       setError('Something went wrong. Please try again.');
@@ -59,6 +91,11 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Step 5 special: if they chose buddy and got invite code, show it before proceeding
+  const handleBuddyChoice = (choice) => {
+    setWantsBuddy(choice);
   };
 
   return (
@@ -125,7 +162,7 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
 
           {step === 3 && (
             <div className="animate-slide-up">
-              <h1 className="onboarding-heading">Almost done!</h1>
+              <h1 className="onboarding-heading">How comfortable are you?</h1>
               <p className="onboarding-label">
                 How comfortable are you with computers?
               </p>
@@ -144,6 +181,69 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="animate-slide-up">
+              <h1 className="onboarding-heading">Your Goal</h1>
+              <p className="onboarding-label">
+                What's one thing you'd love to do on your computer?
+              </p>
+              <p className="onboarding-hint">
+                For example: "Email photos to my grandkids" or "Video call my doctor"
+              </p>
+              <input
+                id="user-goal"
+                type="text"
+                className="onboarding-input"
+                value={goalText}
+                onChange={(e) => setGoalText(e.target.value)}
+                placeholder="Type your goal here (optional)"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter') goNext(); }}
+              />
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="animate-slide-up">
+              <h1 className="onboarding-heading">Want a Buddy?</h1>
+              <p className="onboarding-label">
+                Would you like a family member or friend to follow along as you learn?
+              </p>
+              <p className="onboarding-hint">
+                A buddy can see your progress and help when you get stuck. You'll get a code to share with them.
+              </p>
+
+              {/* Show invite code if already generated */}
+              {inviteCode && (
+                <div className="onboarding-invite-display">
+                  <p className="onboarding-invite-label">Share this code with your buddy:</p>
+                  <div className="onboarding-invite-code">{inviteCode}</div>
+                </div>
+              )}
+
+              {!inviteCode && (
+                <div className="onboarding-buddy-choices">
+                  <button
+                    type="button"
+                    className={`os-btn ${wantsBuddy === true ? 'os-btn--selected' : ''}`}
+                    onClick={() => handleBuddyChoice(true)}
+                    aria-pressed={wantsBuddy === true}
+                  >
+                    Yes, let's set that up!
+                  </button>
+                  <button
+                    type="button"
+                    className={`os-btn ${wantsBuddy === false ? 'os-btn--selected' : ''}`}
+                    onClick={() => handleBuddyChoice(false)}
+                    aria-pressed={wantsBuddy === false}
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -175,7 +275,7 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
               onClick={goNext}
               disabled={!canGoNext()}
             >
-              Next
+              {step === 4 && !goalText.trim() ? 'Skip' : 'Next'}
             </button>
           ) : (
             <button

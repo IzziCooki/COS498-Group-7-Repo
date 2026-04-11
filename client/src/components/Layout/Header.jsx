@@ -4,9 +4,9 @@ import './Header.css';
 /**
  * Header — app-level header bar.
  *
- * Shows the PC Pal title and, when available, the logged-in user's name.
+ * Shows the PC Pal title, user info, and buddy button.
  */
-function Header({ user }) {
+function Header({ user, onBuddyClick, buddyBadge }) {
   return (
     <header className="app-header">
       <div className="app-header__brand">
@@ -17,16 +17,33 @@ function Header({ user }) {
         </div>
       </div>
 
-      {user && (
-        <div className="app-header__user">
-          <span className="app-header__user-greeting">
-            Hi, <strong>{user.name}</strong>!
-          </span>
-          {user.os_type && (
-            <span className="app-header__user-os">{user.os_type}</span>
-          )}
-        </div>
-      )}
+      <div className="app-header__right">
+        {onBuddyClick && (
+          <button
+            className="app-header__buddy-btn"
+            onClick={onBuddyClick}
+            aria-label={buddyBadge > 0 ? `Buddy (${buddyBadge} updates)` : 'Buddy'}
+          >
+            Buddy
+            {buddyBadge > 0 && (
+              <span className="app-header__buddy-badge" aria-hidden="true">
+                {buddyBadge}
+              </span>
+            )}
+          </button>
+        )}
+
+        {user && (
+          <div className="app-header__user">
+            <span className="app-header__user-greeting">
+              Hi, <strong>{user.name}</strong>!
+            </span>
+            {user.os_type && (
+              <span className="app-header__user-os">{user.os_type}</span>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 }
