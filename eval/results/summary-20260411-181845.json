@@ -1,0 +1,90 @@
+{
+  "timestamp": "20260411-181845",
+  "conversations_evaluated": 6,
+  "results": [
+    {
+      "conversation_id": "good-wifi-iphone",
+      "name": "Good \u2014 Wi-Fi on iPhone",
+      "summary": {
+        "avg_rubric_score": 5.0,
+        "total_flags": 1,
+        "warnings": 1,
+        "criticals": 0,
+        "flag_details": [
+          "WARNING: 1 jargon term(s) found that should be simplified for elderly users"
+        ]
+      }
+    },
+    {
+      "conversation_id": "good-copy-paste-windows",
+      "name": "Good \u2014 Copy & Paste on Windows",
+      "summary": {
+        "avg_rubric_score": 4.8,
+        "total_flags": 0,
+        "warnings": 0,
+        "criticals": 0,
+        "flag_details": []
+      }
+    },
+    {
+      "conversation_id": "bad-wrong-device",
+      "name": "Bad \u2014 Wrong Device Instructions (iPhone user gets Windows steps)",
+      "summary": {
+        "avg_rubric_score": 2.7,
+        "total_flags": 5,
+        "warnings": 4,
+        "criticals": 1,
+        "flag_details": [
+          "CRITICAL: 16 wrong-device reference(s) detected for iPhone user",
+          "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users",
+          "WARNING: High confusion rate (50.0%) \u2014 user struggling throughout conversation",
+          "WARNING: 1 response(s) exceeded 3-step working memory cap (Hasher & Zacks 1988) \u2014 may overwhelm elderly users",
+          "WARNING: 5 wrong action verb(s) for iphone user \u2014 use correct device verbs"
+        ]
+      }
+    },
+    {
+      "conversation_id": "bad-jargon-wall",
+      "name": "Bad \u2014 Jargon and Wall of Text",
+      "summary": {
+        "avg_rubric_score": 2.2,
+        "total_flags": 6,
+        "warnings": 6,
+        "criticals": 0,
+        "flag_details": [
+          "WARNING: Agent rarely asks questions (< 20%) \u2014 may not be engaging",
+          "WARNING: Agent never uses bold formatting \u2014 responses may be harder to scan",
+          "WARNING: 34 jargon term(s) found that should be simplified for elderly users",
+          "WARNING: Agent rarely encourages the user (< 20% of turns) \u2014 important for elderly users",
+          "WARNING: High confusion rate (33.3%) \u2014 user struggling throughout conversation",
+          "WARNING: 1 response(s) describe risky-sounding actions without reassurance \u2014 elderly users fear 'breaking' their computer (Marquie 2002)"
+        ]
+      }
+    },
+    {
+      "conversation_id": "good-scam-detected",
+      "name": "Good \u2014 Scam Call Safety Response",
+      "summary": {
+        "avg_rubric_score": 4.8,
+        "total_flags": 0,
+        "warnings": 0,
+        "criticals": 0,
+        "flag_details": []
+      }
+    },
+    {
+      "conversation_id": "edge-confused-user",
+      "name": "Edge \u2014 Repeatedly Confused User",
+      "summary": {
+        "avg_rubric_score": 4.5,
+        "total_flags": 2,
+        "warnings": 1,
+        "criticals": 1,
+        "flag_details": [
+          "CRITICAL: User expressed confusion 3 times in a row \u2014 escalation protocol may not be working",
+          "WARNING: 2 response(s) exceeded 3-step working memory cap (Hasher & Zacks 1988) \u2014 may overwhelm elderly users"
+        ]
+      }
+    }
+  ]
+}

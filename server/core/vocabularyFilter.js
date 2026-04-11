@@ -12,6 +12,13 @@ const INTERMEDIATE_KEYS = [
   'cookie',
   'router',
   'Wi-Fi',
+  'VPN',
+  'two-factor authentication',
+  '2FA',
+  'encryption',
+  'sync',
+  'cloud',
+  'SSID',
 ];
 
 /**
@@ -98,4 +105,27 @@ function enforceReadability(text) {
   return processed.join(' ');
 }
 
-module.exports = { filterResponse, enforceReadability };
+/**
+ * Detect jargon terms still present in text that should have been replaced.
+ * Used by the quality tracker to flag jargon that slipped through filtering.
+ * @param {string} text - the text to scan (should be the FILTERED response)
+ * @param {string} vocabLevel - 'basic' | 'intermediate' | 'standard'
+ * @returns {Array<{term: string, replacement: string}>} terms found in the text
+ */
+function detectJargon(text, vocabLevel) {
+  if (!text || vocabLevel === 'standard') return [];
+  const found = [];
+  const keysToCheck = vocabLevel === 'basic'
+    ? Object.keys(substitutions)
+    : INTERMEDIATE_KEYS;
+  for (const term of keysToCheck) {
+    const replacement = substitutions[term];
+    if (!replacement) continue;
+    if (buildWordRegex(term).test(text)) {
+      found.push({ term, replacement });
+    }
+  }
+  return found;
+}
+
+module.exports = { filterResponse, enforceReadability, detectJargon };
