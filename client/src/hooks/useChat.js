@@ -15,6 +15,7 @@ export function useChat(userId) {
   const [isTyping, setIsTyping] = useState(false);
   const [connectionFailed, setConnectionFailed] = useState(false);
   const [activeSequence, setActiveSequence] = useState(null);
+  const [welcomeBack, setWelcomeBack] = useState(null);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -57,6 +58,13 @@ export function useChat(userId) {
       switch (data.type) {
         case 'init_ack':
           // Server acknowledged the init — nothing extra needed
+          break;
+
+        case 'welcome_back':
+          setWelcomeBack({
+            reviewSkills: data.reviewSkills || [],
+            pendingHelp: data.pendingHelp || [],
+          });
           break;
 
         case 'typing':
@@ -184,5 +192,7 @@ export function useChat(userId) {
     [],
   );
 
-  return { messages, sendMessage, isConnected, isTyping, connectionFailed, activeSequence };
+  const dismissWelcomeBack = useCallback(() => setWelcomeBack(null), []);
+
+  return { messages, sendMessage, isConnected, isTyping, connectionFailed, activeSequence, welcomeBack, dismissWelcomeBack };
 }

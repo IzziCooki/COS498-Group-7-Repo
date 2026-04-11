@@ -9,9 +9,12 @@ require('./db/database');
 const agentOrchestrator = require('./core/agentOrchestrator');
 const imageAnnotator = require('./core/imageAnnotator');
 const { getImagesForSkill } = require('./core/skillImages');
+const skillProgression = require('./core/skillProgression');
+const HelpRequest = require('./models/HelpRequest');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
 const exportRouter = require('./routes/export');
+const buddyRouter = require('./routes/buddy');
 
 const app = express();
 
@@ -30,6 +33,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
+app.use('/api/buddy', buddyRouter);
 
 // Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);
@@ -56,6 +60,28 @@ wss.on('connection', (ws) => {
         userId = msg.userId;
         if (ws.readyState === ws.OPEN) {
           ws.send(JSON.stringify({ type: 'init_ack', userId }));
+
+          // Send welcome-back data: due skill reviews + answered help requests
+          try {
+            const reviewSkills = skillProgression.getSkillsForReview(userId);
+            const answeredHelp = HelpRequest.findAnsweredForLearner(userId);
+            const pendingHelp = answeredHelp.map(h => ({
+              requestId: h.id,
+              question: h.question,
+              response: h.response,
+              buddyName: h.helper_name || 'Your buddy',
+            }));
+
+            if (reviewSkills.length > 0 || pendingHelp.length > 0) {
+              ws.send(JSON.stringify({
+                type: 'welcome_back',
+                reviewSkills,
+                pendingHelp,
+              }));
+            }
+          } catch (err) {
+            console.error('[ws] Error building welcome_back:', err.message);
+          }
         }
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator

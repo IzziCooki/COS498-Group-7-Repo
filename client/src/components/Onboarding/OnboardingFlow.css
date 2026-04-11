@@ -226,3 +226,48 @@
   flex: 1;
   max-width: 280px;
 }
+
+/* Hint text below labels */
+.onboarding-hint {
+  font-size: 17px;
+  color: var(--color-text-light);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Buddy choice buttons */
+.onboarding-buddy-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Invite code display in onboarding */
+.onboarding-invite-display {
+  text-align: center;
+  padding: 24px;
+  background: #f0fdf4;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-success);
+  margin-top: 8px;
+}
+
+.onboarding-invite-label {
+  font-size: 18px;
+  color: var(--color-text);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.onboarding-invite-code {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--color-primary);
+  background: var(--color-white);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--color-primary);
+  font-family: monospace;
+}
