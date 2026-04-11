@@ -81,7 +81,7 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
       if (goalText.trim()) {
         try {
           await fetch('/api/buddy/invite', { method: 'OPTIONS' }); // warm up
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
       }
 
       await completeOnboarding(newUser.id);

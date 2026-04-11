@@ -61,7 +61,7 @@ export function useBuddy(userId) {
       }
       setInviteCode(data.inviteCode);
       return data.inviteCode;
-    } catch (err) {
+    } catch {
       setError('Failed to generate invite code');
       return null;
     } finally {
@@ -86,7 +86,7 @@ export function useBuddy(userId) {
       }
       setBuddyPair(data.pair);
       return data.pair;
-    } catch (err) {
+    } catch {
       setError('Failed to accept invite');
       return null;
     } finally {
