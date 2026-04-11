@@ -65,3 +65,64 @@ CREATE TABLE IF NOT EXISTS user_notes (
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Buddy/collaboration relationships between users
+CREATE TABLE IF NOT EXISTS buddy_pairs (
+  id TEXT PRIMARY KEY,
+  learner_id TEXT NOT NULL,
+  helper_id TEXT,
+  relationship_type TEXT DEFAULT 'peer',
+  status TEXT DEFAULT 'pending',
+  invite_code TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (learner_id) REFERENCES users(id),
+  FOREIGN KEY (helper_id) REFERENCES users(id)
+);
+
+-- Progress shared with buddy
+CREATE TABLE IF NOT EXISTS progress_shares (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  buddy_pair_id TEXT NOT NULL,
+  skill_name TEXT NOT NULL,
+  message TEXT NOT NULL,
+  seen INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (buddy_pair_id) REFERENCES buddy_pairs(id)
+);
+
+-- Help requests from learner to buddy
+CREATE TABLE IF NOT EXISTS help_requests (
+  id TEXT PRIMARY KEY,
+  learner_id TEXT NOT NULL,
+  buddy_pair_id TEXT NOT NULL,
+  question TEXT NOT NULL,
+  context_summary TEXT,
+  status TEXT DEFAULT 'open',
+  response TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  answered_at TEXT,
+  FOREIGN KEY (learner_id) REFERENCES users(id),
+  FOREIGN KEY (buddy_pair_id) REFERENCES buddy_pairs(id)
+);
+
+-- Spaced repetition review schedule
+CREATE TABLE IF NOT EXISTS skill_reviews (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  skill_name TEXT NOT NULL,
+  review_due_at TEXT NOT NULL,
+  completed INTEGER DEFAULT 0,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- User learning goals
+CREATE TABLE IF NOT EXISTS user_goals (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  goal_text TEXT NOT NULL,
+  related_skills TEXT DEFAULT '[]',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);

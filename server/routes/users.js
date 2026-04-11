@@ -8,7 +8,7 @@ const router = express.Router();
 // POST /api/users — create a new user
 router.post('/', (req, res) => {
   try {
-    const { name, os_type, comfort_level } = req.body;
+    const { name, os_type, comfort_level, goal_summary, collaboration_opt_in } = req.body;
     const id = uuidv4();
 
     // Create the user record first
@@ -19,6 +19,8 @@ router.post('/', (req, res) => {
     if (name !== undefined) updateFields.name = name;
     if (os_type !== undefined) updateFields.os_type = os_type;
     if (comfort_level !== undefined) updateFields.comfort_level = comfort_level;
+    if (goal_summary !== undefined) updateFields.goal_summary = goal_summary;
+    if (collaboration_opt_in !== undefined) updateFields.collaboration_opt_in = collaboration_opt_in;
 
     let user;
     if (Object.keys(updateFields).length > 0) {

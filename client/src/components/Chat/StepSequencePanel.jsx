@@ -8,7 +8,7 @@ import './StepSequencePanel.css';
  * @param {object|null} activeSequence  - { id, taskName, steps, currentIndex, completed }
  * @param {function}    onSendMessage   - callback to send a chat message
  */
-function StepSequencePanel({ activeSequence, onSendMessage }) {
+function StepSequencePanel({ activeSequence, onSendMessage, hasBuddy }) {
   if (!activeSequence) return null;
 
   const { taskName, steps, currentIndex } = activeSequence;
@@ -29,6 +29,10 @@ function StepSequencePanel({ activeSequence, onSendMessage }) {
 
   const handleHelp = () => {
     onSendMessage('I need help with this step');
+  };
+
+  const handleAskBuddy = () => {
+    onSendMessage('Can my buddy help me with this?');
   };
 
   return (
@@ -80,6 +84,16 @@ function StepSequencePanel({ activeSequence, onSendMessage }) {
         >
           I need help with this step
         </button>
+
+        {hasBuddy && (
+          <button
+            className="step-panel__btn step-panel__btn--buddy btn-secondary"
+            onClick={handleAskBuddy}
+            aria-label="Ask your buddy for help with this step"
+          >
+            Ask my buddy for help
+          </button>
+        )}
       </div>
     </div>
   );

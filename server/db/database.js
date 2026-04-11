@@ -15,4 +15,24 @@ db.pragma('foreign_keys = ON');
 const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
 db.exec(schema);
 
+// Run additive migrations for new columns on existing tables.
+// Each ALTER TABLE is wrapped in try/catch so it's idempotent —
+// if the column already exists, SQLite throws and we just move on.
+function runMigrations() {
+  const migrations = [
+    'ALTER TABLE users ADD COLUMN collaboration_opt_in INTEGER DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN goal_summary TEXT',
+    'ALTER TABLE users ADD COLUMN invite_code TEXT',
+  ];
+  for (const sql of migrations) {
+    try {
+      db.exec(sql);
+    } catch (e) {
+      // Column already exists — safe to ignore
+    }
+  }
+}
+
+runMigrations();
+
 module.exports = db;
