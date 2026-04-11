@@ -41,7 +41,7 @@ const userProfileManager = {
    * @returns {object} updated user record
    */
   updateProfile(id, fields) {
-    const allowed = ['name', 'os_type', 'vocabulary_level', 'comfort_level', 'accessibility_needs', 'onboarded'];
+    const allowed = ['name', 'os_type', 'vocabulary_level', 'comfort_level', 'accessibility_needs', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code'];
     const filtered = {};
     for (const key of allowed) {
       if (fields[key] !== undefined) {
@@ -103,7 +103,12 @@ const userProfileManager = {
     }
     const accessibilityLine = `Accessibility: ${accessibilityNeeds.length > 0 ? accessibilityNeeds.join(', ') : 'none specified'}`;
 
-    return [nameLine, deviceLine, vocabLine, comfortLine, skillsLine, accessibilityLine].join('\n');
+    // Learning goal
+    const goalLine = user.goal_summary
+      ? `Learning goal: "${user.goal_summary}"`
+      : 'Learning goal: not yet shared';
+
+    return [nameLine, deviceLine, vocabLine, comfortLine, goalLine, skillsLine, accessibilityLine].join('\n');
   },
 };
 
