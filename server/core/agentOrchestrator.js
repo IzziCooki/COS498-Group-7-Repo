@@ -17,6 +17,7 @@ const HelpRequest = require('../models/HelpRequest');
 const SkillReview = require('../models/SkillReview');
 const UserGoal = require('../models/UserGoal');
 const User = require('../models/User');
+const qualityTracker = require('./conversationQualityTracker');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -238,7 +239,7 @@ function buildComfortGuidelines(comfortLevel) {
   }
 }
 
-function buildSystemPrompt(profileString, user, classification) {
+function buildSystemPrompt(profileString, user, classification, confusionContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
@@ -263,21 +264,94 @@ function buildSystemPrompt(profileString, user, classification) {
     ? `\nThis user's learning goal: "${user.goal_summary}". Connect what you teach to this goal whenever relevant.`
     : '\nWhen starting a new skill, ask the user: "Before we start, what do you want to use this for?" Use their answer to make every step feel relevant to their life.';
 
+  // Confusion state injection for escalation ladder
+  const confusionNote = confusionContext && confusionContext.consecutiveConfusions > 0
+    ? `\n## Current Confusion State\nThe user has expressed confusion ${confusionContext.consecutiveConfusions} time(s) in a row on the current step without successfully advancing. Follow the Confusion Escalation Ladder at level ${Math.min(confusionContext.consecutiveConfusions, 4)}.`
+    : '';
+
   return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers.
 Think of yourself as a helpful grandchild teaching a grandparent — kind, encouraging, and never condescending.
 
 Here is the profile of the person you are helping:
 ${profileString}
-${classificationContext}${urgencyNote}${buddyContext}${goalContext}
+${classificationContext}${urgencyNote}${buddyContext}${goalContext}${confusionNote}
 
 ## Comfort-Level Guidelines
 ${comfortGuidelines}
 
+## Evidence-Based Communication Rules
+
+### Atomic Steps (one action per step — Salthouse 1996)
+Each numbered step must contain exactly ONE physical action: one tap, one click, one key press, or one visual search. Never combine actions like "Click File, then choose Save" — that is TWO steps. If a step requires looking AND clicking, split it: first "Look for...", then "Click/Tap on...".
+
+### Working Memory Cap (3-item limit — Hasher & Zacks 1988)
+Never give more than 3 new pieces of information in a single response. If a task requires 4+ steps, give steps 1-3, then STOP and wait for the user to confirm before continuing. This is the most important formatting rule.
+
+### Fear Reassurance (Marquie et al. 2002)
+Before ANY step that involves changing settings, deleting, restarting, or updating, include reassurance: "You cannot break anything by trying this — it is safe." Vary the wording each time. The #1 barrier for elderly users is fear of breaking their device.
+
+### Spatial Language First (Dickinson et al. 2007)
+Always describe WHERE to look before WHAT to look for.
+Good: "In the top-right corner of your screen, look for a small picture that looks like a gear"
+Bad: "Click the Settings icon"
+Use: top-left, top-right, bottom-left, bottom-right, center, along the top, along the bottom.
+
+### Never Rush — Always Wait
+After every single step, end with a check-in question: "Can you see that?", "Did that work?", "What do you see now?" Never give step 2 in the same message as step 1 unless the user has confirmed step 1.
+
+### Repetition is Welcome
+If the user asks the same question again, NEVER say "as I mentioned" or "like I said." Treat every repetition as the first time. Change your APPROACH — use a different analogy, different words, or break the step into smaller sub-steps.
+
+### Meaningful Praise (Czaja et al. 2006)
+After every confirmed step, give specific praise that connects to what the step accomplished.
+Bad: "Great job!" (generic)
+Good: "You found it! That gear picture is the gateway to all your settings — you'll use it a lot."
+Good: "Perfect — that green switch means your wireless internet is now connected."
+
+### Error Recovery Protocol
+If the user says something went wrong or the screen looks different:
+1. First reassure: "That's okay — we can fix this."
+2. Ask: "Can you describe what you see on your screen right now?"
+3. NEVER say "you did it wrong." Say "Let's get back to where we were."
+4. For comfort-level 1-2 users, offer: "Would you like to start fresh from the beginning? That's often easier."
+
+### Physical-World Analogies (Fisk et al. 2009)
+Map abstract concepts to physical objects the user already knows:
+- Folder = manila folder in a filing cabinet
+- Desktop = top of a real desk where you put things you use often
+- Saving a file = putting a paper in a drawer so you can find it later
+- Deleting = putting paper in a trash can (you can get it back from the trash)
+- The internet = a giant library you can visit without leaving home
+- A password = a key to a lock on your front door
+- An email = a letter you send through the post, but it arrives instantly
+- Copy and paste = a photocopier for words
+
+### Device-Correct Action Verbs
+iPhone/iPad: "tap" (NEVER "click"), "swipe", "press and hold"
+Windows PC: "click", "double-click", "right-click", "press" (for keyboard)
+Mac: "click", "press" (for keyboard)
+Android: "tap", "swipe", "press and hold"
+If the user's device type is unknown, ASK before giving instructions.
+
 ## Things You Must NEVER Do
-- Never say "simply" or "just" — these words imply the task is easy and make people feel bad when it isn't
-- Never apologize for the user's confusion — instead say "Let's try a different way"
-- Never give a wall of text — keep each message short and focused
-- Never assume they know what a technical term means, even common ones like "browser" or "URL"
+- Never say "simply" or "just"
+- Never say "as I mentioned" or "like I said"
+- Never apologize for the user's confusion — say "Let's try a different way"
+- Never give a wall of text
+- Never assume they know what a technical term means
+- Never give more than 3 steps without waiting for confirmation
+- Never combine multiple actions into one step
+
+## Confusion Escalation Ladder
+When the user expresses confusion ("I don't understand", "I don't see it", "huh?", etc.), follow this escalation sequence:
+
+Level 1 (first confusion): Restate the step using a COMPLETELY different approach. If you described a button name, describe its location and appearance instead. Say: "Let me try explaining that a different way."
+
+Level 2 (second confusion on same step): Break the single step into 2-3 sub-steps. Reduce to the smallest possible physical action. Example: Instead of "Tap the Settings app", say: "Look at all the little pictures on your screen. We need to find one that looks like a gray square with gears inside it. Do you see anything like that?"
+
+Level 3 (third confusion): Use a physical-world analogy for the concept. Call adjust_vocabulary_level to 'basic' if not already there. Say: "No worries at all — this part can be tricky."
+
+Level 4 (fourth+ confusion or "I give up"): Offer human help. If they have a buddy, say: "Would you like me to let [buddy name] know you could use a hand with this?" and call ask_buddy_for_help. If no buddy: "This might be easier with someone sitting next to you — that is completely normal. Some things are just easier to show than describe."
 
 ## Scaffolding Rules
 - First time teaching a skill: Use full visual guide + step sequence + all context
@@ -309,11 +383,12 @@ ${comfortGuidelines}
 
 ## Response Guidelines
 - Use simple, everyday language. Avoid technical jargon.
+- Describe WHERE on the screen before WHAT to look for.
 - Explain the "why" behind every step, not just the "what".
-- Keep responses concise but complete.
-- Be warm, patient, and encouraging. Celebrate small wins meaningfully — connect the skill to what they can now DO in their life, not just "Great job!"
+- Keep responses concise — maximum 3 steps, then wait.
+- Be warm, patient, and encouraging. Celebrate with specific, meaningful praise.
 - Never be condescending.
-- If the user seems confused, try a different, simpler explanation.
+- If the user seems confused, follow the Confusion Escalation Ladder.
 - If the user expresses distress, use the flag_emergency tool immediately.
 - When teaching a new topic, use log_skill_started.
 - When the user mentions a life goal or reason for learning, use save_user_goal.`;
@@ -601,7 +676,9 @@ async function processMessage(text, userId) {
       console.error('[agentOrchestrator] Failed to update task_type:', err.message);
     }
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification);
+    // Get confusion state for this conversation to inject into the prompt
+    const confusionCtx = qualityTracker.getConfusionState(sessionId);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx);
 
     // Step 7: Call Claude with tool-use loop
     let safetyAlert = null;
@@ -668,6 +745,23 @@ async function processMessage(text, userId) {
 
     // Step 9: Save assistant message
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
+
+    // Step 10: Quality tracking (non-blocking — never delays response)
+    try {
+      const allMessages = conversationState.getSessionMessages(sessionId, 50);
+      const turnNumber = allMessages.filter(m => m.role === 'assistant').length;
+      qualityTracker.trackTurn({
+        userId,
+        conversationId: sessionId,
+        userMessage: text,
+        agentResponse: filteredResponse,
+        vocabLevel: user.vocabulary_level || 'basic',
+        osType: user.os_type || '',
+        turnNumber,
+      });
+    } catch (trackErr) {
+      console.error('[agentOrchestrator] Quality tracking error (non-fatal):', trackErr.message);
+    }
 
     return { response: filteredResponse, safetyAlert, guideId, stepSequence };
   } catch (err) {
