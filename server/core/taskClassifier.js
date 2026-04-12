@@ -7,6 +7,13 @@ if (!anthropicApiKey) {
 
 const client = new Anthropic({ apiKey: anthropicApiKey });
 
+let startActiveObservation;
+try {
+  startActiveObservation = require('@langfuse/tracing').startActiveObservation;
+} catch {
+  startActiveObservation = async (_name, fn) => fn({ update: () => {} });
+}
+
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 const VALID_TASK_TYPES = ['learn_skill', 'troubleshoot', 'follow_up', 'accessibility', 'unknown'];
 const VALID_URGENCY = ['low', 'medium', 'high'];
@@ -38,29 +45,45 @@ Urgency: high = safety/critical failure, medium = frustrating problem, low = gen
   const userMessage = `User profile: ${profileSummary}\nUser message: "${text}"\nClassify this message.`;
 
   try {
-    const response = await client.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 200,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
+    return await startActiveObservation('task-classification', async (span) => {
+      span.update({
+        input: text,
+        metadata: { model: CLAUDE_MODEL, profileSummary },
+      });
+
+      const response = await client.messages.create({
+        model: CLAUDE_MODEL,
+        max_tokens: 200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }],
+      });
+
+      const rawText = response.content[0]?.text?.trim() || '';
+      const jsonText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (parseErr) {
+        console.error('[taskClassifier] Failed to parse Claude response:', rawText);
+        span.update({ output: 'parse_error', metadata: { rawText } });
+        return { taskType: 'unknown', topic: 'unclassified', urgency: 'low' };
+      }
+
+      const taskType = VALID_TASK_TYPES.includes(parsed.taskType) ? parsed.taskType : 'unknown';
+      const topic = typeof parsed.topic === 'string' ? parsed.topic.slice(0, 100) : 'unclassified';
+      const urgency = VALID_URGENCY.includes(parsed.urgency) ? parsed.urgency : 'low';
+
+      span.update({
+        output: JSON.stringify({ taskType, topic, urgency }),
+        usage: {
+          input_tokens: response.usage?.input_tokens,
+          output_tokens: response.usage?.output_tokens,
+        },
+      });
+
+      return { taskType, topic, urgency };
     });
-
-    const rawText = response.content[0]?.text?.trim() || '';
-    const jsonText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonText);
-    } catch (parseErr) {
-      console.error('[taskClassifier] Failed to parse Claude response:', rawText);
-      return { taskType: 'unknown', topic: 'unclassified', urgency: 'low' };
-    }
-
-    const taskType = VALID_TASK_TYPES.includes(parsed.taskType) ? parsed.taskType : 'unknown';
-    const topic = typeof parsed.topic === 'string' ? parsed.topic.slice(0, 100) : 'unclassified';
-    const urgency = VALID_URGENCY.includes(parsed.urgency) ? parsed.urgency : 'low';
-
-    return { taskType, topic, urgency };
   } catch (err) {
     console.error('[taskClassifier] Claude API error:', err.message);
     return { taskType: 'unknown', topic: 'unclassified', urgency: 'low' };
