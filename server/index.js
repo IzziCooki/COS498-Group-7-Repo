@@ -123,12 +123,15 @@ wss.on('connection', (ws) => {
   });
 });
 
-process.on('SIGTERM', () => {
+function gracefulShutdown() {
   const shutdown = langfuseSdk ? langfuseSdk.shutdown() : Promise.resolve();
   shutdown.finally(() => {
     wss.close(() => { server.close(() => process.exit(0)); });
   });
-});
+}
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
 // Generate annotated screenshots on startup
 imageAnnotator.generateAllAnnotations()

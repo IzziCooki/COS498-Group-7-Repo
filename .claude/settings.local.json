@@ -20,7 +20,8 @@
       "Bash(fuser -k 3001/tcp)",
       "Bash(grep:*)",
       "WebFetch(domain:github.com)",
-      "Bash(python eval/run_eval.py --precomputed)"
+      "Bash(python eval/run_eval.py --precomputed)",
+      "WebFetch(domain:langfuse.com)"
     ]
   }
 }

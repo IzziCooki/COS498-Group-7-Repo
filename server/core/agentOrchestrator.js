@@ -12,6 +12,8 @@ const Conversation = require('../models/Conversation');
 const UserNote = require('../models/UserNote');
 const skillProgression = require('./skillProgression');
 
+const { flushTraces } = require('./langfuseInit');
+
 let startActiveObservation;
 try {
   startActiveObservation = require('@langfuse/tracing').startActiveObservation;
@@ -556,6 +558,9 @@ async function processMessage(text, userId) {
 
     // Step 9: Save assistant message
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
+
+    // Step 10: Flush traces to Langfuse
+    flushTraces().catch(e => console.error('[agentOrchestrator] Trace flush error:', e.message));
 
     return { response: filteredResponse, safetyAlert, guideId, stepSequence };
   } catch (err) {

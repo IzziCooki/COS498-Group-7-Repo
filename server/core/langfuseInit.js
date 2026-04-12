@@ -3,16 +3,16 @@ const { LangfuseSpanProcessor } = require('@langfuse/otel');
 const { langfuseSecretKey, langfusePublicKey, langfuseBaseUrl } = require('../config');
 
 let sdk = null;
+let spanProcessor = null;
 
 if (langfuseSecretKey && langfusePublicKey) {
+  spanProcessor = new LangfuseSpanProcessor({
+    secretKey: langfuseSecretKey,
+    publicKey: langfusePublicKey,
+    baseUrl: langfuseBaseUrl,
+  });
   sdk = new NodeSDK({
-    spanProcessors: [
-      new LangfuseSpanProcessor({
-        secretKey: langfuseSecretKey,
-        publicKey: langfusePublicKey,
-        baseUrl: langfuseBaseUrl,
-      }),
-    ],
+    spanProcessors: [spanProcessor],
   });
   sdk.start();
   console.log('[langfuse] Tracing initialized');
@@ -20,4 +20,10 @@ if (langfuseSecretKey && langfusePublicKey) {
   console.warn('[langfuse] LANGFUSE keys not set — tracing disabled');
 }
 
-module.exports = { sdk };
+async function flushTraces() {
+  if (spanProcessor) {
+    await spanProcessor.forceFlush();
+  }
+}
+
+module.exports = { sdk, flushTraces };
