@@ -31,6 +31,17 @@ app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
 
+// Serve React build in production
+app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
+
+// All non-API routes fall through to React's index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/ws') || req.path.startsWith('/images')) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
+});
+
 // Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);
 
