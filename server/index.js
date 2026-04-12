@@ -1,3 +1,4 @@
+const { sdk: langfuseSdk } = require('./core/langfuseInit');
 const http = require('http');
 const path = require('path');
 const express = require('express');
@@ -123,7 +124,10 @@ wss.on('connection', (ws) => {
 });
 
 process.on('SIGTERM', () => {
-  wss.close(() => { server.close(() => process.exit(0)); });
+  const shutdown = langfuseSdk ? langfuseSdk.shutdown() : Promise.resolve();
+  shutdown.finally(() => {
+    wss.close(() => { server.close(() => process.exit(0)); });
+  });
 });
 
 // Generate annotated screenshots on startup
