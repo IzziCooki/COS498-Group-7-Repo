@@ -12,6 +12,14 @@ const Conversation = require('../models/Conversation');
 const UserNote = require('../models/UserNote');
 const skillProgression = require('./skillProgression');
 
+let startActiveObservation;
+try {
+  startActiveObservation = require('@langfuse/tracing').startActiveObservation;
+} catch {
+  // Langfuse not available — use passthrough
+  startActiveObservation = async (_name, fn) => fn({ update: () => {} });
+}
+
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
 }
@@ -439,48 +447,99 @@ async function processMessage(text, userId) {
     let finalTextResponse = '';
 
     try {
-      let response = await client.messages.create({
-        model: CLAUDE_MODEL,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages,
-        tools,
-      });
+      await startActiveObservation('pc-pal-agent-turn', async (trace) => {
+        trace.update({
+          input: text,
+          metadata: { userId, sessionId, taskType: classification?.taskType, topic: classification?.topic },
+        });
 
-      let toolRounds = 0;
-      while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
-        toolRounds += 1;
+        let response = await startActiveObservation('claude-chat', async (span) => {
+          span.update({
+            input: JSON.stringify(messages.slice(-2)),
+            metadata: { model: CLAUDE_MODEL, round: 0 },
+          });
 
-        // Process tool calls
-        const toolResults = [];
-        for (const block of response.content) {
-          if (block.type !== 'tool_use') continue;
-          const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep } =
-            handleFunctionCall(block.name, block.input, userId, sessionId);
-          if (alert) safetyAlert = alert;
-          if (fcGuideId) guideId = fcGuideId;
-          if (fcStep) stepSequence = fcStep;
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fcResult });
+          const res = await client.messages.create({
+            model: CLAUDE_MODEL,
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages,
+            tools,
+          });
+
+          span.update({
+            output: JSON.stringify(res.content),
+            usage: {
+              input_tokens: res.usage?.input_tokens,
+              output_tokens: res.usage?.output_tokens,
+            },
+          });
+
+          return res;
+        });
+
+        let toolRounds = 0;
+        while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
+          toolRounds += 1;
+
+          const toolResults = [];
+          for (const block of response.content) {
+            if (block.type !== 'tool_use') continue;
+
+            await startActiveObservation(`tool-${block.name}`, async (toolSpan) => {
+              toolSpan.update({ input: JSON.stringify(block.input) });
+
+              const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep } =
+                handleFunctionCall(block.name, block.input, userId, sessionId);
+
+              if (alert) safetyAlert = alert;
+              if (fcGuideId) guideId = fcGuideId;
+              if (fcStep) stepSequence = fcStep;
+
+              toolSpan.update({ output: fcResult });
+              toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fcResult });
+            });
+          }
+
+          messages.push({ role: 'assistant', content: response.content });
+          messages.push({ role: 'user', content: toolResults });
+
+          response = await startActiveObservation('claude-chat', async (span) => {
+            span.update({
+              metadata: { model: CLAUDE_MODEL, round: toolRounds },
+            });
+
+            const res = await client.messages.create({
+              model: CLAUDE_MODEL,
+              max_tokens: 1024,
+              system: systemPrompt,
+              messages,
+              tools,
+            });
+
+            span.update({
+              output: JSON.stringify(res.content),
+              usage: {
+                input_tokens: res.usage?.input_tokens,
+                output_tokens: res.usage?.output_tokens,
+              },
+            });
+
+            return res;
+          });
         }
 
-        // Send tool results back to Claude
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults });
+        if (toolRounds >= MAX_TOOL_ROUNDS) {
+          console.error(`[agentOrchestrator] Tool loop hit max (${MAX_TOOL_ROUNDS}) for user ${userId}`);
+        }
 
-        response = await client.messages.create({
-          model: CLAUDE_MODEL,
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages,
-          tools,
+        finalTextResponse = extractTextFromContent(response.content);
+
+        trace.update({
+          output: finalTextResponse,
+          metadata: { toolRounds },
         });
-      }
-
-      if (toolRounds >= MAX_TOOL_ROUNDS) {
-        console.error(`[agentOrchestrator] Tool loop hit max (${MAX_TOOL_ROUNDS}) for user ${userId}`);
-      }
-
-      finalTextResponse = extractTextFromContent(response.content);
+      });
     } catch (err) {
       console.error('[agentOrchestrator] Claude API error:', err.message);
       return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null };
