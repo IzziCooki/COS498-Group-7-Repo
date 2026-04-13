@@ -1,0 +1,21 @@
+hi
+
+---
+
+go to plan mode
+
+---
+
+can you access the repo COS498?
+
+---
+
+GIVE me a basic overview of this project
+
+---
+
+We need to review the AI-generated project specifications to ensure they are accurate and complete. Please review the documents, edit where the AI missed or used inaccurate information but do not commit and push you lemme know the changes and why that improvement matters before
+
+---
+
+yea leave a TODO note but leave a comment on what has been done to update the document and then push and commit
