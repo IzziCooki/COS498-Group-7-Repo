@@ -1,5 +1,7 @@
 # PC Pal — Architecture Overview
 
+<!-- Updated 2026-04-13: Corrected tool count (12→16), table count (7→14), onboarding steps (3→5), added missing components (BuddyPanel, WelcomeBackBanner), hooks (useBuddy), routes (buddy, export, quality), and database tables to match actual codebase. -->
+
 ## What is PC Pal?
 
 PC Pal is a web-based AI chat assistant that helps elderly and beginner computer users learn basic PC skills. Think of it as a patient, friendly grandchild who teaches grandparents how to use their computer — through a simple chat interface with visual guides.
@@ -72,9 +74,9 @@ This is the core of the app. The AI receives:
 - The conversation history (last 20 messages)
 - The user's profile (name, OS, comfort level, skills)
 - The task classification
-- A system prompt with 12 tools it can call
+- A system prompt with 16 tools it can call
 
-The AI generates a response and may call tools like `show_visual_guide` or `start_step_sequence`. Tool calls are processed in a loop — the AI can call multiple tools before giving its final text answer.
+The AI generates a response and may call tools like `show_visual_guide` or `start_step_sequence`. Tool calls are processed in a loop (up to 10 rounds) — the AI can call multiple tools before giving its final text answer.
 
 ### Step 6: Vocabulary Filter
 **File:** `server/core/vocabularyFilter.js`
@@ -91,7 +93,7 @@ The response is saved to the database and sent back to the user via WebSocket (o
 
 ---
 
-## The 12 AI Tools
+## The 16 AI Tools
 
 When the Claude AI is processing a message, it can decide to call any of these tools:
 
@@ -109,6 +111,10 @@ When the Claude AI is processing a message, it can decide to call any of these t
 | `get_user_notes` | Shows saved tips | User asks "what have I learned?" |
 | `restart_conversation` | Clears the session | User says "start over" or seems lost |
 | `flag_emergency` | Logs an emergency alert | User mentions injury, falling, medical issue |
+| `save_user_goal` | Records the user's learning motivation | User shares why they want to learn |
+| `schedule_skill_review` | Schedules a spaced repetition review | User completes a skill (review in 7 days) |
+| `share_progress_with_buddy` | Shares skill completion with buddy | User finishes a skill and has a connected buddy |
+| `ask_buddy_for_help` | Sends a help request to the user's buddy | User is stuck and wants human help |
 
 ---
 
@@ -122,8 +128,11 @@ App.jsx
   │     Step 1: Name
   │     Step 2: Device type (Windows/Mac/iPhone/Android)
   │     Step 3: Comfort level (1-5)
+  │     Step 4: Learning goal
+  │     Step 5: Buddy invite (optional)
   │
-  └── Header.jsx + ChatWindow.jsx    (shown after onboarding)
+  └── Header.jsx + ChatWindow.jsx + BuddyPanel.jsx    (shown after onboarding)
+        ├── WelcomeBackBanner.jsx   (shows due skill reviews + buddy replies)
         ├── Message List
         │     ├── MessageBubble.jsx   (each message)
         │     │     └── VisualGuide.jsx   (if guideId present)
@@ -132,9 +141,11 @@ App.jsx
         ├── StepSequencePanel.jsx   (if step sequence active)
         │     ├── Progress bar
         │     ├── Current step text
-        │     └── Quick-reply buttons ("Done!", "Help")
+        │     └── Quick-reply buttons ("Done!", "Help", "Ask my buddy")
         │
-        └── MessageInput.jsx   (text input + send button)
+        ├── MessageInput.jsx   (text input + send button)
+        │
+        └── BuddyPanel.jsx   (buddy management — invite, progress, help requests)
 ```
 
 ### Visual Guide System
@@ -156,12 +167,15 @@ Renders a guide card with a blue header, numbered step circles, step description
 
 - **`useChat.js`** — Manages the WebSocket connection, message state, typing indicators, and active step sequence. Exposes `messages`, `sendMessage`, `isConnected`, `isTyping`, `activeSequence`.
 - **`useUser.js`** — Manages user profile state, localStorage persistence, and API calls for creating/updating users.
+- **`useBuddy.js`** — Manages buddy relationships, progress shares, and help requests. Exposes buddy pair state, invite/accept actions, and pending notifications.
 
 ---
 
 ## Database
 
-SQLite with 7 tables. The database file is created automatically at `server/db/pcpal.db` on first run.
+SQLite with 14 tables. The database file is created automatically at `server/db/pcpal.db` on first run.
+
+**Core tables:**
 
 | Table | Purpose | Key Fields |
 |-------|---------|-----------|
@@ -172,6 +186,28 @@ SQLite with 7 tables. The database file is created automatically at `server/db/p
 | `skill_events` | Skill learning log | user_id, skill_name, status (started/completed), practiced_at |
 | `safety_events` | Emergency/scam logs | user_id, event_type, trigger_text |
 | `user_notes` | Saved tips | user_id, title, content |
+
+**Collaboration tables:**
+
+| Table | Purpose | Key Fields |
+|-------|---------|-----------|
+| `buddy_pairs` | Buddy relationships | learner_id, buddy_id, invite_code, status |
+| `progress_shares` | Skill completions shared with buddies | buddy_pair_id, skill_name, message |
+| `help_requests` | Async help requests between learner and buddy | buddy_pair_id, question, response, status |
+
+**Learning science tables:**
+
+| Table | Purpose | Key Fields |
+|-------|---------|-----------|
+| `skill_reviews` | Spaced repetition scheduling | user_id, skill_name, review_date |
+| `user_goals` | User learning goals | user_id, goal_text, connected_skill |
+
+**Quality tracking tables:**
+
+| Table | Purpose | Key Fields |
+|-------|---------|-----------|
+| `conversation_quality_events` | Per-turn quality metrics | conversation_id, event_type, details |
+| `conversation_quality_summaries` | Aggregated session quality scores | conversation_id, metrics (JSON) |
 
 ---
 
@@ -216,5 +252,5 @@ The app runs in demo mode by default. Set `MOCK_MODE=false` and add an `ANTHROPI
 ## How to Test
 
 ```bash
-npm test    # 74 backend tests
+npm test    # 69 backend tests
 ```

@@ -1,4 +1,8 @@
- Here is Claude's plan:                                                                                                                    ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ PC Pal - Implementation Plan                                                                                                              
+ Here is Claude's plan:                                                                                                                    ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ PC Pal - Implementation Plan
+
+ <!-- Updated 2026-04-13: Added correction notes throughout. This was the original AI-generated plan written before implementation.
+      Several planned names/technologies diverged during actual development. Corrections are marked with [ACTUAL: ...] annotations. -->
+
   
  Context
 
@@ -23,15 +27,15 @@
  ├──────────────────┼──────────────────────────────────────────────────────┤
  │ AI               │ Anthropic SDK (@anthropic-ai/sdk) with tool-use      │
  ├──────────────────┼──────────────────────────────────────────────────────┤
- │ Database         │ SQLite (v1/v2 via better-sqlite3), PostgreSQL for v3 │
+ │ Database         │ SQLite (via better-sqlite3) [ACTUAL: stayed SQLite for all versions, no PostgreSQL migration] │
  ├──────────────────┼──────────────────────────────────────────────────────┤
- │ Real-time        │ WebSocket (via ws or Socket.IO) for streaming chat   │
+ │ Real-time        │ WebSocket (via ws) for streaming chat [ACTUAL: ws only, Socket.IO not used] │
  ├──────────────────┼──────────────────────────────────────────────────────┤
- │ Image Processing │ Sharp (Node.js) for annotated screenshots (v2)       │
+ │ Image Processing │ @napi-rs/canvas for annotated screenshots [ACTUAL: uses @napi-rs/canvas, not Sharp] │
  ├──────────────────┼──────────────────────────────────────────────────────┤
  │ Scheduling       │ node-cron (v2+ for proactive messages)               │
  ├──────────────────┼──────────────────────────────────────────────────────┤
- │ Testing          │ Jest (backend), React Testing Library (frontend)     │
+ │ Testing          │ Jest (backend) [ACTUAL: React Testing Library was never added as a dependency] │
  └──────────────────┴──────────────────────────────────────────────────────┘
 
  ---
@@ -43,7 +47,7 @@
  Express Server (server/index.js)
      |
      v
- ConversationRouter (server/core/conversationRouter.js)
+ ConversationRouter (server/core/conversationRouter.js) [ACTUAL: not a separate file; routing handled in server/index.js]
      |  lookup user, load/create session
      v
  SafetyMonitor (runs FIRST on every message)
@@ -72,13 +76,13 @@
          ChatWindow.jsx           # Main chat container
          MessageBubble.jsx        # Individual message display
          MessageInput.jsx         # Text input + send button
-         StepIndicator.jsx        # "Step 2 of 5" progress bar
+         StepIndicator.jsx        # "Step 2 of 5" progress bar [ACTUAL: implemented as StepSequencePanel.jsx]
          VisualGuide.jsx          # Annotated screenshot display (v2)
        Onboarding/
          OnboardingFlow.jsx       # Name, OS, comfort level collection
        Layout/
          Header.jsx               # App header with user info
-         Sidebar.jsx              # Skill history panel (v3)
+         Sidebar.jsx              # Skill history panel (v3) [ACTUAL: not implemented]
      hooks/
        useChat.js                 # WebSocket connection + message state
        useUser.js                 # User profile state
@@ -106,12 +110,12 @@
      taskClassifier.js            # Message classification via Claude
      userProfileManager.js        # User profile logic + onboarding
      conversationState.js         # Session lifecycle + memory
-     stepSequencer.js             # Numbered step management
+     stepSequencer.js             # Numbered step management [ACTUAL: not created as separate file; step logic is in agentOrchestrator.js]
      vocabularyFilter.js          # Jargon replacement + readability
-     skillTracker.js              # Skill logging + reinforcement
+     skillTracker.js              # Skill logging + reinforcement [ACTUAL: implemented as skillProgression.js]
      safetyMonitor.js             # Emergency + scam detection
-     proactiveEngine.js           # Scheduled messages (v2)
-     visualGuideGenerator.js      # Annotated screenshots via Sharp (v2)
+     proactiveEngine.js           # Scheduled messages (v2) [ACTUAL: not implemented]
+     visualGuideGenerator.js      # Annotated screenshots [ACTUAL: implemented as imageAnnotator.js using @napi-rs/canvas]
    assets/
      vocabulary/
        basicSubstitutions.json    # Word replacement map
@@ -119,13 +123,13 @@
    routes/
      chat.js                      # POST /api/chat (REST fallback)
      users.js                     # GET/POST /api/users
-     skills.js                    # GET /api/users/:id/skills (v3)
+     skills.js                    # GET /api/users/:id/skills (v3) [ACTUAL: not implemented; buddy.js, export.js, quality.js exist instead]
    __tests__/
      vocabularyFilter.test.js
      taskClassifier.test.js
-     stepSequencer.test.js
+     stepSequencer.test.js        [ACTUAL: not created]
      safetyMonitor.test.js
-     conversationFlow.test.js
+     conversationFlow.test.js     [ACTUAL: not created]
 
  package.json
  .env.example

@@ -1,5 +1,7 @@
 # COS 498: Generative AI Agents - Agent Project Specification
 
+<!-- Updated 2026-04-13: Fixed database table count (12→14, added conversation_quality_events and conversation_quality_summaries), and added TODO for team member names. -->
+
 **Spring 2026 - University of Maine**
 
 ---
@@ -11,7 +13,7 @@
 | **Agent Name** | PC Pal |
 | **Description** | AI tutor helping elderly users build lasting computer skills with buddy support |
 | **Team Name** | Group 7 |
-| **Team Members** | [Team Member 1], [Team Member 2], [Team Member 3], [Team Member 4] |
+| **Team Members** | [Team Member 1], [Team Member 2], [Team Member 3], [Team Member 4] | <!-- TODO: Replace with actual team member names before final submission --> |
 
 ---
 
@@ -354,7 +356,7 @@ paperclip picture at the top of the email.'"
 | Frontend | React 19, Vite 8, vanilla CSS |
 | Backend | Node.js, Express 4, WebSocket (ws) |
 | AI | Anthropic Claude API (claude-sonnet-4-20250514) with tool-use |
-| Database | SQLite (via better-sqlite3) -- 12 tables |
+| Database | SQLite (via better-sqlite3) -- 14 tables |
 | Image Processing | @napi-rs/canvas for annotated screenshots |
 | Deployment | Standalone web app (agent.deanhauser.dev) + CollaborAITE integration (planned) |
 
@@ -391,13 +393,15 @@ Every user message flows through a 7-step pipeline:
 | `share_progress_with_buddy` | Share skill completion with buddy |
 | `ask_buddy_for_help` | Send help request to buddy |
 
-### Database Schema (12 tables)
+### Database Schema (14 tables)
 
 **Core:** users, conversations, messages, step_sequences, skill_events, safety_events, user_notes
 
 **Collaboration:** buddy_pairs, progress_shares, help_requests
 
 **Learning science:** skill_reviews, user_goals
+
+**Quality tracking:** conversation_quality_events, conversation_quality_summaries
 
 ### Implementation Timeline
 
