@@ -1,0 +1,136 @@
+{
+  "red_flags": [
+    "They create urgency — 'act now or else'",
+    "They ask for payment by gift card, wire transfer, or cryptocurrency",
+    "They ask for remote access to your computer",
+    "They say 'don't tell anyone' or 'keep this between us'",
+    "They threaten arrest, deportation, or legal action",
+    "They ask for your password, PIN, or Social Security number",
+    "They called YOU — you didn't call them",
+    "The caller ID shows a familiar name but the voice is unfamiliar",
+    "They ask you to stay on the phone while you go to a store or bank",
+    "The email address doesn't match the company (e.g. irs-refund@gmail.com)",
+    "There are spelling mistakes or odd grammar in an official-looking email",
+    "They offer something that sounds too good to be true (free prize, lottery win)",
+    "They say your computer is infected and only they can fix it",
+    "They want you to download software or click a link",
+    "They ask you to move money to a 'safe account'",
+    "They pressure you to decide right away without talking to family first"
+  ],
+
+  "no_legitimate_company_ever": [
+    "Asks you to pay with gift cards — no real company or government agency does this, EVER",
+    "Calls to say your Social Security number has been 'suspended' — that is not a real thing",
+    "Threatens to arrest you over the phone — police come in person, they do not call",
+    "Asks for your password — no real tech company needs your password to help you",
+    "Demands payment to 'unlock' your computer via a pop-up — close the window, it is fake",
+    "Emails you saying you won a contest you never entered",
+    "Asks you to wire money or send cryptocurrency to fix a problem",
+    "Tells you to keep the call secret from your family",
+    "Asks you to buy prepaid debit cards and read the numbers over the phone"
+  ],
+
+  "scam_patterns": [
+    {
+      "name": "Tech Support Scam",
+      "description": "A pop-up on your screen or a phone call claiming your computer is infected. They want remote access or payment to 'fix' it.",
+      "common_phrases": ["your computer has been compromised", "Microsoft detected a virus", "call this number immediately", "we need remote access"],
+      "risk_level": "high",
+      "what_to_do": "Close the pop-up (press Alt+F4 on Windows or Cmd+Q on Mac). NEVER call the number shown. If someone called you, hang up. Microsoft, Apple, and Google will never call you about a virus."
+    },
+    {
+      "name": "IRS / Tax Scam",
+      "description": "A call, email, or letter claiming you owe back taxes and must pay immediately or face arrest.",
+      "common_phrases": ["you owe back taxes", "warrant for your arrest", "pay immediately", "IRS agent"],
+      "risk_level": "high",
+      "what_to_do": "Hang up. The real IRS sends letters by mail first — they NEVER call to demand immediate payment or threaten arrest. If you are worried, call the IRS directly at 1-800-829-1040."
+    },
+    {
+      "name": "Social Security Scam",
+      "description": "A call claiming your Social Security number has been 'suspended' or 'compromised' and you need to verify it or pay to fix it.",
+      "common_phrases": ["your Social Security number has been suspended", "suspicious activity on your account", "verify your number", "press 1 to speak to an agent"],
+      "risk_level": "high",
+      "what_to_do": "Hang up. Social Security numbers cannot be 'suspended.' The real Social Security Administration will never call to threaten you. If concerned, call SSA directly at 1-800-772-1213."
+    },
+    {
+      "name": "Medicare Scam",
+      "description": "A call asking for your Medicare number to send you a new card, enroll you in a plan, or offer free equipment.",
+      "common_phrases": ["need your Medicare number", "new Medicare card", "free back brace", "free genetic testing", "enroll you in a better plan"],
+      "risk_level": "high",
+      "what_to_do": "Hang up. Never give your Medicare number to someone who calls you. Medicare will NEVER call to ask for your number or offer free equipment out of the blue. If concerned, call 1-800-MEDICARE (1-800-633-4227)."
+    },
+    {
+      "name": "Grandchild Emergency Scam",
+      "description": "A caller pretends to be your grandchild (or their lawyer/police officer) saying they are in jail, in an accident, or in trouble, and need money immediately.",
+      "common_phrases": ["grandma it's me", "I'm in trouble", "I need bail money", "don't tell mom and dad", "please wire money", "I'm in the hospital"],
+      "risk_level": "high",
+      "what_to_do": "HANG UP and call your grandchild directly at the phone number you already have for them. Scammers use AI to clone voices now — even if it sounds like them, verify by calling them yourself. Never send money based on a phone call alone."
+    },
+    {
+      "name": "Romance Scam",
+      "description": "Someone you met online (dating site, social media, or a wrong-number text) builds a relationship over weeks, then asks for money for an emergency, travel, or medical bills.",
+      "common_phrases": ["I'm stuck overseas", "I need money for a plane ticket", "my wallet was stolen", "I can't access my bank account", "I'll pay you back"],
+      "risk_level": "high",
+      "what_to_do": "STOP sending money. If you have never met someone in person and they ask for money, it is almost certainly a scam. Talk to a family member or friend about this person before sending anything."
+    },
+    {
+      "name": "Lottery / Prize Scam",
+      "description": "You receive a call, email, or letter saying you won a prize, lottery, or sweepstakes. To claim it, you need to pay a fee or taxes upfront.",
+      "common_phrases": ["you've won", "claim your prize", "pay the processing fee", "taxes on your winnings", "congratulations"],
+      "risk_level": "high",
+      "what_to_do": "Delete it. You cannot win a contest you did not enter. Real lotteries NEVER require you to pay fees upfront to collect your winnings."
+    },
+    {
+      "name": "Utility Shutoff Scam",
+      "description": "A call claiming your electricity, gas, or water will be shut off in the next hour unless you pay immediately.",
+      "common_phrases": ["your service will be disconnected", "pay now to avoid shutoff", "immediate payment required"],
+      "risk_level": "medium",
+      "what_to_do": "Hang up and call your utility company using the phone number on your actual bill (not the number the caller gave you). Real utility companies send written notices before shutoff — they do not call demanding immediate payment."
+    },
+    {
+      "name": "Package Delivery Scam",
+      "description": "A text or email saying you have a package that could not be delivered and you need to click a link or pay a fee to reschedule.",
+      "common_phrases": ["delivery failed", "reschedule your delivery", "click here to update", "small fee required", "confirm your address"],
+      "risk_level": "medium",
+      "what_to_do": "Do NOT click the link. If you are expecting a package, go directly to the delivery company's real website (ups.com, usps.com, fedex.com) and use the tracking number from your order confirmation."
+    },
+    {
+      "name": "Bank / Credit Card Alert Scam",
+      "description": "A text, call, or email saying there is suspicious activity on your bank account or credit card and you need to 'verify' your account by clicking a link or providing information.",
+      "common_phrases": ["suspicious activity", "verify your account", "your card has been locked", "click here to restore access", "confirm your identity"],
+      "risk_level": "high",
+      "what_to_do": "Do NOT click any link or give information. Hang up if it's a call. Then call the number on the BACK of your actual bank card or go to your bank's real website by typing the address yourself."
+    },
+    {
+      "name": "Charity Scam",
+      "description": "After a disaster or holiday, you receive calls or emails asking for donations to a charity that sounds real but isn't.",
+      "common_phrases": ["donate now", "help the victims", "tax-deductible donation", "we need your help urgently"],
+      "risk_level": "medium",
+      "what_to_do": "Look up the charity at give.org or charitynavigator.org before donating. Real charities do not pressure you to donate immediately. Never donate by gift card or wire transfer."
+    },
+    {
+      "name": "Computer Pop-Up Warning",
+      "description": "A full-screen pop-up or loud alarm on your computer saying your computer is infected and you must call a number to fix it.",
+      "common_phrases": ["your computer has been locked", "call Microsoft support", "virus detected", "do not turn off your computer"],
+      "risk_level": "high",
+      "what_to_do": "This is FAKE. Do not call the number. Press Alt+F4 (Windows) or Cmd+Q (Mac) to close it. If that does not work, hold the power button for 10 seconds to turn off the computer, then turn it back on. The pop-up will be gone."
+    }
+  ],
+
+  "verification_contacts": {
+    "IRS": { "phone": "1-800-829-1040", "website": "irs.gov" },
+    "Social Security Administration": { "phone": "1-800-772-1213", "website": "ssa.gov" },
+    "Medicare": { "phone": "1-800-633-4227 (1-800-MEDICARE)", "website": "medicare.gov" },
+    "FTC (report scams)": { "phone": "1-877-382-4357", "website": "reportfraud.ftc.gov" },
+    "Microsoft": { "phone": "1-800-642-7676", "website": "support.microsoft.com" },
+    "Apple": { "phone": "1-800-275-2273", "website": "support.apple.com" },
+    "Google": { "website": "support.google.com" },
+    "Amazon": { "phone": "1-888-280-4331", "website": "amazon.com/gp/help/customer/contact-us" },
+    "USPS": { "phone": "1-800-275-8777", "website": "usps.com" },
+    "UPS": { "phone": "1-800-742-5877", "website": "ups.com" },
+    "FedEx": { "phone": "1-800-463-3339", "website": "fedex.com" },
+    "FBI IC3 (internet crimes)": { "website": "ic3.gov" },
+    "AARP Fraud Helpline": { "phone": "1-877-908-3360" },
+    "National Elder Fraud Hotline": { "phone": "1-833-372-8311" }
+  }
+}
