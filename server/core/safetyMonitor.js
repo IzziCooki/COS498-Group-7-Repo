@@ -46,25 +46,44 @@ const compiledEmergencyPatterns = EMERGENCY_KEYWORDS.map(kw => ({
   regex: buildEmergencyRegex(kw),
 }));
 
+// Patterns that indicate the user is ASKING about a potential scam (not being actively scammed).
+// These should pass through to Claude for conversational analysis via the scam-check skill.
+const SCAM_QUESTION_PATTERNS = [
+  /\bis this a scam\b/i,
+  /\bis this (real|legitimate|legit)\b/i,
+  /\bam i (being|getting) scammed\b/i,
+  /\bshould i trust\b/i,
+  /\bcan i trust\b/i,
+  /\bis this (person|caller|email|message) (real|safe|legitimate)\b/i,
+  /\bdoes this sound (right|real|legitimate|like a scam)\b/i,
+  /\bsomeone (called|emailed|texted|messaged) me.*(scam|real|trust|suspicious)/i,
+  /\bshould i (give|send|pay|call)\b/i,
+  /\bis it safe to\b/i,
+];
+
 /**
  * Check a user message for emergency situations or scam patterns.
  * Logs to SafetyEvent if a threat is detected.
  *
+ * If the user is ASKING whether something is a scam (vs. describing an active
+ * scam targeting them), the message passes through to Claude so the
+ * analyze_scam_situation tool can provide a conversational analysis.
+ *
  * @param {string} text    The user's message text
  * @param {string} userId  The user's ID (for logging)
- * @returns {{ safe: boolean, type: null|'emergency'|'scam', response: null|string }}
+ * @returns {{ safe: boolean, type: null|'emergency'|'scam'|'scam_question', response: null|string }}
  */
 function checkMessage(text, userId) {
   if (!text) return { safe: true, type: null, response: null };
 
-  // Check for emergency keywords first (higher priority)
+  // Check for emergency keywords first (highest priority — always intercept)
   for (const { keyword, regex } of compiledEmergencyPatterns) {
     if (regex.test(text)) {
       try {
         SafetyEvent.create({
           user_id: userId,
           event_type: 'emergency',
-          trigger_text: text.slice(0, 500), // cap stored text
+          trigger_text: text.slice(0, 500),
         });
       } catch (dbErr) {
         console.error('[safetyMonitor] Failed to log emergency event to DB:', dbErr);
@@ -77,7 +96,23 @@ function checkMessage(text, userId) {
     }
   }
 
-  // Check for scam patterns
+  // Check if the user is ASKING about a scam (should pass through to Claude)
+  const isAskingAboutScam = SCAM_QUESTION_PATTERNS.some(p => p.test(text));
+  if (isAskingAboutScam) {
+    // Log the event but let the message through to Claude for conversational analysis
+    try {
+      SafetyEvent.create({
+        user_id: userId,
+        event_type: 'scam_question',
+        trigger_text: text.slice(0, 500),
+      });
+    } catch (dbErr) {
+      console.error('[safetyMonitor] Failed to log scam_question event to DB:', dbErr);
+    }
+    return { safe: true, type: 'scam_question', response: null };
+  }
+
+  // Check for active scam patterns (user describing something happening to them)
   for (const pattern of SCAM_PATTERNS) {
     if (pattern.test(text)) {
       try {
