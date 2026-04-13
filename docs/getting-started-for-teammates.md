@@ -1,5 +1,7 @@
 # Getting Started — For Teammates
 
+<!-- Updated 2026-04-13: Fixed clone URL (placeholder→actual IzziCooki org), corrected tool count (12→16), and test count (74→69). -->
+
 Welcome to PC Pal! This guide will get you up and running in 5 minutes.
 
 ---
@@ -21,7 +23,7 @@ PC Pal is a web app that helps elderly people learn to use their computer. Users
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-org/COS498-Group-7-Repo.git
+git clone https://github.com/IzziCooki/COS498-Group-7-Repo.git
 cd COS498-Group-7-Repo
 npm install
 cd client && npm install && cd ..
@@ -92,7 +94,7 @@ docs/             Documentation (you are here)
 ```bash
 npm test
 ```
-74 tests, takes about 1 second.
+69 tests, takes about 1 second.
 
 ### Reset the database
 Delete `server/db/pcpal.db` and restart the server. A fresh database is created automatically.
@@ -133,13 +135,13 @@ Delete `server/db/pcpal.db` and restart the server. A fresh database is created 
 ## Who Built What
 
 This is the first prototype. The core implementation includes:
-- 12 AI agent tools
+- 16 AI agent tools
 - 10 visual task guides (Windows + Mac)
 - Safety monitoring (emergencies + scams)
 - Vocabulary simplification (20+ terms)
 - Comfort-level adaptive responses
 - Full demo mode
-- 74 automated tests
+- 69 automated tests
 
 ---
 

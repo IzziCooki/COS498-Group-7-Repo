@@ -1,5 +1,7 @@
 # PC Pal — File-by-File Guide
 
+<!-- Updated 2026-04-13: Corrected tool count (12→16), agentOrchestrator line count (~450→~773), added 6 missing server/core files, 6 missing models, 3 missing routes, fixed test counts (74→69), fixed onboarding step count (3→5), and added missing client components and hooks. -->
+
 Every file in the project, what it does, and where it fits.
 
 ---
@@ -36,7 +38,7 @@ Every file in the project, what it does, and where it fits.
 
 | File | What it does |
 |------|-------------|
-| `schema.sql` | Defines all 7 database tables. Runs automatically on startup. |
+| `schema.sql` | Defines all 14 database tables. Runs automatically on startup. |
 | `database.js` | Initializes SQLite via `better-sqlite3`. Enables WAL mode and foreign keys. Exports the `db` instance used by all models. |
 | `pcpal.db` | The actual database file (created automatically, gitignored) |
 
@@ -55,6 +57,12 @@ Each model file exports an object with CRUD methods. All use synchronous `better
 | `SkillEvent.js` | `skill_events` | `create`, `findByUserId`, `findBySkillName` — tracks skill started/completed events |
 | `SafetyEvent.js` | `safety_events` | `create`, `findByUserId` — logs emergency and scam detections |
 | `UserNote.js` | `user_notes` | `create`, `findByUserId`, `findById`, `delete` — user's saved tips |
+| `BuddyPair.js` | `buddy_pairs` | Buddy relationship management — invite codes, pairing, status |
+| `ProgressShare.js` | `progress_shares` | Skill completion messages shared with buddies |
+| `HelpRequest.js` | `help_requests` | Async help requests between learner and buddy |
+| `SkillReview.js` | `skill_reviews` | Spaced repetition scheduling — 7-day review intervals |
+| `UserGoal.js` | `user_goals` | User learning goals connected to skills |
+| `ConversationQualityEvent.js` | `conversation_quality_events` | Per-turn conversation quality metrics |
 
 ---
 
@@ -62,10 +70,10 @@ Each model file exports an object with CRUD methods. All use synchronous `better
 
 This is where all the important logic lives.
 
-#### `agentOrchestrator.js` — The Main Pipeline (~450 lines)
+#### `agentOrchestrator.js` — The Main Pipeline (~773 lines)
 **This is the most important file in the project.**
 
-- Defines 12 Claude AI tools with their schemas
+- Defines 16 Claude AI tools with their schemas
 - `processMessage(text, userId)` — the entry point for every user message
 - Pipeline: safety check → mock mode check → user lookup → session management → classification → Claude API call → tool handling loop → vocabulary filtering → save & return
 - `handleFunctionCall(name, args, userId, sessionId)` — dispatches tool calls from the AI to the appropriate handler
@@ -110,6 +118,32 @@ This is where all the important logic lives.
 - `updateProfile(id, fields)` — updates allowed profile fields only
 - `getProfileForPrompt(id)` — returns a formatted string for injecting into the AI's system prompt, including name, OS, vocabulary level, comfort level, and skill history with relative timestamps
 
+#### `conversationExporter.js` — Conversation Export
+- Exports full conversation logs for evaluation and analysis
+- Used by the export route to provide data for the evaluation framework
+
+#### `conversationQualityTracker.js` — Quality Metrics
+- Tracks real-time conversation quality events per turn
+- Monitors confusion, jargon slips, device mismatches, response length, step overload
+- Generates aggregated quality summaries for post-session analysis
+
+#### `imageAnnotator.js` — Annotated Screenshot Generator
+- Generates annotated screenshots at startup using `@napi-rs/canvas`
+- Creates keyboard diagrams and step annotations for visual guides
+- Cached and served as static image files
+
+#### `imageGenerator.js` — Image Generation Utilities
+- Supporting utilities for image generation and processing
+
+#### `skillImages.js` — Skill Image Registry
+- Maps skills to their corresponding visual guide images
+- Provides image paths for the annotated screenshot system
+
+#### `skillMatcher.js` — Skill Auto-Matching
+- Automatically matches user questions to the 10 visual guides
+- Injects specialized prompts to Claude for task-specific expertise
+- Keyword-based matching against skill definitions in `server/skills/`
+
 #### `skillProgression.js` — Learning Chains (~75 lines)
 - Defines 3 skill progression chains:
   - `copy_paste → send_email → attach_file`
@@ -126,6 +160,9 @@ This is where all the important logic lives.
 |------|----------|
 | `users.js` | `POST /api/users` (create), `GET /api/users/:id` (read), `PUT /api/users/:id` (update), `PUT /api/users/:id/onboard` (mark onboarded) |
 | `chat.js` | `POST /api/chat` (REST fallback for WebSocket chat) |
+| `buddy.js` | Buddy invite, accept, progress sharing, and help request endpoints |
+| `export.js` | `GET /api/conversations` — conversation export for evaluation |
+| `quality.js` | Conversation quality metrics endpoints |
 
 ---
 
@@ -133,9 +170,9 @@ This is where all the important logic lives.
 
 | File | What it tests | # Tests |
 |------|-------------|---------|
-| `vocabularyFilter.test.js` | Word substitution, whole-word matching, readability splitting, edge cases | 46 |
+| `vocabularyFilter.test.js` | Word substitution, whole-word matching, readability splitting, edge cases | 30 |
 | `safetyMonitor.test.js` | Emergency keywords, scam patterns, partial-word non-matching, DB logging | 22 |
-| `taskClassifier.test.js` | Classification accuracy, error handling, JSON parsing, markdown stripping | 22 |
+| `taskClassifier.test.js` | Classification accuracy, error handling, JSON parsing, markdown stripping | 17 |
 
 All tests mock external dependencies (Claude API, database models) so they run instantly without any setup.
 
@@ -160,6 +197,7 @@ All tests mock external dependencies (Claude API, database models) so they run i
 |------|-------------|
 | `useChat.js` | Manages WebSocket connection, message state, typing indicators, reconnection with backoff (max 5 attempts), and `activeSequence` state for step tracking |
 | `useUser.js` | Manages user profile state, localStorage persistence, API calls for create/update/onboard |
+| `useBuddy.js` | Manages buddy relationships, progress shares, help requests, and pending notifications |
 
 ---
 
@@ -171,8 +209,17 @@ All tests mock external dependencies (Claude API, database models) so they run i
 | `MessageBubble.jsx` | A single message — user (right/blue) or assistant (left/white). Shows safety alerts and renders `VisualGuide` when a `guideId` is present |
 | `MessageInput.jsx` | Large text input (56px) + Send button. Enter to submit. Disabled while typing. Auto-focus |
 | `VisualGuide.jsx` | Renders a visual guide card — blue header, numbered step circles (36px), keyboard `<kbd>` diagrams. Looks up data from `guideRegistry.js` |
-| `StepSequencePanel.jsx` | Step progress panel — task name, "Step X of Y", progress bar, current step text, quick-reply buttons ("Done!", "Help") |
+| `StepSequencePanel.jsx` | Step progress panel — task name, "Step X of Y", progress bar, current step text, quick-reply buttons ("Done!", "Help", "Ask my buddy") |
+| `WelcomeBackBanner.jsx` | Shown on return visits — displays skills due for review and pending buddy replies |
 | `guideRegistry.js` | Data file with 10 task guides (Windows + Mac variants, ~200 lines). Each step has text and optional keyboard keys |
+
+---
+
+### `client/src/components/Collaboration/`
+
+| File | What it renders |
+|------|----------------|
+| `BuddyPanel.jsx` | Buddy management UI — invite via code, accept invites, view progress shares, send/receive help requests |
 
 ---
 
@@ -180,7 +227,7 @@ All tests mock external dependencies (Claude API, database models) so they run i
 
 | File | What it renders |
 |------|----------------|
-| `OnboardingFlow.jsx` | 3-step wizard: name → device type (large buttons) → comfort level (1-5 scale with friendly labels). Progress dots and Next/Back navigation |
+| `OnboardingFlow.jsx` | 5-step wizard: name → device type (large buttons) → comfort level (1-5 scale with friendly labels) → learning goal → buddy invite (optional). Progress dots and Next/Back navigation |
 
 ---
 
