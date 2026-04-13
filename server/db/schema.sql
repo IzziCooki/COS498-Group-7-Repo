@@ -140,6 +140,22 @@ CREATE TABLE IF NOT EXISTS conversation_quality_events (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- Scam analysis events (logged for accuracy review)
+CREATE TABLE IF NOT EXISTS scam_check_events (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL,
+  situation_summary TEXT NOT NULL,
+  claimed_organization TEXT,
+  red_flags TEXT NOT NULL,
+  risk_level TEXT NOT NULL,
+  recommended_action TEXT NOT NULL,
+  verification_contact TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+);
+
 -- Per-conversation quality summary (updated each turn)
 CREATE TABLE IF NOT EXISTS conversation_quality_summaries (
   id TEXT PRIMARY KEY,
@@ -153,4 +169,16 @@ CREATE TABLE IF NOT EXISTS conversation_quality_summaries (
   total_turns INTEGER DEFAULT 0,
   updated_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+);
+
+-- End-of-chat user feedback (star rating + optional comment)
+CREATE TABLE IF NOT EXISTS conversation_feedback (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );

@@ -5,6 +5,7 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
+const ConversationFeedback = require('../models/ConversationFeedback');
 
 const OUTPUT_DIR = path.join(__dirname, '..', '..', 'data', 'conversations');
 
@@ -46,6 +47,9 @@ function exportConversation(conversationId) {
     (!conversation.ended_at || s.created_at <= conversation.ended_at)
   );
 
+  // Load user-submitted feedback (may be null)
+  const feedback = ConversationFeedback.findByConversationId(conversationId);
+
   // Build the export object
   const userName = user?.name || 'Unknown';
   const osType = user?.os_type || 'Unknown';
@@ -69,6 +73,13 @@ function exportConversation(conversationId) {
     status: conversation.status,
     started_at: conversation.started_at,
     ended_at: conversation.ended_at,
+    feedback: feedback
+      ? {
+          rating: feedback.rating,
+          comment: feedback.comment,
+          created_at: feedback.created_at,
+        }
+      : null,
     turns: messages.map(m => ({
       role: m.role === 'assistant' ? 'agent' : 'user',
       content: m.body,

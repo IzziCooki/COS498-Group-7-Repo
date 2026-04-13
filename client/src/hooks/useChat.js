@@ -7,7 +7,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
  * sends an init message, and manages message state.
  *
  * @param {string|null} userId
- * @returns {{ messages, sendMessage, isConnected, isTyping }}
+ * @returns {object} chat state + callbacks (see destructured return below)
  */
 export function useChat(userId) {
   const [messages, setMessages] = useState([]);
@@ -16,17 +16,26 @@ export function useChat(userId) {
   const [connectionFailed, setConnectionFailed] = useState(false);
   const [activeSequence, setActiveSequence] = useState(null);
   const [welcomeBack, setWelcomeBack] = useState(null);
+  const [conversationId, setConversationId] = useState(null);
+  const [feedbackPrompt, setFeedbackPrompt] = useState(null);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const messageIdRef = useRef(0);
   const reconnectAttemptsRef = useRef(0);
   const connectRef = useRef(null);
+  const conversationIdRef = useRef(null);
 
   const nextId = () => {
     messageIdRef.current += 1;
     return messageIdRef.current;
   };
+
+  // Keep a ref in sync so callbacks can read the latest conversation id
+  // without being re-created on every change.
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
 
   const connect = useCallback(() => {
     if (!userId) return;
@@ -57,7 +66,9 @@ export function useChat(userId) {
 
       switch (data.type) {
         case 'init_ack':
-          // Server acknowledged the init — nothing extra needed
+          if (data.conversationId) {
+            setConversationId(data.conversationId);
+          }
           break;
 
         case 'welcome_back':
@@ -91,6 +102,22 @@ export function useChat(userId) {
             } else {
               setActiveSequence(data.stepSequence);
             }
+          }
+          if (data.conversationId) {
+            setConversationId(data.conversationId);
+          }
+          if (data.endedConversationId) {
+            // The agent closed the session mid-turn (e.g. restart_conversation).
+            // Surface the feedback modal for that closed conversation.
+            setFeedbackPrompt({ conversationId: data.endedConversationId });
+          }
+          break;
+
+        case 'chat_ended':
+          // User clicked "End chat". Server confirmed the session is closed;
+          // show the feedback modal.
+          if (data.conversationId) {
+            setFeedbackPrompt({ conversationId: data.conversationId });
           }
           break;
 
@@ -194,5 +221,98 @@ export function useChat(userId) {
 
   const dismissWelcomeBack = useCallback(() => setWelcomeBack(null), []);
 
-  return { messages, sendMessage, isConnected, isTyping, connectionFailed, activeSequence, welcomeBack, dismissWelcomeBack };
+  /**
+   * Trigger the end-of-chat flow. Tells the server to close the session;
+   * the server replies with `chat_ended` and the hook opens the modal.
+   */
+  const endChat = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'end_chat' }));
+    } else if (conversationIdRef.current) {
+      // WS not open — fall back to opening the modal locally so the user
+      // can still leave feedback. The POST below will still persist it.
+      setFeedbackPrompt({ conversationId: conversationIdRef.current });
+    }
+  }, []);
+
+  /**
+   * Reset local state after the server has closed a conversation.
+   */
+  const resetChatLocally = useCallback(() => {
+    setMessages([]);
+    setActiveSequence(null);
+    setConversationId(null);
+    setFeedbackPrompt(null);
+  }, []);
+
+  /**
+   * POST the rating + optional comment to /api/quality/feedback.
+   * On success, resets local state so the next message starts a fresh chat.
+   * @param {{ rating: number, comment?: string }} payload
+   */
+  const submitFeedback = useCallback(async ({ rating, comment }) => {
+    const target = feedbackPrompt?.conversationId;
+    if (!target || !userId) {
+      resetChatLocally();
+      return { ok: false, error: 'missing_context' };
+    }
+    try {
+      const res = await fetch('/api/quality/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: target,
+          userId,
+          rating,
+          comment: comment || null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error('PC Pal: feedback POST failed', res.status, body);
+        return { ok: false, error: body.error || `http_${res.status}` };
+      }
+    } catch (err) {
+      console.error('PC Pal: feedback POST threw', err);
+      return { ok: false, error: 'network' };
+    }
+    resetChatLocally();
+    return { ok: true };
+  }, [feedbackPrompt, userId, resetChatLocally]);
+
+  /**
+   * User dismissed the feedback modal — POST to /skip so the session closes
+   * cleanly without recording a rating.
+   */
+  const skipFeedback = useCallback(async () => {
+    const target = feedbackPrompt?.conversationId;
+    if (target && userId) {
+      try {
+        await fetch('/api/quality/feedback/skip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversationId: target, userId }),
+        });
+      } catch (err) {
+        console.error('PC Pal: feedback skip POST threw', err);
+      }
+    }
+    resetChatLocally();
+  }, [feedbackPrompt, userId, resetChatLocally]);
+
+  return {
+    messages,
+    sendMessage,
+    isConnected,
+    isTyping,
+    connectionFailed,
+    activeSequence,
+    welcomeBack,
+    dismissWelcomeBack,
+    conversationId,
+    feedbackPrompt,
+    endChat,
+    submitFeedback,
+    skipFeedback,
+  };
 }

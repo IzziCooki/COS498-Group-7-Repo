@@ -4,6 +4,7 @@ import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import StepSequencePanel from './StepSequencePanel';
 import WelcomeBackBanner from './WelcomeBackBanner';
+import FeedbackModal from './FeedbackModal';
 import './ChatWindow.css';
 
 /**
@@ -13,9 +14,22 @@ import './ChatWindow.css';
  * - Auto-scrolls to the latest message
  * - Shows "PC Pal is typing..." indicator
  * - Shows WelcomeBackBanner for returning users with skill reviews or buddy replies
+ * - "End chat" button opens FeedbackModal so we can learn from the conversation
  */
 function ChatWindow({ userId, hasBuddy }) {
-  const { messages, sendMessage, isConnected, isTyping, activeSequence, welcomeBack, dismissWelcomeBack } = useChat(userId);
+  const {
+    messages,
+    sendMessage,
+    isConnected,
+    isTyping,
+    activeSequence,
+    welcomeBack,
+    dismissWelcomeBack,
+    feedbackPrompt,
+    endChat,
+    submitFeedback,
+    skipFeedback,
+  } = useChat(userId);
   const bottomRef = useRef(null);
 
   // Auto-scroll to the newest message
@@ -35,8 +49,23 @@ function ChatWindow({ userId, hasBuddy }) {
     }
   }, [messages, welcomeBack, dismissWelcomeBack]);
 
+  const hasUserMessage = messages.some(m => m.role === 'user');
+
   return (
     <div className="chat-window">
+      {/* Chat header — End chat action */}
+      <div className="chat-header">
+        <button
+          type="button"
+          className="chat-header__end-btn"
+          onClick={endChat}
+          disabled={!hasUserMessage || !!feedbackPrompt}
+          aria-label="End chat and leave feedback"
+        >
+          End chat
+        </button>
+      </div>
+
       {/* Connection status banner */}
       {!isConnected && (
         <div className="connection-banner" role="status">
@@ -88,6 +117,11 @@ function ChatWindow({ userId, hasBuddy }) {
 
       {/* Input area */}
       <MessageInput onSend={sendMessage} isTyping={isTyping} />
+
+      {/* End-of-chat feedback modal */}
+      {feedbackPrompt && (
+        <FeedbackModal onSubmit={submitFeedback} onSkip={skipFeedback} />
+      )}
     </div>
   );
 }

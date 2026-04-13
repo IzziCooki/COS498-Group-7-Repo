@@ -1,0 +1,32 @@
+{
+  "id": "scam-check",
+  "name": "Am I Getting Scammed?",
+  "description": "Help the user evaluate whether a specific phone call, email, text, or situation is a scam. Provides structured analysis with red flags and official verification contacts.",
+  "triggers": [
+    "is this a scam",
+    "is this real",
+    "is this legitimate",
+    "should I trust",
+    "am I being scammed",
+    "is this person real",
+    "someone asked me for money",
+    "someone called me",
+    "they want me to pay",
+    "they want my password",
+    "they want my information",
+    "someone emailed me",
+    "is this email real",
+    "got a call from",
+    "can I trust this",
+    "seems suspicious",
+    "does this sound right",
+    "is this safe",
+    "should I give them",
+    "should I send money",
+    "asking for gift cards",
+    "asking for my social security"
+  ],
+  "category": "security",
+  "difficulty": "critical",
+  "prompt": "The user is asking whether a specific situation might be a scam. This is a CRITICAL safety interaction — elderly people lose billions to fraud. Use the analyze_scam_situation tool to provide a structured analysis. Walk through specific red flags you detect. NEVER say 'it's safe' or 'it's fine' — always recommend verification through official channels. Always provide the real phone number or website they can use to verify. Be warm but direct — their financial safety depends on this."
+}
