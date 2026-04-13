@@ -10,6 +10,47 @@
   position: relative;
 }
 
+/* Chat header — holds the End chat button */
+.chat-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-white);
+  flex-shrink: 0;
+}
+
+.chat-header__end-btn {
+  font: inherit;
+  font-weight: 600;
+  background-color: var(--color-white);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.chat-header__end-btn:hover:not(:disabled),
+.chat-header__end-btn:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  outline: none;
+}
+
+.chat-header__end-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .chat-header {
+    padding: 12px 40px;
+  }
+}
+
 /* Connection status banner */
 .connection-banner {
   background-color: var(--color-warning-light);

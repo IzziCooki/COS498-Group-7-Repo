@@ -10,6 +10,7 @@ const agentOrchestrator = require('./core/agentOrchestrator');
 const imageAnnotator = require('./core/imageAnnotator');
 const { getImagesForSkill } = require('./core/skillImages');
 const skillProgression = require('./core/skillProgression');
+const conversationState = require('./core/conversationState');
 const HelpRequest = require('./models/HelpRequest');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
@@ -61,7 +62,14 @@ wss.on('connection', (ws) => {
         // Client sends userId to associate the connection
         userId = msg.userId;
         if (ws.readyState === ws.OPEN) {
-          ws.send(JSON.stringify({ type: 'init_ack', userId }));
+          let conversationId = null;
+          try {
+            const session = conversationState.getOrCreateSession(userId);
+            conversationId = session.id;
+          } catch (err) {
+            console.error('[ws] Error getting/creating session on init:', err.message);
+          }
+          ws.send(JSON.stringify({ type: 'init_ack', userId, conversationId }));
 
           // Send welcome-back data: due skill reviews + answered help requests
           try {
@@ -83,6 +91,30 @@ wss.on('connection', (ws) => {
             }
           } catch (err) {
             console.error('[ws] Error building welcome_back:', err.message);
+          }
+        }
+      } else if (msg.type === 'end_chat') {
+        // User clicked "End chat". Close the active session (if any) and
+        // reply so the client can show the feedback modal.
+        if (!userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not initialized. Send init message first.' }));
+          }
+          return;
+        }
+        try {
+          const active = require('./models/Conversation').findActive(userId);
+          const conversationId = active.length > 0 ? active[0].id : null;
+          if (conversationId) {
+            conversationState.closeSession(conversationId);
+          }
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'chat_ended', conversationId }));
+          }
+        } catch (err) {
+          console.error('[ws] Error ending chat:', err.message);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Unable to end the chat.' }));
           }
         }
       } else if (msg.type === 'chat') {
@@ -119,6 +151,8 @@ wss.on('connection', (ws) => {
             safetyAlert: result.safetyAlert,
             stepSequence: result.stepSequence || null,
             images: images,
+            endedConversationId: result.endedConversationId || null,
+            conversationId: result.conversationId || null,
           }));
         }
       }

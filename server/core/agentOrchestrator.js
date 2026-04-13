@@ -18,6 +18,8 @@ const SkillReview = require('../models/SkillReview');
 const UserGoal = require('../models/UserGoal');
 const User = require('../models/User');
 const qualityTracker = require('./conversationQualityTracker');
+const ScamCheckEvent = require('../models/ScamCheckEvent');
+const scamKnowledge = require('../assets/scam-knowledge.json');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -213,6 +215,30 @@ const tools = [
       required: ['question'],
     },
   },
+  {
+    name: 'analyze_scam_situation',
+    description: 'Analyze whether a situation the user describes is a scam. Use this when the user asks "is this a scam?", describes a suspicious call/email/text, or asks if they should trust someone asking for money or personal information. Provide a structured analysis with specific red flags, risk level, and the official phone number or website to verify. NEVER say "it\'s safe" — always recommend verifying through official channels.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        situation_summary: { type: 'string', description: 'Brief summary of what the user described happening' },
+        claimed_organization: { type: 'string', description: 'The company or agency the caller/emailer claims to be from, if any' },
+        red_flags_found: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'List of specific red flags detected in the situation. Be specific: "They created urgency by saying your account would be locked" not just "urgency"',
+        },
+        risk_level: {
+          type: 'string',
+          enum: ['high', 'medium', 'low'],
+          description: 'How likely this is a scam. Use "high" if 2+ red flags or matches a known scam pattern. Use "low" only if the situation describes a normal legitimate interaction with no red flags.',
+        },
+        recommended_action: { type: 'string', description: 'Clear, specific action the user should take right now' },
+        verification_contact: { type: 'string', description: 'The official phone number or website the user should use to verify. Always include this.' },
+      },
+      required: ['situation_summary', 'red_flags_found', 'risk_level', 'recommended_action'],
+    },
+  },
 ];
 
 function buildComfortGuidelines(comfortLevel) {
@@ -380,6 +406,18 @@ Level 4 (fourth+ confusion or "I give up"): Offer human help. If they have a bud
 - schedule_skill_review: After completing a skill, schedule a review for later.
 - share_progress_with_buddy: Share a skill completion with the user's buddy (only if they have one).
 - ask_buddy_for_help: Send a help request to the user's buddy when they are stuck.
+- analyze_scam_situation: CRITICAL SAFETY TOOL. When a user asks "is this a scam?" or describes a suspicious call, email, text, or situation, use this tool to provide a structured analysis. Walk through specific red flags, assign a risk level, and ALWAYS include the official phone number or website to verify. NEVER tell someone a situation is safe — always recommend verification.
+
+## Scam Analysis Rules
+When a user asks about a potential scam, follow these rules:
+1. NEVER say "it's safe" or "it sounds fine" — always recommend verification through official channels
+2. Always use the analyze_scam_situation tool to give a structured response
+3. Include the REAL phone number for the company being impersonated (e.g. IRS: 1-800-829-1040)
+4. Remind them: no legitimate company EVER asks for gift cards, threatens arrest over the phone, or demands immediate payment
+5. If risk is high, be direct: "This has serious warning signs of a scam. Do not give them anything."
+6. If they already sent money or gave information, tell them to call their bank immediately and report to the FTC at reportfraud.ftc.gov or the National Elder Fraud Hotline at 1-833-372-8311
+
+Known scam patterns to watch for: ${scamKnowledge.scam_patterns.map(p => p.name).join(', ')}
 
 ## Response Guidelines
 - Use simple, everyday language. Avoid technical jargon.
@@ -399,6 +437,7 @@ function handleFunctionCall(name, args, userId, sessionId) {
   let safetyAlert = null;
   let guideId = null;
   let stepSequence = null;
+  let endedConversationId = null;
 
   if (name === 'log_skill_started') {
     try {
@@ -538,6 +577,7 @@ function handleFunctionCall(name, args, userId, sessionId) {
   } else if (name === 'restart_conversation') {
     try {
       conversationState.closeSession(sessionId);
+      endedConversationId = sessionId;
       result = `Conversation restarted. Reason: ${args.reason}. A fresh conversation will begin with the next message.`;
       console.log(`[agentOrchestrator] Conversation restarted for user ${userId}: ${args.reason}`);
     } catch (err) {
@@ -617,11 +657,80 @@ function handleFunctionCall(name, args, userId, sessionId) {
       console.error('[agentOrchestrator] Failed to send help request:', err.message);
       result = 'Unable to send help request to buddy';
     }
+  } else if (name === 'analyze_scam_situation') {
+    try {
+      const redFlags = args.red_flags_found || [];
+      const riskLevel = args.risk_level || 'medium';
+
+      // Look up verification contact from the scam knowledge base
+      let verificationInfo = args.verification_contact || '';
+      if (args.claimed_organization) {
+        const orgKey = Object.keys(scamKnowledge.verification_contacts).find(
+          k => k.toLowerCase().includes(args.claimed_organization.toLowerCase()) ||
+               args.claimed_organization.toLowerCase().includes(k.toLowerCase())
+        );
+        if (orgKey) {
+          const contact = scamKnowledge.verification_contacts[orgKey];
+          const parts = [];
+          if (contact.phone) parts.push(`Phone: ${contact.phone}`);
+          if (contact.website) parts.push(`Website: ${contact.website}`);
+          verificationInfo = `Official ${orgKey} contact — ${parts.join(', ')}`;
+        }
+      }
+
+      // Always include general reporting contacts
+      const reportingContacts = [
+        `FTC Fraud Report: ${scamKnowledge.verification_contacts['FTC (report scams)'].website}`,
+        `National Elder Fraud Hotline: ${scamKnowledge.verification_contacts['National Elder Fraud Hotline'].phone}`,
+      ].join('; ');
+
+      // Log the analysis for accuracy review
+      ScamCheckEvent.create({
+        user_id: userId,
+        conversation_id: sessionId,
+        situation_summary: args.situation_summary,
+        claimed_organization: args.claimed_organization || null,
+        red_flags: redFlags,
+        risk_level: riskLevel,
+        recommended_action: args.recommended_action,
+        verification_contact: verificationInfo,
+      });
+
+      // Build the structured result for Claude to relay
+      const flagList = redFlags.map((f, i) => `${i + 1}. ${f}`).join('\n');
+      const riskEmoji = riskLevel === 'high' ? 'HIGH RISK' : riskLevel === 'medium' ? 'MEDIUM RISK' : 'LOW RISK — but still verify';
+
+      result = `SCAM ANALYSIS COMPLETE
+
+Risk Level: ${riskEmoji}
+
+Red Flags Found (${redFlags.length}):
+${flagList || 'None identified — but always verify through official channels.'}
+
+Recommended Action: ${args.recommended_action}
+
+${verificationInfo ? `How to Verify: ${verificationInfo}` : ''}
+
+To report a scam: ${reportingContacts}
+
+IMPORTANT RULES FOR YOUR RESPONSE:
+- Present the red flags as a numbered list the user can understand
+- Use simple, non-technical language
+- If risk is high, be DIRECT: "This has serious warning signs of a scam."
+- NEVER say "it's safe" or "don't worry about it" — always recommend verification
+- Include the verification phone number prominently
+- Remind them: "No real company ever asks for gift cards or threatens to arrest you over the phone"`;
+
+      console.log(`[agentOrchestrator] Scam analysis for user ${userId}: ${riskLevel} risk — ${redFlags.length} red flags`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to analyze scam situation:', err.message);
+      result = 'Unable to complete scam analysis. If you are unsure about a call or email, hang up and call the company directly using a number you trust (like the number on their website or on the back of your card).';
+    }
   } else {
     result = `Unknown function: ${name}`;
   }
 
-  return { result, safetyAlert, guideId, stepSequence };
+  return { result, safetyAlert, guideId, stepSequence, endedConversationId };
 }
 
 function extractTextFromContent(content) {
@@ -684,6 +793,7 @@ async function processMessage(text, userId) {
     let safetyAlert = null;
     let guideId = null;
     let stepSequence = null;
+    let endedConversationId = null;
     let finalTextResponse = '';
 
     try {
@@ -703,11 +813,12 @@ async function processMessage(text, userId) {
         const toolResults = [];
         for (const block of response.content) {
           if (block.type !== 'tool_use') continue;
-          const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep } =
+          const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep, endedConversationId: fcEnded } =
             handleFunctionCall(block.name, block.input, userId, sessionId);
           if (alert) safetyAlert = alert;
           if (fcGuideId) guideId = fcGuideId;
           if (fcStep) stepSequence = fcStep;
+          if (fcEnded) endedConversationId = fcEnded;
           toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fcResult });
         }
 
@@ -740,7 +851,7 @@ async function processMessage(text, userId) {
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
     if (!filteredResponse) {
-      return { response: FALLBACK_RESPONSE, safetyAlert, guideId, stepSequence };
+      return { response: FALLBACK_RESPONSE, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId };
     }
 
     // Step 9: Save assistant message
@@ -763,10 +874,10 @@ async function processMessage(text, userId) {
       console.error('[agentOrchestrator] Quality tracking error (non-fatal):', trackErr.message);
     }
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence };
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
-    return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null };
+    return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };
   }
 }
 
