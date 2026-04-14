@@ -20,6 +20,8 @@ const User = require('../models/User');
 const qualityTracker = require('./conversationQualityTracker');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
+const systemDiagnostics = require('./systemDiagnostics');
+const skillMatcher = require('./skillMatcher');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -239,6 +241,71 @@ const tools = [
       required: ['situation_summary', 'red_flags_found', 'risk_level', 'recommended_action'],
     },
   },
+
+  // ─── Desktop Diagnostic Tools (available when running as Electron app) ───
+  {
+    name: 'get_system_info',
+    description: 'Get detailed information about the user\'s computer: operating system version, processor, memory (RAM) usage, disk space, and how long the computer has been running. Use this to understand the user\'s hardware and diagnose performance issues.',
+    input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'check_network',
+    description: 'Check the user\'s internet connection, Wi-Fi status, DNS resolution, and network latency. Use this when the user reports internet problems, slow browsing, or Wi-Fi issues.',
+    input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'list_running_apps',
+    description: 'List all currently running applications and their resource usage (CPU and memory). Use this to find apps that might be slowing down the computer or to verify an app is running.',
+    input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'read_error_log',
+    description: 'Read recent system error logs to diagnose crashes, freezes, or other problems. Use this when the user reports something "stopped working" or their computer crashed.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          enum: ['system', 'application', 'crash'],
+          description: 'Which log to check: "system" for OS errors, "application" for app errors, "crash" for crash reports',
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'run_safe_command',
+    description: 'Run a safe, read-only diagnostic command on the user\'s computer. Only allowlisted commands work (network diagnostics, file listing, system info). Use this for specific diagnostics not covered by other tools. NEVER use destructive commands — they will be blocked.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        command: { type: 'string', description: 'The diagnostic command to run (must be in the allowlist)' },
+        reason: { type: 'string', description: 'Why you are running this command — explain what you are looking for' },
+      },
+      required: ['command', 'reason'],
+    },
+  },
+  {
+    name: 'check_disk_health',
+    description: 'Check disk space usage, large folders, and temporary files that could be cleaned up. Use this when the user says their computer is "full", "slow", or "running out of space".',
+    input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'check_installed_software',
+    description: 'List installed applications or search for a specific program. Use this to verify if software is installed, find the right app for a task, or check software versions.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        search_term: { type: 'string', description: 'Optional: search for a specific application by name (e.g. "Chrome", "Zoom")' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_battery_status',
+    description: 'Check the laptop\'s battery level and whether it is charging. Use this when the user asks about battery life or their computer keeps shutting off.',
+    input_schema: { type: 'object', properties: {}, required: [] },
+  },
 ];
 
 function buildComfortGuidelines(comfortLevel) {
@@ -265,7 +332,7 @@ function buildComfortGuidelines(comfortLevel) {
   }
 }
 
-function buildSystemPrompt(profileString, user, classification, confusionContext) {
+function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
@@ -408,6 +475,25 @@ Level 4 (fourth+ confusion or "I give up"): Offer human help. If they have a bud
 - ask_buddy_for_help: Send a help request to the user's buddy when they are stuck.
 - analyze_scam_situation: CRITICAL SAFETY TOOL. When a user asks "is this a scam?" or describes a suspicious call, email, text, or situation, use this tool to provide a structured analysis. Walk through specific red flags, assign a risk level, and ALWAYS include the official phone number or website to verify. NEVER tell someone a situation is safe — always recommend verification.
 
+## Desktop Diagnostic Tools
+You have access to the user's computer and can run safe, read-only diagnostics. Use these tools when the user describes a specific problem (slow computer, internet not working, app crashing, etc.) to gather REAL information before giving advice. This is much better than guessing!
+
+- get_system_info: Check OS version, CPU, RAM usage, disk space, uptime. Use first when diagnosing any hardware or performance issue.
+- check_network: Test internet connectivity, Wi-Fi status, DNS. Use when user has internet or Wi-Fi problems.
+- list_running_apps: See what programs are running and their resource usage. Use when computer is slow or to find a running app.
+- read_error_log: Read recent error/crash logs. Use when user reports crashes, freezes, or "something stopped working."
+- run_safe_command: Run a specific read-only diagnostic command (must be in the allowlist). Use for targeted diagnostics not covered by other tools.
+- check_disk_health: Check disk space, folder sizes, temp files. Use when computer is "full" or "running out of space."
+- check_installed_software: List or search installed applications. Use to verify software is installed or find the right app.
+- get_battery_status: Check battery level and charging state. Use when user asks about battery or computer shuts off unexpectedly.
+
+### How to Use Diagnostic Tools
+1. When the user describes a problem, FIRST use the relevant diagnostic tool to gather real data
+2. Then explain what you found in simple language — translate technical output into plain English
+3. Provide specific, actionable advice based on the ACTUAL state of their computer
+4. Example: If they say "my computer is slow", call get_system_info AND list_running_apps, then say "I can see your computer has 87% of its memory used, and Chrome has 12 tabs open using most of it. Let's close some tabs!"
+5. NEVER show raw command output to the user — always translate it into friendly language
+
 ## Scam Analysis Rules
 When a user asks about a potential scam, follow these rules:
 1. NEVER say "it's safe" or "it sounds fine" — always recommend verification through official channels
@@ -429,7 +515,7 @@ Known scam patterns to watch for: ${scamKnowledge.scam_patterns.map(p => p.name)
 - If the user seems confused, follow the Confusion Escalation Ladder.
 - If the user expresses distress, use the flag_emergency tool immediately.
 - When teaching a new topic, use log_skill_started.
-- When the user mentions a life goal or reason for learning, use save_user_goal.`;
+- When the user mentions a life goal or reason for learning, use save_user_goal.${matchedSkillPrompt ? `\n\n## Active Skill Context\n${matchedSkillPrompt}` : ''}`;
 }
 
 function handleFunctionCall(name, args, userId, sessionId) {
@@ -726,6 +812,71 @@ IMPORTANT RULES FOR YOUR RESPONSE:
       console.error('[agentOrchestrator] Failed to analyze scam situation:', err.message);
       result = 'Unable to complete scam analysis. If you are unsure about a call or email, hang up and call the company directly using a number you trust (like the number on their website or on the back of your card).';
     }
+  // ─── Desktop Diagnostic Tool Handlers ───
+  } else if (name === 'get_system_info') {
+    try {
+      result = systemDiagnostics.getSystemInfo();
+      console.log(`[agentOrchestrator] System info retrieved for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to get system info:', err.message);
+      result = 'Unable to retrieve system information. The diagnostic tools may not be available in this environment.';
+    }
+  } else if (name === 'check_network') {
+    try {
+      result = systemDiagnostics.checkNetwork();
+      console.log(`[agentOrchestrator] Network check for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to check network:', err.message);
+      result = 'Unable to check network status.';
+    }
+  } else if (name === 'list_running_apps') {
+    try {
+      result = systemDiagnostics.listRunningApps();
+      console.log(`[agentOrchestrator] Listed running apps for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to list running apps:', err.message);
+      result = 'Unable to list running applications.';
+    }
+  } else if (name === 'read_error_log') {
+    try {
+      result = systemDiagnostics.readErrorLog(args.source);
+      console.log(`[agentOrchestrator] Read error log (${args.source || 'system'}) for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to read error log:', err.message);
+      result = 'Unable to read error logs.';
+    }
+  } else if (name === 'run_safe_command') {
+    try {
+      console.log(`[agentOrchestrator] Safe command requested by AI for user ${userId}: "${args.command}" — Reason: ${args.reason}`);
+      result = systemDiagnostics.runSafeCommand(args.command);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to run safe command:', err.message);
+      result = 'Unable to run command.';
+    }
+  } else if (name === 'check_disk_health') {
+    try {
+      result = systemDiagnostics.checkDiskHealth();
+      console.log(`[agentOrchestrator] Disk health check for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to check disk health:', err.message);
+      result = 'Unable to check disk health.';
+    }
+  } else if (name === 'check_installed_software') {
+    try {
+      result = systemDiagnostics.checkInstalledSoftware(args.search_term);
+      console.log(`[agentOrchestrator] Software check for user ${userId}: ${args.search_term || 'all'}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to check installed software:', err.message);
+      result = 'Unable to check installed software.';
+    }
+  } else if (name === 'get_battery_status') {
+    try {
+      result = systemDiagnostics.getBatteryStatus();
+      console.log(`[agentOrchestrator] Battery status for user ${userId}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to get battery status:', err.message);
+      result = 'Unable to check battery status.';
+    }
   } else {
     result = `Unknown function: ${name}`;
   }
@@ -787,7 +938,16 @@ async function processMessage(text, userId) {
 
     // Get confusion state for this conversation to inject into the prompt
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx);
+
+    // Step 6b: Match against skill definitions for context injection
+    const skillMatch = skillMatcher.matchSkill(text);
+    const matchedSkillPrompt = skillMatch ? skillMatcher.buildSkillPrompt(skillMatch.skill) : null;
+    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
+    if (skillMatch) {
+      console.log(`[agentOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score}) for user ${userId}`);
+    }
+
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt);
 
     // Step 7: Call Claude with tool-use loop
     let safetyAlert = null;
@@ -874,7 +1034,7 @@ async function processMessage(text, userId) {
       console.error('[agentOrchestrator] Quality tracking error (non-fatal):', trackErr.message);
     }
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId };
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };

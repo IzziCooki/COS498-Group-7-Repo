@@ -1,15 +1,21 @@
 {
   "name": "pc-pal",
-  "version": "1.0.0",
-  "description": "AI-powered IT tutor for elderly users",
-  "main": "server/index.js",
+  "version": "1.1.0",
+  "description": "AI-powered IT tutor for elderly users — desktop edition with system diagnostics",
+  "main": "electron/main.js",
   "scripts": {
     "dev:server": "nodemon server/index.js",
     "dev:client": "cd client && npm run dev",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "test": "jest"
+    "test": "jest",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"sleep 3 && electron .\"",
+    "build:client": "cd client && npm run build",
+    "electron:rebuild": "electron-rebuild",
+    "start:desktop": "npm run electron:rebuild && npm run build:client && electron ."
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.108",
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/generative-ai": "^0.24.1",
     "@napi-rs/canvas": "^0.1.97",
@@ -18,10 +24,13 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "uuid": "^9.0.1",
-    "ws": "^8.16.0"
+    "ws": "^8.16.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
     "concurrently": "^8.2.2",
+    "electron": "^35.1.2",
     "jest": "^30.3.0",
     "nodemon": "^3.1.0"
   }

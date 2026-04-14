@@ -6,7 +6,15 @@ const { WebSocketServer } = require('ws');
 const config = require('./config');
 require('./db/database');
 
-const agentOrchestrator = require('./core/agentOrchestrator');
+// Use Agent SDK orchestrator if available, fall back to original
+let agentOrchestrator;
+try {
+  agentOrchestrator = require('./core/agentSdkOrchestrator');
+  console.log('[server] Using Agent SDK orchestrator');
+} catch (err) {
+  console.warn('[server] Agent SDK orchestrator unavailable, using original:', err.message);
+  agentOrchestrator = require('./core/agentOrchestrator');
+}
 const imageAnnotator = require('./core/imageAnnotator');
 const { getImagesForSkill } = require('./core/skillImages');
 const skillProgression = require('./core/skillProgression');
@@ -195,7 +203,8 @@ imageAnnotator.generateAllAnnotations()
 
 // Use server.listen instead of app.listen
 server.listen(config.port, () => {
-  console.log(`PC Pal server listening on port ${config.port}`);
+  const mode = process.env.ELECTRON_MODE ? 'desktop (Electron)' : 'web';
+  console.log(`PC Pal server listening on port ${config.port} [${mode} mode]`);
 });
 
-module.exports = app;
+module.exports = server;

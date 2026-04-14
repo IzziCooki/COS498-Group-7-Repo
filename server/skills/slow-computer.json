@@ -1,0 +1,30 @@
+{
+  "id": "slow_computer",
+  "name": "Fix a Slow Computer",
+  "description": "Diagnose and fix a slow, laggy, or unresponsive computer by checking actual RAM usage, CPU load, running applications, and disk space",
+  "triggers": [
+    "computer is slow",
+    "so slow",
+    "very slow",
+    "really slow",
+    "too slow",
+    "takes forever",
+    "laggy",
+    "lagging",
+    "running slow",
+    "everything is slow",
+    "sluggish",
+    "won't respond",
+    "not responding",
+    "hanging",
+    "stuck",
+    "fan is loud",
+    "fan spinning",
+    "computer is hot",
+    "overheating",
+    "slow"
+  ],
+  "category": "diagnostics",
+  "difficulty": "beginner",
+  "prompt": "The user's computer is slow. You have REAL tools to find out WHY — don't guess. Step 1: Call get_system_info AND list_running_apps at the same time. Step 2: Look for these common causes in the results: (a) RAM over 80% used — too many programs open, (b) a single app using lots of CPU — it might be stuck, (c) computer uptime over 3 days — needs a restart, (d) disk over 90% full — needs cleanup. Step 3: Tell them what you found in friendly terms. Example: 'I can see that your web browser has 15 tabs open and is using most of your computer's energy. Also, your computer has been running for 5 days — it could use a fresh start.' Step 4: Use start_step_sequence to walk them through fixes in order of impact. Usually: (1) close unnecessary apps/tabs, (2) restart the computer, (3) if disk is full, use check_disk_health and help them free space. Step 5: After fixes, run get_system_info again and celebrate: 'Your memory usage went from 95% to 45% — your computer should feel much faster now!'"
+}

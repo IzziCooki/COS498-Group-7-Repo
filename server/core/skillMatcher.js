@@ -27,12 +27,20 @@ function loadSkills() {
 // Load once at startup
 const skills = loadSkills();
 
+// Priority weights for difficulty levels — higher difficulty skills win ties
+const DIFFICULTY_PRIORITY = {
+  critical: 3,
+  intermediate: 2,
+  beginner: 1,
+};
+
 /**
  * Match user input to the best skill.
  * Returns the matched skill object, or null if no match.
  *
  * Scoring: counts how many trigger words appear in the user's message.
- * The skill with the most matches wins. Ties broken by first match.
+ * The skill with the most matches wins. Ties broken by difficulty priority
+ * (critical > intermediate > beginner).
  *
  * @param {string} text - the user's message
  * @returns {{ skill: object, score: number } | null}
@@ -43,6 +51,7 @@ function matchSkill(text) {
   const normalized = text.toLowerCase().trim();
   let bestSkill = null;
   let bestScore = 0;
+  let bestPriority = 0;
 
   for (const skill of skills) {
     let score = 0;
@@ -52,9 +61,12 @@ function matchSkill(text) {
       }
     }
 
-    if (score > bestScore) {
+    const priority = DIFFICULTY_PRIORITY[skill.difficulty] || 1;
+
+    if (score > bestScore || (score === bestScore && score > 0 && priority > bestPriority)) {
       bestScore = score;
       bestSkill = skill;
+      bestPriority = priority;
     }
   }
 
