@@ -19,6 +19,7 @@ const taskClassifier = require('./taskClassifier');
 const skillMatcher = require('./skillMatcher');
 const qualityTracker = require('./conversationQualityTracker');
 const { anthropicApiKey } = require('../config');
+const youtubeSearch = require('./youtubeSearch');
 
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 
@@ -167,6 +168,22 @@ async function processMessage(text, userId) {
       finalResponse = finalResponse.replace(/VISUAL_GUIDE:\w+/g, '').trim();
     }
 
+    // Step 8b: If the youtube_help skill matched, search YouTube server-side
+    // and pass videos as structured data (don't rely on Claude preserving markers)
+    let videos = null;
+    if (matchedSkillId === 'youtube_help' || (finalResponse.toLowerCase().includes('video') && finalResponse.toLowerCase().includes('youtube'))) {
+      try {
+        // Extract what the user actually asked about for the search query
+        const searchQuery = text.replace(/show me a video|find me a video|youtube|tutorial|video about|can you get me a video/gi, '').trim();
+        if (searchQuery.length > 3) {
+          videos = await youtubeSearch.searchVideos(searchQuery, 3);
+          console.log(`[agentSdkOrchestrator] YouTube search for "${searchQuery}": ${videos.length} results`);
+        }
+      } catch (err) {
+        console.error('[agentSdkOrchestrator] YouTube search failed:', err.message);
+      }
+    }
+
     // Step 9: Vocabulary filter
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
@@ -204,6 +221,7 @@ async function processMessage(text, userId) {
       conversationId: sessionId,
       matchedSkillId: skillMatch?.skill?.id || guideId,
       userOsType: user?.os_type,
+      videos: videos && videos.length > 0 ? videos : null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

@@ -48,52 +48,11 @@ function renderInline(text) {
 }
 
 /**
- * Extract YouTube video data from message text.
- * The agent embeds YOUTUBE_VIDEOS:{json} markers in its response.
- * Returns { cleanText, videos } where cleanText has markers removed.
- */
-function extractYouTubeVideos(text) {
-  if (!text) return { cleanText: text, videos: null };
-
-  const marker = 'YOUTUBE_VIDEOS:';
-  const idx = text.indexOf(marker);
-  if (idx === -1) return { cleanText: text, videos: null };
-
-  // Find the JSON after the marker
-  const jsonStart = idx + marker.length;
-  // Try to find the end of the JSON array
-  let depth = 0;
-  let jsonEnd = jsonStart;
-  for (let i = jsonStart; i < text.length; i++) {
-    if (text[i] === '[') depth++;
-    if (text[i] === ']') {
-      depth--;
-      if (depth === 0) { jsonEnd = i + 1; break; }
-    }
-  }
-
-  try {
-    const jsonStr = text.slice(jsonStart, jsonEnd);
-    const videos = JSON.parse(jsonStr);
-    // Remove the marker + JSON from the display text
-    const cleanText = (text.slice(0, idx) + text.slice(jsonEnd)).trim();
-    return { cleanText, videos: videos.length > 0 ? videos : null };
-  } catch {
-    return { cleanText: text, videos: null };
-  }
-}
-
-/**
  * MessageBubble — displays a single chat message with formatted text and images.
  */
 function MessageBubble({ message }) {
-  const { role, text, timestamp, safetyAlert, images } = message;
+  const { role, text, timestamp, safetyAlert, images, videos } = message;
   const isUser = role === 'user';
-
-  // Extract YouTube videos from assistant messages
-  const { cleanText, videos } = isUser
-    ? { cleanText: text, videos: null }
-    : extractYouTubeVideos(text);
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -110,9 +69,9 @@ function MessageBubble({ message }) {
 
       <div className={`bubble ${isUser ? 'bubble--user' : 'bubble--assistant'}`}>
         {isUser ? (
-          <p className="bubble__text">{cleanText}</p>
+          <p className="bubble__text">{text}</p>
         ) : (
-          <div className="bubble__formatted">{formatMessage(cleanText)}</div>
+          <div className="bubble__formatted">{formatMessage(text)}</div>
         )}
 
         {/* YouTube tutorial videos */}
