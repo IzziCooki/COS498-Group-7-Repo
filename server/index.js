@@ -170,6 +170,7 @@ wss.on('connection', (ws) => {
             safetyAlert: result.safetyAlert,
             stepSequence: result.stepSequence || null,
             images: images,
+            videos: result.videos || null,
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
           }));

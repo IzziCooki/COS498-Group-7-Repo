@@ -94,6 +94,7 @@ export function useChat(userId) {
               safetyAlert: data.safetyAlert ?? null,
               stepSequence: data.stepSequence || null,
               images: data.images || null,
+              videos: data.videos || null,
             },
           ]);
           if (data.stepSequence) {
