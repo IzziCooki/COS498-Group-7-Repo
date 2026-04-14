@@ -1,0 +1,28 @@
+{
+  "id": "youtube_help",
+  "name": "Find Tutorial Videos",
+  "description": "Search YouTube for helpful tutorial videos when the user wants to watch how something is done, or when a visual demonstration would help more than text instructions",
+  "triggers": [
+    "show me a video",
+    "video tutorial",
+    "watch a video",
+    "youtube",
+    "can I watch",
+    "show me how",
+    "see a video",
+    "video about",
+    "tutorial video",
+    "watch how",
+    "see how it's done",
+    "visual guide",
+    "demonstration",
+    "is there a video",
+    "can you find a video",
+    "video of how to",
+    "want to see",
+    "prefer to watch"
+  ],
+  "category": "media",
+  "difficulty": "beginner",
+  "prompt": "The user wants to watch a video tutorial. Use the find_youtube_videos tool to search for relevant beginner-friendly tutorial videos. Search for simple terms like 'how to copy and paste on Windows for beginners' — always add 'for beginners' or 'easy tutorial' to make results more appropriate for elderly users. After getting results, introduce them warmly: 'I found some helpful videos for you! These show exactly what we've been talking about.' Let the user know they can watch the videos right in the chat, and that they can collapse them if they want to keep reading. If the user mentions a specific topic AND wants a video, search for that specific topic."
+}

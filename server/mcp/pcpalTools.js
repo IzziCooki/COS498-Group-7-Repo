@@ -11,6 +11,7 @@ const z = require('zod');
 
 // Core modules
 const systemDiagnostics = require('../core/systemDiagnostics');
+const youtubeSearch = require('../core/youtubeSearch');
 const skillProgression = require('../core/skillProgression');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
@@ -358,6 +359,24 @@ const showVisualGuide = tool(
   }
 );
 
+// ─── YouTube Video Tool ──────────────────────────────────────────
+
+const findYoutubeVideos = tool(
+  'find_youtube_videos',
+  "Search YouTube for helpful tutorial videos related to the user's question. Use when the user asks to see a video, wants a visual demonstration, or would benefit from watching someone do the task. Returns video titles, URLs, thumbnails, and embed info. The results will be displayed as playable videos in the chat.",
+  {
+    query: z.string().describe("Search query — describe the task simply, e.g. 'how to copy and paste on Mac'"),
+    max_results: z.number().optional().describe('Number of videos to return (default 3, max 5)'),
+  },
+  async (args) => {
+    const max = Math.min(args.max_results || 3, 5);
+    console.log(`[MCP] YouTube search: "${args.query}" (max: ${max})`);
+    const videos = await youtubeSearch.searchVideos(args.query, max);
+    // Return as YOUTUBE_VIDEOS: JSON marker so the UI can parse and render them
+    return textResult('YOUTUBE_VIDEOS:' + JSON.stringify(videos));
+  }
+);
+
 // ─── Build the MCP Server ────────────────────────────────────────
 
 function createPcPalMcpServer() {
@@ -392,6 +411,8 @@ function createPcPalMcpServer() {
       // Buddy
       shareProgressWithBuddy,
       askBuddyForHelp,
+      // Media
+      findYoutubeVideos,
     ],
   });
 }
