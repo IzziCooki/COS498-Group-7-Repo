@@ -22,6 +22,7 @@ const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
 const systemDiagnostics = require('./systemDiagnostics');
 const skillMatcher = require('./skillMatcher');
+const youtubeSearch = require('./youtubeSearch');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -306,6 +307,18 @@ const tools = [
     description: 'Check the laptop\'s battery level and whether it is charging. Use this when the user asks about battery life or their computer keeps shutting off.',
     input_schema: { type: 'object', properties: {}, required: [] },
   },
+  {
+    name: 'find_youtube_videos',
+    description: "Search YouTube for helpful tutorial videos related to the user's question. Use when the user asks to see a video, wants a visual demonstration, or would benefit from watching someone do the task. Returns playable videos in the chat.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: "Search query — describe the task simply, e.g. 'how to copy and paste on Mac'" },
+        max_results: { type: 'number', description: 'Number of videos to return (default 3, max 5)' },
+      },
+      required: ['query'],
+    },
+  },
 ];
 
 function buildComfortGuidelines(comfortLevel) {
@@ -518,7 +531,7 @@ Known scam patterns to watch for: ${scamKnowledge.scam_patterns.map(p => p.name)
 - When the user mentions a life goal or reason for learning, use save_user_goal.${matchedSkillPrompt ? `\n\n## Active Skill Context\n${matchedSkillPrompt}` : ''}`;
 }
 
-function handleFunctionCall(name, args, userId, sessionId) {
+async function handleFunctionCall(name, args, userId, sessionId) {
   let result = 'done';
   let safetyAlert = null;
   let guideId = null;
@@ -877,6 +890,16 @@ IMPORTANT RULES FOR YOUR RESPONSE:
       console.error('[agentOrchestrator] Failed to get battery status:', err.message);
       result = 'Unable to check battery status.';
     }
+  } else if (name === 'find_youtube_videos') {
+    try {
+      const max = Math.min(args.max_results || 3, 5);
+      console.log(`[agentOrchestrator] YouTube search: "${args.query}" (max: ${max}) for user ${userId}`);
+      const videos = await youtubeSearch.searchVideos(args.query, max);
+      result = 'YOUTUBE_VIDEOS:' + JSON.stringify(videos);
+    } catch (err) {
+      console.error('[agentOrchestrator] YouTube search failed:', err.message);
+      result = 'Unable to search YouTube right now.';
+    }
   } else {
     result = `Unknown function: ${name}`;
   }
@@ -974,7 +997,7 @@ async function processMessage(text, userId) {
         for (const block of response.content) {
           if (block.type !== 'tool_use') continue;
           const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep, endedConversationId: fcEnded } =
-            handleFunctionCall(block.name, block.input, userId, sessionId);
+            await handleFunctionCall(block.name, block.input, userId, sessionId);
           if (alert) safetyAlert = alert;
           if (fcGuideId) guideId = fcGuideId;
           if (fcStep) stepSequence = fcStep;
