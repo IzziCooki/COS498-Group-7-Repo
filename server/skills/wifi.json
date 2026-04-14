@@ -5,5 +5,5 @@
   "triggers": ["wifi", "wi-fi", "internet", "connect to internet", "no internet", "get online", "wireless", "network", "can't connect"],
   "category": "connectivity",
   "difficulty": "beginner",
-  "prompt": "The user needs help connecting to Wi-Fi. Explain that Wi-Fi is like an invisible cable that connects their device to the internet. Walk them through finding Wi-Fi settings, selecting a network, and entering the password. Remind them the password is often on a sticker on their router/internet box."
+  "prompt": "The user needs help connecting to Wi-Fi. FIRST use check_network to see their actual connection status — are they connected? Is DNS working? What Wi-Fi network are they on? Then explain what you found in simple terms. If they're not connected, walk them through finding Wi-Fi settings, selecting a network, and entering the password. Explain that Wi-Fi is like an invisible cable that connects their device to the internet. Remind them the password is often on a sticker on their router/internet box. After they connect, run check_network again to confirm it worked."
 }

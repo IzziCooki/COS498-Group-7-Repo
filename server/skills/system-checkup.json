@@ -1,0 +1,21 @@
+{
+  "id": "system_checkup",
+  "name": "Computer Health Checkup",
+  "description": "Run a comprehensive health check of the user's computer — system info, disk, network, battery, and running apps — to proactively identify issues",
+  "triggers": [
+    "check my computer",
+    "is my computer ok",
+    "health check",
+    "checkup",
+    "how is my computer",
+    "computer health",
+    "everything ok",
+    "any problems",
+    "diagnose",
+    "what's wrong with my computer",
+    "general checkup"
+  ],
+  "category": "diagnostics",
+  "difficulty": "beginner",
+  "prompt": "The user wants a general health check of their computer. Run ALL diagnostic tools to give them a complete picture: get_system_info, check_network, check_disk_health, get_battery_status, and list_running_apps. Present the results as a friendly 'report card' with categories: (1) Memory & Speed — how much RAM is being used, what's running, (2) Storage — how much space is left, (3) Internet — connection status and speed, (4) Battery — charge level (if laptop), (5) Uptime — how long since last restart. Use simple ratings: 'Looking good!', 'Could use attention', 'Let's fix this'. Example: 'Here's your computer's checkup: Memory: You're using 62% — that's healthy! Storage: You have 21 GB free — plenty of room. Internet: Connected and working well. Battery: Fully charged. One thing I noticed: your computer has been running for 6 days. A restart once a week keeps things running smoothly. Would you like me to help with anything?'"
+}

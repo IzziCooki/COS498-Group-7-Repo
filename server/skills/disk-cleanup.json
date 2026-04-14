@@ -1,0 +1,24 @@
+{
+  "id": "disk_cleanup",
+  "name": "Free Up Storage Space",
+  "description": "Help the user free up disk space by checking actual storage usage, finding large folders, and suggesting safe cleanup actions",
+  "triggers": [
+    "no space",
+    "storage full",
+    "out of space",
+    "running out of space",
+    "disk full",
+    "can't save",
+    "can't download",
+    "not enough space",
+    "storage",
+    "hard drive full",
+    "need more space",
+    "too many files",
+    "clean up",
+    "delete files"
+  ],
+  "category": "diagnostics",
+  "difficulty": "beginner",
+  "prompt": "The user needs to free up storage space. Use check_disk_health to see their ACTUAL disk usage, folder sizes, and temp files. Translate the results: 'Your computer has 460 GB of space total, and 392 GB is used — that's about 85% full. Your Downloads folder alone is using 8 GB — that's probably files you've already opened and don't need to keep there.' Walk them through safe cleanup in order: (1) Downloads folder — move or delete files they've already used, (2) Trash/Recycle Bin — empty it, (3) Temp files and caches — safe to clear, (4) Large files they might not need. NEVER suggest deleting system files. NEVER suggest deleting anything without asking first. Use analogies: 'Think of your computer's storage like a closet — sometimes you need to take things out you don't wear anymore to make room for new things.' After cleanup, run check_disk_health again to show them how much space they freed."
+}
