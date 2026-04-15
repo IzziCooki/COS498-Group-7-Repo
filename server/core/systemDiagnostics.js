@@ -50,14 +50,37 @@ function getPlatform() {
  */
 function getSystemInfo() {
   const platform = getPlatform();
+
+  // Get accurate available memory (macOS reports free RAM too low because of file cache)
+  let freeRamGb, ramUsagePercent;
+  const totalRamGb = os.totalmem() / (1024 ** 3);
+
+  if (platform === 'mac') {
+    // Use vm_stat for accurate available memory on macOS
+    const vmStat = safeExec('vm_stat');
+    const pageSize = 16384; // Apple Silicon uses 16K pages
+    const freeMatch = vmStat.match(/Pages free:\s+(\d+)/);
+    const inactiveMatch = vmStat.match(/Pages inactive:\s+(\d+)/);
+    const purgableMatch = vmStat.match(/Pages purgeable:\s+(\d+)/);
+    if (freeMatch && inactiveMatch) {
+      const freePages = parseInt(freeMatch[1]) + parseInt(inactiveMatch[1]) + parseInt(purgableMatch?.[1] || 0);
+      freeRamGb = (freePages * pageSize / (1024 ** 3)).toFixed(1);
+    } else {
+      freeRamGb = (os.freemem() / (1024 ** 3)).toFixed(1);
+    }
+  } else {
+    freeRamGb = (os.freemem() / (1024 ** 3)).toFixed(1);
+  }
+  ramUsagePercent = ((1 - freeRamGb / totalRamGb) * 100).toFixed(0);
+
   const info = {
     platform: platform,
     os_version: '',
     cpu: '',
     cpu_cores: os.cpus().length,
-    total_ram_gb: (os.totalmem() / (1024 ** 3)).toFixed(1),
-    free_ram_gb: (os.freemem() / (1024 ** 3)).toFixed(1),
-    ram_usage_percent: ((1 - os.freemem() / os.totalmem()) * 100).toFixed(0),
+    total_ram_gb: totalRamGb.toFixed(1),
+    free_ram_gb: freeRamGb,
+    ram_usage_percent: ramUsagePercent,
     uptime_hours: (os.uptime() / 3600).toFixed(1),
     hostname: os.hostname(),
     username: os.userInfo().username,
@@ -72,7 +95,9 @@ function getSystemInfo() {
   } else if (platform === 'mac') {
     info.os_version = safeExec('sw_vers -productName') + ' ' + safeExec('sw_vers -productVersion');
     info.cpu = os.cpus()[0]?.model || 'Unknown';
-    info.disk = safeExec('df -h / | tail -1');
+    // Show the Data volume which has the user's actual storage
+    const diskOutput = safeExec('df -h /System/Volumes/Data 2>/dev/null | tail -1') || safeExec('df -h / | tail -1');
+    info.disk = diskOutput;
   } else {
     info.os_version = safeExec('cat /etc/os-release 2>/dev/null | head -2') || `Linux ${os.release()}`;
     info.cpu = os.cpus()[0]?.model || 'Unknown';
