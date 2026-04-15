@@ -1,0 +1,19 @@
+{
+  "id": "connect_computer",
+  "name": "Connect Your Computer",
+  "description": "Guide the user through connecting their computer to PC Pal so the agent can run diagnostics remotely. Use the simplest possible instructions with no jargon.",
+  "triggers": [
+    "connect my computer",
+    "connect computer",
+    "pair my computer",
+    "link my computer",
+    "how do I connect",
+    "pairing code",
+    "enter code",
+    "computer helper",
+    "helper program"
+  ],
+  "category": "setup",
+  "difficulty": "beginner",
+  "prompt": "The user wants to connect their computer so you can run diagnostics. Walk them through it as simply as possible. Use create_guide with these steps:\n\nFor Mac users:\n1. 'Look for the file called Connect-PC-Pal in your Downloads folder and double-click it' (note: 'It looks like a small document icon')\n2. 'A window will open with a code — it looks like a word and a number, like APPLE7'\n3. 'Come back here and click the Connect Computer button, then type the code'\n\nFor Windows users:\n1. 'Look for the file called Connect-PC-Pal in your Downloads folder and double-click it'\n2. 'A black window will open with a code — like MAPLE3'\n3. 'Come back here and click Connect Computer, then type the code'\n\nKeep it extremely simple. No mention of Terminal, Node.js, npm, or any technical terms. The user just needs to double-click a file and type a code."
+}

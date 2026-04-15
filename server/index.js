@@ -39,6 +39,67 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PC Pal server running' });
 });
 
+// Serve the connect script that curl can pipe to bash
+app.get('/api/connect-script', (req, res) => {
+  // Determine the WebSocket URL for the agent to connect to
+  const host = req.headers.host || 'localhost:3001';
+  const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'wss' : 'ws';
+  const wsUrl = `${protocol}://${host}/agent-ws`;
+
+  res.type('text/plain').send(`#!/bin/bash
+# PC Pal — Connect Your Computer
+# This script connects your computer to PC Pal
+
+echo ""
+echo "  Setting up PC Pal helper..."
+echo ""
+
+# Check Node.js
+if ! command -v node &> /dev/null; then
+  echo "  Node.js is needed. Opening download page..."
+  open "https://nodejs.org" 2>/dev/null || xdg-open "https://nodejs.org" 2>/dev/null
+  echo "  Install Node.js, then run this command again."
+  exit 1
+fi
+
+# Setup directory
+DIR="$HOME/.pcpal-agent"
+mkdir -p "$DIR"
+
+# Install ws if needed
+if [ ! -d "$DIR/node_modules/ws" ]; then
+  echo '{"dependencies":{"ws":"^8.16.0"}}' > "$DIR/package.json"
+  cd "$DIR" && npm install --silent 2>/dev/null
+  echo "  Ready!"
+  echo ""
+fi
+
+# Write the agent script — server URL is baked in
+cat > "$DIR/agent.js" << AGENTEOF
+const os=require("os"),{execSync}=require("child_process"),WebSocket=require("ws");
+const SERVER="${wsUrl}";
+const BLOCKED=[/rm\\\\s+-rf\\\\s+\\\\//, /mkfs/, /dd.*of=\\\\/dev/, /shutdown/, /reboot/, /format/];
+function run(c,t){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{return{output:execSync(c,{encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"]}).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
+function info(){return{platform:process.platform,hostname:os.hostname(),username:os.userInfo().username,cpu:os.cpus()[0]&&os.cpus()[0].model||"Unknown",cpu_cores:os.cpus().length,total_ram_gb:(os.totalmem()/1073741824).toFixed(1),free_ram_gb:(os.freemem()/1073741824).toFixed(1)}}
+function connect(){var ws=new WebSocket(SERVER);ws.on("open",function(){ws.send(JSON.stringify({type:"agent_register",systemInfo:info()}))});ws.on("message",function(d){var m;try{m=JSON.parse(d)}catch(e){return}if(m.type==="agent_registered"){console.log("");console.log("  Your code: "+m.pairingCode);console.log("");console.log("  Type this code in PC Pal and click Connect.");console.log("  Keep this window open!");console.log("")}else if(m.type==="agent_paired"){console.log("  Connected to PC Pal!")}else if(m.type==="agent_command"){var r=run(m.command,m.timeout);ws.send(JSON.stringify({type:"agent_command_result",requestId:m.requestId,command:m.command,output:r.output,error:r.error}))}else if(m.type==="agent_ping"){ws.send(JSON.stringify({type:"agent_pong"}))}});ws.on("close",function(){console.log("  Reconnecting...");setTimeout(connect,5e3)});ws.on("error",function(){console.log("  Waiting for PC Pal...");setTimeout(connect,5e3)});process.on("SIGINT",function(){ws.close();process.exit(0)})}
+connect();
+AGENTEOF
+
+# Run from the agent directory so node can find ws
+cd "$DIR" && node agent.js
+`);
+});
+
+// Open Terminal on macOS (only works when running locally)
+app.get('/api/open-terminal', (req, res) => {
+  try {
+    require('child_process').exec('open -a Terminal');
+    res.json({ ok: true });
+  } catch {
+    res.json({ ok: false });
+  }
+});
+
 // REST routes
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
@@ -60,8 +121,127 @@ app.get('*', (req, res, next) => {
 // Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);
 
-// WebSocket server at /ws
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 64 * 1024 });
+// WebSocket servers — use noServer mode and route by path on upgrade
+const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
+
+// ─── Relay Agent Infrastructure ──────────────────────────────────
+// Relay agents connect via /agent-ws and are paired with chat users
+// via a 6-character code. Commands are relayed through the server.
+
+const agentWss = new WebSocketServer({ noServer: true, maxPayload: 256 * 1024 });
+
+// Route WebSocket upgrades by path
+server.on('upgrade', (request, socket, head) => {
+  const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+  if (pathname === '/ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => wss.emit('connection', ws, request));
+  } else if (pathname === '/agent-ws') {
+    agentWss.handleUpgrade(request, socket, head, (ws) => agentWss.emit('connection', ws, request));
+  } else {
+    socket.destroy();
+  }
+});
+
+// Maps: pairingCode → { ws, systemInfo }, userId → agentWs
+const pendingAgents = new Map();   // code → { ws, systemInfo }
+const pairedAgents = new Map();    // userId → { ws, systemInfo, code }
+const pendingCommands = new Map(); // requestId → { resolve, timer }
+let commandIdCounter = 0;
+
+function generatePairingCode() {
+  const words = ['APPLE', 'MAPLE', 'SUNNY', 'OCEAN', 'CLOUD', 'RIVER', 'BLOOM', 'PEARL', 'COZY', 'HAPPY'];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const num = Math.floor(Math.random() * 10);
+  return word + num;
+}
+
+/**
+ * Send a command to a paired relay agent and wait for the result.
+ * Returns { output, error } or null if no agent is paired.
+ */
+function sendCommandToAgent(userId, command, timeout = 20000) {
+  const agent = pairedAgents.get(userId);
+  if (!agent || agent.ws.readyState !== 1) return null;
+
+  const requestId = 'cmd_' + (++commandIdCounter);
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingCommands.delete(requestId);
+      resolve({ output: 'Command timed out. The computer may be busy.', error: true });
+    }, timeout);
+
+    pendingCommands.set(requestId, { resolve, timer });
+
+    agent.ws.send(JSON.stringify({
+      type: 'agent_command',
+      requestId,
+      command,
+      timeout,
+    }));
+  });
+}
+
+// Check if a user has a connected relay agent
+function hasRelayAgent(userId) {
+  const agent = pairedAgents.get(userId);
+  return agent && agent.ws.readyState === 1;
+}
+
+// Expose for use by the orchestrator
+app.locals.sendCommandToAgent = sendCommandToAgent;
+app.locals.hasRelayAgent = hasRelayAgent;
+
+agentWss.on('connection', (ws) => {
+  let agentCode = null;
+
+  ws.on('message', (data) => {
+    let msg;
+    try { msg = JSON.parse(data); } catch { return; }
+
+    if (msg.type === 'agent_register') {
+      agentCode = generatePairingCode();
+      pendingAgents.set(agentCode, { ws, systemInfo: msg.systemInfo || {} });
+      ws.send(JSON.stringify({ type: 'agent_registered', pairingCode: agentCode }));
+      console.log(`[relay] Agent registered with code: ${agentCode}`);
+
+    } else if (msg.type === 'agent_command_result') {
+      const pending = pendingCommands.get(msg.requestId);
+      if (pending) {
+        clearTimeout(pending.timer);
+        pendingCommands.delete(msg.requestId);
+        pending.resolve({ output: msg.output, error: msg.error });
+      }
+
+    } else if (msg.type === 'agent_pong') {
+      // keepalive response — do nothing
+    }
+  });
+
+  ws.on('close', () => {
+    if (agentCode) {
+      pendingAgents.delete(agentCode);
+      // Remove from paired if this agent was paired
+      for (const [userId, agent] of pairedAgents.entries()) {
+        if (agent.code === agentCode) {
+          pairedAgents.delete(userId);
+          console.log(`[relay] Agent ${agentCode} disconnected from user ${userId}`);
+          break;
+        }
+      }
+    }
+  });
+
+  // Keepalive ping every 30s
+  const pingInterval = setInterval(() => {
+    if (ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'agent_ping' }));
+    } else {
+      clearInterval(pingInterval);
+    }
+  }, 30000);
+
+  ws.on('close', () => clearInterval(pingInterval));
+});
 
 wss.on('connection', (ws) => {
   let userId = null;
@@ -136,6 +316,41 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify({ type: 'error', message: 'Unable to end the chat.' }));
           }
         }
+      } else if (msg.type === 'pair_agent') {
+        // User is entering a pairing code to connect their computer
+        const code = (msg.code || '').toUpperCase().trim();
+        if (!userId || !code) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Please enter a code.' }));
+          }
+          return;
+        }
+        const agent = pendingAgents.get(code);
+        if (!agent) {
+          ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Code not found. Make sure the helper program is running and try again.' }));
+          return;
+        }
+        // Pair them
+        pendingAgents.delete(code);
+        pairedAgents.set(userId, { ws: agent.ws, systemInfo: agent.systemInfo, code });
+        agent.ws.send(JSON.stringify({ type: 'agent_paired' }));
+        ws.send(JSON.stringify({
+          type: 'pair_result',
+          success: true,
+          message: 'Connected! PC Pal can now check your computer.',
+          systemInfo: agent.systemInfo,
+        }));
+        console.log(`[relay] User ${userId} paired with agent ${code}`);
+
+      } else if (msg.type === 'check_agent') {
+        // Check if user has a connected relay agent
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'agent_status',
+            connected: hasRelayAgent(userId),
+          }));
+        }
+
       } else if (msg.type === 'gather_resources') {
         // User clicked "Resources" button — gather videos + links
         if (!userId) {
