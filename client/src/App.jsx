@@ -56,7 +56,8 @@ function App() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        height: '100vh',
+        overflow: 'hidden',
       }}
     >
       <Header
