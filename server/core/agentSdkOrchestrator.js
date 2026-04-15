@@ -10,7 +10,7 @@
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
@@ -51,29 +51,51 @@ function buildSystemPrompt(profileString, user, classification, confusionCtx, ma
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
     : '';
 
-  return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers.
-Think of yourself as a helpful grandchild — kind, encouraging, and never condescending.
+  return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers. You are like a helpful grandchild — kind, encouraging, never condescending.
 
-You are running as a DESKTOP APPLICATION with real diagnostic tools via MCP.
-You can check the user's actual system info, network, disk, apps, errors, and battery.
-Always use diagnostic tools BEFORE giving advice about computer problems.
+You run as a DESKTOP APP with real diagnostic tools. You can check the user's system, network, disk, apps, errors, and battery. Use these tools to give specific advice, not guesses.
 
-User profile:
-${profileString}
+User: ${profileString}
 ${classificationContext}
+Comfort: ${comfortGuidelines}
 
-Comfort level: ${comfortGuidelines}
+CONTEXT: user_id="${user?.id || 'unknown'}" — pass this to any tool that needs it.
 
-IMPORTANT CONTEXT: The user_id for this user is "${user?.id || 'unknown'}". The session_id for this conversation is available in the conversation context. Pass these to any tool that requires them.
+## Response Format (CRITICAL — follow exactly)
 
-## Rules
-- Use simple, everyday language. No jargon.
-- Describe WHERE on screen before WHAT to look for.
-- Maximum 3 steps, then wait for confirmation.
-- Never say "simply" or "just" or "as I mentioned."
-- Always reassure: "You can't break anything by trying this."
-- After diagnostic tools, translate results into plain English — NEVER show raw output.
-- Celebrate every win with specific, meaningful praise.
+**Be SHORT.** Your entire response should be under 100 words unless you're giving step-by-step instructions. Lead with the answer, not the reasoning.
+
+**Structure every response like this:**
+1. One friendly sentence acknowledging what they asked (max 15 words)
+2. Your finding or answer (1-3 short sentences)
+3. If action needed: numbered steps (max 3, one action per step, bold the key action)
+4. One encouraging closing line
+
+**When you use diagnostic tools:**
+- Run tools first, then call create_findings to package the results as a dropdown card
+- The findings card shows the user what you checked and what you found — they can expand it to see details
+- In your text response, give only the key takeaway and the fix — don't repeat all the diagnostic details
+- Example flow: run get_system_info → call create_findings with the results → text: "Your memory is almost full. Here's how to fix it." → call create_guide with the fix steps
+
+**When the user asks for videos:**
+- Videos will be attached automatically by the system — do NOT list video titles or URLs in your text
+- Just say something brief like "I found some videos that show how to do this!" and give your own quick summary of the steps
+
+**When giving multi-step instructions or terminal commands:**
+- ALWAYS use the create_guide tool — this creates an interactive card the user can follow
+- Use it for ANY task with 2+ steps, not just terminal commands
+- Steps without commands are fine — the guide is for structure, not just code
+- Steps WITH commands get Copy and Run buttons automatically
+- Keep guides to 3-6 steps max
+- You MUST call create_guide if your response would contain numbered steps. Put the steps in the guide, not in your text response. Your text should be a brief intro/summary only.
+
+**Never do these:**
+- Don't say "simply", "just", "as I mentioned", or "I'd be happy to help"
+- Don't repeat back what the user said
+- Don't narrate what tools you're running ("Let me check your system...")
+- Don't show raw numbers, paths, process names, or command output
+- Don't write more than 3 steps without waiting for confirmation
+- Don't use emojis unless the user does first
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 }
 
@@ -108,6 +130,7 @@ async function processMessage(text, userId) {
 
     const skillMatch = skillMatcher.matchSkill(text);
     const matchedSkillPrompt = skillMatch ? skillMatcher.buildSkillPrompt(skillMatch.skill) : null;
+    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
     if (skillMatch) {
       console.log(`[agentSdkOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score})`);
     }
@@ -184,6 +207,16 @@ async function processMessage(text, userId) {
       }
     }
 
+    // Step 8c: Check if artifacts were created during the tool loop
+    const guide = getAndClearLastGuide();
+    const findings = getAndClearLastFindings();
+    if (guide) {
+      console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
+    }
+    if (findings) {
+      console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
+    }
+
     // Step 9: Vocabulary filter
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
@@ -219,9 +252,11 @@ async function processMessage(text, userId) {
       guideId,
       stepSequence,
       conversationId: sessionId,
-      matchedSkillId: skillMatch?.skill?.id || guideId,
+      matchedSkillId: matchedSkillId || guideId,
       userOsType: user?.os_type,
       videos: videos && videos.length > 0 ? videos : null,
+      guide: guide || null,
+      findings: findings || null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

@@ -32,6 +32,23 @@ function textResult(text) {
   return { content: [{ type: 'text', text: String(text) }] };
 }
 
+// Side-channel for structured data that Claude would otherwise consume
+// The orchestrator reads and clears these after each query()
+let _lastGuide = null;
+let _lastFindings = null;
+
+function getAndClearLastGuide() {
+  const g = _lastGuide;
+  _lastGuide = null;
+  return g;
+}
+
+function getAndClearLastFindings() {
+  const f = _lastFindings;
+  _lastFindings = null;
+  return f;
+}
+
 // ─── System Diagnostic Tools ─────────────────────────────────────
 
 const getSystemInfo = tool(
@@ -377,6 +394,53 @@ const findYoutubeVideos = tool(
   }
 );
 
+// ─── Diagnostic Findings Artifact Tool ────────────────────────────
+
+const createFindings = tool(
+  'create_findings',
+  "Create a diagnostic findings artifact — a collapsible dropdown showing what you discovered about the user's computer. Use this after running diagnostic tools to show the user HOW you reached your conclusions. Each finding has a label (what was checked), a value (what was found), and a status (good/warning/bad). The findings appear as a collapsible card separate from your text response.",
+  {
+    title: z.string().describe('Title, e.g. "System Check Results"'),
+    findings: z.array(z.object({
+      label: z.string().describe('What was checked, e.g. "Memory"'),
+      value: z.string().describe('What was found, e.g. "17.6 GB of 18 GB used (98%)"'),
+      status: z.enum(['good', 'warning', 'bad']).describe('Assessment: good, warning, or bad'),
+    })).describe('List of diagnostic findings'),
+  },
+  async (args) => {
+    const findings = { title: args.title, findings: args.findings };
+    _lastFindings = findings;
+    console.log(`[MCP] Findings created: "${args.title}" (${args.findings.length} items)`);
+    return textResult(`Findings card "${args.title}" created. Reference the key findings in your response but don't repeat the full details — the user can expand the card to see everything.`);
+  }
+);
+
+// ─── Guide Artifact Tool ─────────────────────────────────────────
+
+const createGuide = tool(
+  'create_guide',
+  "Create an interactive guide artifact that appears in the chat as a collapsible card with numbered steps, copy-paste terminal commands, and 'Run' buttons. Use this whenever you would give the user terminal commands — put them in a guide instead of inline text. Each step can have a description, an optional terminal command, and an optional note. The guide is rendered as a structured UI element, not text.",
+  {
+    title: z.string().describe('Short title for the guide, e.g. "Set Up Ollama on Mac"'),
+    description: z.string().optional().describe('One-sentence summary of what this guide accomplishes'),
+    steps: z.array(z.object({
+      text: z.string().describe('What this step does in plain English'),
+      command: z.string().optional().describe('Terminal command to run (shown in a code block with Copy and Run buttons)'),
+      note: z.string().optional().describe('Optional tip or warning for this step'),
+    })).describe('Ordered list of steps'),
+  },
+  async (args) => {
+    const guide = {
+      title: args.title,
+      description: args.description || null,
+      steps: args.steps,
+    };
+    _lastGuide = guide;
+    console.log(`[MCP] Guide created: "${args.title}" (${args.steps.length} steps)`);
+    return textResult(`Guide "${args.title}" has been created and will appear as an interactive card in the chat. Do NOT repeat the commands in your text — the user can see them in the guide card.`);
+  }
+);
+
 // ─── Build the MCP Server ────────────────────────────────────────
 
 function createPcPalMcpServer() {
@@ -413,8 +477,11 @@ function createPcPalMcpServer() {
       askBuddyForHelp,
       // Media
       findYoutubeVideos,
+      // Artifacts
+      createGuide,
+      createFindings,
     ],
   });
 }
 
-module.exports = { createPcPalMcpServer };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings };

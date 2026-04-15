@@ -18,5 +18,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "beginner",
-  "prompt": "The user has a battery or power question. Use get_battery_status to check their ACTUAL battery level and charging state. Tell them what you see in plain language: 'Your laptop is plugged in and fully charged at 100%' or 'Your battery is at 23% and not charging — let's make sure the charger is plugged in securely.' If their battery drains fast, use list_running_apps to check if a program is using lots of energy. If the computer keeps shutting off, check get_system_info for overheating signs (high CPU, loud fans). Use analogies: 'Your battery is like a gas tank — when certain apps use a lot of energy, the tank empties faster.'"
+  "prompt": "Use get_battery_status. Report the level and charging state in one sentence. If draining fast, use list_running_apps to find the energy hog. State the cause and fix directly."
 }

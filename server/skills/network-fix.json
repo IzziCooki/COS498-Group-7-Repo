@@ -24,5 +24,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "intermediate",
-  "prompt": "The user has internet or network problems. You have REAL network diagnostic tools — use check_network FIRST before guessing. This will tell you: (1) whether they are actually connected to the internet, (2) whether DNS is working, (3) their Wi-Fi status and signal strength, (4) their IP address, (5) latency to Google. Translate the results into plain language. For example: 'I checked your connection and it looks like your computer CAN see your Wi-Fi network, but it can't reach the internet — this usually means your router needs a restart.' Give specific steps based on what you ACTUALLY found. Common fixes: restart router (unplug, wait 30 seconds, plug back in), forget and rejoin Wi-Fi network, flush DNS. If their Wi-Fi is connected but DNS is failing, explain it like a phone book: 'Your computer is connected but can't look up website addresses — like having a phone but no phone book.' Always verify the fix by running check_network again after they follow your steps."
+  "prompt": "Use check_network. Report: connected or not, Wi-Fi status, DNS working or not. State the cause in one sentence, then give the fix (usually: restart router, rejoin Wi-Fi, or flush DNS). Don't list all 5 diagnostic results — only mention what's broken."
 }

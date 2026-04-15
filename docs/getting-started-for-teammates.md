@@ -1,6 +1,6 @@
 # Getting Started — For Teammates
 
-<!-- Updated 2026-04-13: Fixed clone URL (placeholder→actual IzziCooki org), corrected tool count (12→16), and test count (74→69). -->
+<!-- Updated 2026-04-14: Added Electron desktop mode, diagnostic demo suggestions, updated tool count (16→25), skill count (17→24), test count (69→169/8 suites), added MCP/Agent SDK/Electron to tech stack, updated project structure. -->
 
 Welcome to PC Pal! This guide will get you up and running in 5 minutes.
 
@@ -47,9 +47,17 @@ This starts two servers:
 - **Backend** on http://localhost:3001
 - **Frontend** on http://localhost:5173
 
-### 4. Open in your browser
+**Or run as a desktop app:**
 
-Go to **http://localhost:5173**
+```bash
+npm run start:desktop
+```
+
+This launches PC Pal in an Electron window (same app, native desktop wrapper).
+
+### 4. Open in your browser (or use the Electron window)
+
+Go to **http://localhost:5173** (or use the Electron window if you ran `start:desktop`)
 
 You'll see the onboarding wizard. Fill in a name, pick a device, set comfort level, and you're in the chat.
 
@@ -67,6 +75,10 @@ You'll see the onboarding wizard. Fill in a name, pick a device, set comfort lev
 | "Start over" | Clears the conversation |
 | "Help" | Lists everything PC Pal can help with |
 | "I've fallen" | Triggers the emergency alert system |
+| "My computer is slow" | Diagnostic skill: checks running apps, disk, system info |
+| "Check my computer" | Full system checkup with real diagnostic data |
+| "I have no internet" | Network diagnosis: tests connectivity and DNS |
+| "My battery is dying fast" | Battery/power diagnostic with system data |
 
 ---
 
@@ -74,10 +86,16 @@ You'll see the onboarding wizard. Fill in a name, pick a device, set comfort lev
 
 ```
 client/           React frontend (what the user sees)
+electron/         Electron desktop wrapper (main.js, preload.js)
 server/           Node.js backend (the brains)
-  core/           Business logic (AI agent, safety, vocabulary)
+  core/           Business logic (AI agent, safety, vocabulary, diagnostics)
+    agentSdkOrchestrator.js   Primary orchestrator (Agent SDK + MCP)
+    agentOrchestrator.js      Fallback orchestrator (manual loop)
+    systemDiagnostics.js      Sandboxed system diagnostic tools
+  mcp/            MCP tool server (provider-agnostic tool exposure)
   models/         Database access (users, messages, skills)
   routes/         REST API endpoints
+  skills/         24 skill definitions (JSON) — includes 7 diagnostic skills
   db/             SQLite database
 docs/             Documentation (you are here)
 ```
@@ -94,7 +112,7 @@ docs/             Documentation (you are here)
 ```bash
 npm test
 ```
-69 tests, takes about 1 second.
+169 tests across 8 suites, takes about 2 seconds.
 
 ### Reset the database
 Delete `server/db/pcpal.db` and restart the server. A fresh database is created automatically.
@@ -113,6 +131,11 @@ Delete `server/db/pcpal.db` and restart the server. A fresh database is created 
 2. Add a new entry following the existing pattern (title, Windows/Mac steps, optional keyboard keys)
 3. Add the new ID to `VALID_GUIDE_IDS` in `server/core/agentOrchestrator.js`
 
+### Add a new MCP tool
+1. Define the tool in `server/mcp/pcpalTools.js` using `tool()` from the Agent SDK
+2. Add it to the `tools` array in `createPcPalMcpServer()`
+3. The tool is automatically available to any MCP-compatible agent
+
 ### Add a new vocabulary substitution
 1. Open `server/assets/vocabulary/basicSubstitutions.json`
 2. Add a new `"technical_term": "simple replacement"` entry
@@ -127,6 +150,8 @@ Delete `server/db/pcpal.db` and restart the server. A fresh database is created 
 | Backend | Node.js + Express | JavaScript everywhere, good WebSocket support |
 | Real-time | WebSocket (`ws`) | Typing indicators, instant responses |
 | AI | Claude API (Anthropic) | Best at tool-use and following instructions |
+| Agent SDK | `@anthropic-ai/claude-agent-sdk` | MCP tool exposure, provider-agnostic orchestration |
+| Desktop | Electron | Native desktop app with system-level access |
 | Database | SQLite | Zero setup, single file, good enough for prototype |
 | Tests | Jest | Standard Node.js test runner |
 
@@ -135,13 +160,15 @@ Delete `server/db/pcpal.db` and restart the server. A fresh database is created 
 ## Who Built What
 
 This is the first prototype. The core implementation includes:
-- 16 AI agent tools
+- 25 AI agent tools (17 core + 8 system diagnostics), exposed via MCP
+- 24 skill definitions (17 original + 7 diagnostic skills)
 - 10 visual task guides (Windows + Mac)
 - Safety monitoring (emergencies + scams)
 - Vocabulary simplification (20+ terms)
 - Comfort-level adaptive responses
-- Full demo mode
-- 69 automated tests
+- Electron desktop mode with system-level diagnostics
+- Full demo mode (with real diagnostic data injection)
+- 169 automated tests across 8 suites
 
 ---
 

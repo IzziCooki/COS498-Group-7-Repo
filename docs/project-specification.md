@@ -1,6 +1,6 @@
 # COS 498: Generative AI Agents - Agent Project Specification
 
-<!-- Updated 2026-04-13: Fixed database table count (12→14, added conversation_quality_events and conversation_quality_summaries), and added TODO for team member names. -->
+<!-- Updated 2026-04-14: Added system diagnostics (8 tools), Electron desktop mode, MCP tool server, Agent SDK orchestrator, provider flexibility, updated tool count (16→25), skill count (16→24), test count (69→169). -->
 
 **Spring 2026 - University of Maine**
 
@@ -126,7 +126,7 @@ How might an AI agent, combined with a buddy accountability system and evidence-
 
 ### 4a. Agent Summary
 
-PC Pal is a patient, conversational AI tutor that helps elderly and beginner computer users build lasting digital skills through a web chat interface. The core interaction loop is:
+PC Pal is a patient, conversational AI tutor that helps elderly and beginner computer users build lasting digital skills through a web chat interface or native desktop app (Electron). In addition to teaching, PC Pal can run real system diagnostics — checking network connectivity, disk health, battery status, running apps, and more — using sandboxed, read-only terminal commands. The core interaction loop is:
 
 1. **Onboard** -- New users share their name, device, comfort level, learning goal, and optionally invite a buddy
 2. **Learn** -- Users ask questions or request help; PC Pal responds with device-specific, jargon-free instructions using visual guide cards and step-by-step sequences
@@ -154,9 +154,9 @@ PC Pal is a patient, conversational AI tutor that helps elderly and beginner com
 
 ### 4c. Other Data Sources
 
-**Skill Definition Database (16 JSON files)**
-- **What it contains:** Trigger keywords, specialized prompts, difficulty levels, and category labels for 16 computer skills (copy/paste, send email, connect to Wi-Fi, take screenshot, etc.)
-- **Why the agent needs it:** Enables automatic skill matching from natural language input and structured progression chains (copy/paste -> send email -> attach file)
+**Skill Definition Database (24 JSON files)**
+- **What it contains:** Trigger keywords, specialized prompts, difficulty levels, and category labels for 24 computer skills — 17 original skills (copy/paste, send email, connect to Wi-Fi, etc.) plus 7 diagnostic skills (system diagnosis, network troubleshooting, slow computer, disk cleanup, app troubleshooting, battery/power, system checkup)
+- **Why the agent needs it:** Enables automatic skill matching from natural language input, structured progression chains (copy/paste -> send email -> attach file), and specialized diagnostic prompts with difficulty-based priority tie-breaking
 - **How it's added:** Bundled with the application in `server/skills/*.json`
 - **Maintenance:** Updated by the development team when new skills are added
 - **Licensing:** Original content, no restrictions
@@ -169,7 +169,7 @@ PC Pal is a patient, conversational AI tutor that helps elderly and beginner com
 ### 4d. Human-Agent Collaboration Flow
 
 ```
-User opens PC Pal (web or CollaborAITE)
+User opens PC Pal (web, Electron desktop, or CollaborAITE)
     |
     v
 [First visit?] --Yes--> Onboarding: Name -> Device -> Comfort -> Goal -> Buddy Invite
@@ -192,9 +192,13 @@ Safety Monitor (runs FIRST) --[emergency/scam]--> Alert + guidance
 Task Classifier --> learn_skill | troubleshoot | follow_up
     |
     v
-Agent Orchestrator (Claude + 16 tools)
+Skill Matcher --> inject matched skill prompts
+    |
+    v
+Agent SDK Orchestrator (Claude + 25 MCP tools)
     |-- show_visual_guide (device-specific guide card)
     |-- start_step_sequence (numbered walkthrough)
+    |-- get_system_info / check_network / check_disk_health (diagnostics)
     |-- save_user_goal (capture life motivation)
     |-- schedule_skill_review (spaced repetition)
     |-- share_progress_with_buddy (celebration)
@@ -356,23 +360,40 @@ paperclip picture at the top of the email.'"
 | Frontend | React 19, Vite 8, vanilla CSS |
 | Backend | Node.js, Express 4, WebSocket (ws) |
 | AI | Anthropic Claude API (claude-sonnet-4-20250514) with tool-use |
+| Agent SDK | `@anthropic-ai/claude-agent-sdk` -- MCP tool server + SDK orchestrator |
+| Desktop | Electron -- native desktop wrapper with system-level access |
+| MCP Tools | 25 provider-agnostic tools via in-process MCP server |
 | Database | SQLite (via better-sqlite3) -- 14 tables |
 | Image Processing | @napi-rs/canvas for annotated screenshots |
-| Deployment | Standalone web app (agent.deanhauser.dev) + CollaborAITE integration (planned) |
+| Schema Validation | Zod -- input validation for MCP tool parameters |
+| Deployment | Standalone web app (agent.deanhauser.dev), Electron desktop app, CollaborAITE integration (planned) |
+
+### Provider Flexibility
+
+PC Pal's MCP tool server is fully provider-agnostic. The 25 tools work with any MCP-compatible agent:
+- **Claude (Anthropic direct):** Set `ANTHROPIC_API_KEY`
+- **Claude via AWS Bedrock:** Set `CLAUDE_CODE_USE_BEDROCK=1`
+- **Claude via Google Vertex AI:** Set `CLAUDE_CODE_USE_VERTEX=1`
+- **Any LLM (OpenAI, Gemini, Ollama, Azure):** Use LiteLLM proxy, set `ANTHROPIC_BASE_URL`
 
 ### Message Processing Pipeline
 
-Every user message flows through a 7-step pipeline:
+Every user message flows through an 8-step pipeline:
 
 1. **Safety Check** -- Emergency keywords and scam patterns detected (runs first, before AI)
 2. **User Lookup** -- Load user profile (name, device, comfort level, vocabulary level, goal, skill history)
 3. **Session Management** -- Get or create conversation session
 4. **Task Classification** -- Claude classifies message as learn_skill, troubleshoot, follow_up, accessibility, or unknown
-5. **AI Agent** -- Claude with 16 tools generates a response (up to 10 tool-use rounds)
-6. **Vocabulary Filter** -- Jargon replacement + sentence length enforcement
-7. **Save & Respond** -- Store in database, send via WebSocket
+5. **Skill Matching** -- Message matched against 24 skill definitions; matched skill prompts injected into system prompt
+6. **AI Agent** -- Agent SDK orchestrator with 25 MCP tools generates a response (falls back to manual loop if SDK unavailable)
+7. **Vocabulary Filter** -- Jargon replacement + sentence length enforcement
+8. **Save & Respond** -- Store in database, send via WebSocket
 
-### Agent Tools (16)
+### Agent Tools (25)
+
+All 25 tools are exposed as provider-agnostic MCP tools via `server/mcp/pcpalTools.js`.
+
+**Core Teaching & Interaction Tools (17):**
 
 | Tool | Purpose |
 |---|---|
@@ -388,10 +409,24 @@ Every user message flows through a 7-step pipeline:
 | `get_user_notes` | Retrieve saved notes |
 | `restart_conversation` | Clear session and start fresh |
 | `flag_emergency` | Alert on medical/safety emergencies |
+| `analyze_scam_situation` | Analyze a potential scam message for the user |
 | `save_user_goal` | Record why the user is learning |
 | `schedule_skill_review` | Schedule spaced repetition review |
 | `share_progress_with_buddy` | Share skill completion with buddy |
 | `ask_buddy_for_help` | Send help request to buddy |
+
+**System Diagnostic Tools (8):**
+
+| Tool | Purpose |
+|---|---|
+| `get_system_info` | Return OS version, CPU, memory, uptime |
+| `check_network` | Test network connectivity and DNS resolution |
+| `list_running_apps` | List currently running applications |
+| `read_error_log` | Read recent system error/crash logs |
+| `run_safe_command` | Run an allowlisted terminal command |
+| `check_disk_health` | Check disk usage and storage space |
+| `check_installed_software` | List installed applications |
+| `get_battery_status` | Return battery level and charging state |
 
 ### Database Schema (14 tables)
 
@@ -407,7 +442,7 @@ Every user message flows through a 7-step pipeline:
 
 | Phase | Deadline | What was built |
 |---|---|---|
-| v1 | Apr 14 | Core chat loop: onboarding, Claude integration, vocabulary filter, safety monitoring, visual guides, step sequences, skill tracking, demo mode |
+| v1 | Apr 14 | Core chat loop: onboarding, Claude integration, vocabulary filter, safety monitoring, visual guides, step sequences, skill tracking, demo mode, system diagnostics (8 tools), MCP tool server (25 tools), Agent SDK orchestrator, Electron desktop mode, 24 skill definitions, 169 tests |
 | v2 | Apr 21 | Buddy system (invite codes, progress sharing, help requests), spaced repetition, scaffolding fade in system prompt, welcome-back experience, improved system prompt with behavioral science rules |
 | v3 | Apr 28 | CollaborAITE integration, scaffolding fade automation, evaluation with real users, accessibility improvements |
 

@@ -1,0 +1,85 @@
+/* DiagnosticFindings — collapsible diagnostic dropdown */
+
+.diag-findings {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.diag-findings__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: #f1f5f9;
+  cursor: pointer;
+  text-align: left;
+  font-size: 15px;
+}
+
+.diag-findings__toggle:hover {
+  background: #e2e8f0;
+}
+
+.diag-findings__toggle-icon {
+  font-size: 12px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.diag-findings__toggle-title {
+  font-weight: 600;
+  color: #334155;
+}
+
+.diag-findings__toggle-hint {
+  margin-left: auto;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.diag-findings__body {
+  padding: 8px 12px 12px;
+}
+
+.diag-findings__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.diag-findings__row--good { background: #f0fdf4; }
+.diag-findings__row--warning { background: #fffbeb; }
+.diag-findings__row--bad { background: #fef2f2; }
+
+.diag-findings__status {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.diag-findings__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.diag-findings__label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.diag-findings__value {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.4;
+}

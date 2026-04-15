@@ -25,5 +25,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "intermediate",
-  "prompt": "The user has a problem with a specific application. Step 1: Identify which app they're talking about. Step 2: Use check_installed_software to verify the app is installed, and list_running_apps to see if it's currently running (or stuck). Step 3: Based on what you find: (a) If the app is running but unresponsive — it might be stuck, suggest force-quitting and reopening, (b) If it's not installed — help them find and install it, (c) If it's running fine but they can't find it — help them locate the window, (d) If it crashed — check read_error_log for crash details. Step 4: Give specific, platform-correct instructions. On Mac: 'In the top-left corner of your screen, click the Apple logo, then click Force Quit.' On Windows: 'Press and hold Ctrl, Alt, and Delete at the same time, then click Task Manager.' Always explain what force-quitting means: 'It's like turning off a light switch — the app will close completely, and you can open it again fresh.'"
+  "prompt": "Use check_installed_software and list_running_apps. Report: is the app installed? Is it running or stuck? Then give the fix — usually force-quit and reopen. Give platform-correct instructions (Mac: Apple menu > Force Quit; Windows: Ctrl+Alt+Delete > Task Manager)."
 }

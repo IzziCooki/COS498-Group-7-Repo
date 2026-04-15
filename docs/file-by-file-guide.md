@@ -1,6 +1,6 @@
 # PC Pal — File-by-File Guide
 
-<!-- Updated 2026-04-13: Corrected tool count (12→16), agentOrchestrator line count (~450→~773), added 6 missing server/core files, 6 missing models, 3 missing routes, fixed test counts (74→69), fixed onboarding step count (3→5), and added missing client components and hooks. -->
+<!-- Updated 2026-04-14: Added Electron files, Agent SDK orchestrator, system diagnostics, MCP tool server, diagnostic skill files, updated tool count (16→25), test count (69→169/8 suites), and new test file listings. -->
 
 Every file in the project, what it does, and where it fits.
 
@@ -19,6 +19,15 @@ Every file in the project, what it does, and where it fits.
 
 ---
 
+## Electron Files
+
+| File | Purpose |
+|------|---------|
+| `electron/main.js` | Electron main process — creates a `BrowserWindow`, loads the React frontend, manages app lifecycle (ready, window-all-closed, activate). Provides native desktop wrapper for PC Pal. |
+| `electron/preload.js` | Preload script for secure IPC between the Electron renderer process and the main process. Runs in a sandboxed context with access to Node.js APIs. |
+
+---
+
 ## Server Files
 
 ### `server/index.js` — The Entry Point
@@ -26,6 +35,7 @@ Every file in the project, what it does, and where it fits.
 - Sets up the WebSocket server on `/ws`
 - Mounts REST routes (`/api/users`, `/api/chat`)
 - Handles WebSocket message protocol: `init` → `chat` → `response`
+- Auto-selects the Agent SDK orchestrator (primary) or falls back to the manual orchestrator
 - Includes connection cleanup, input validation, and graceful shutdown
 
 ### `server/config.js` — Environment Config
@@ -70,14 +80,22 @@ Each model file exports an object with CRUD methods. All use synchronous `better
 
 This is where all the important logic lives.
 
-#### `agentOrchestrator.js` — The Main Pipeline (~773 lines)
-**This is the most important file in the project.**
+#### `agentSdkOrchestrator.js` — The Primary Pipeline (Agent SDK)
+**This is the primary orchestrator for production use.**
 
-- Defines 16 Claude AI tools with their schemas
+- Uses the Claude Agent SDK's `query()` function instead of a manual while loop
+- Consumes all 25 tools via the in-process MCP server (`server/mcp/pcpalTools.js`)
+- Same pipeline as the fallback orchestrator but with SDK-managed tool execution
+- Falls back to `agentOrchestrator.js` if the Agent SDK is unavailable
+
+#### `agentOrchestrator.js` — The Fallback Pipeline (~773 lines)
+**This is the fallback orchestrator (the original implementation).**
+
+- Defines 17 Claude AI tools with their schemas (including `analyze_scam_situation`)
 - `processMessage(text, userId)` — the entry point for every user message
-- Pipeline: safety check → mock mode check → user lookup → session management → classification → Claude API call → tool handling loop → vocabulary filtering → save & return
+- Pipeline: safety check → mock mode check → user lookup → session management → classification → skill matching → Claude API call → tool handling loop → vocabulary filtering → save & return
 - `handleFunctionCall(name, args, userId, sessionId)` — dispatches tool calls from the AI to the appropriate handler
-- `buildSystemPrompt(profileString, user, classification)` — constructs the AI's personality and instructions based on user profile and comfort level
+- `buildSystemPrompt(profileString, user, classification)` — constructs the AI's personality and instructions based on user profile, comfort level, and matched skill prompts
 - `buildComfortGuidelines(comfortLevel)` — returns different instruction sets for comfort levels 1, 2-3, and 4-5
 
 #### `mockResponder.js` — Demo Mode (~250 lines)
@@ -85,6 +103,7 @@ This is where all the important logic lives.
 - Pattern-matches user messages (e.g., "copy" → copy/paste guide, "done" → advance step)
 - Returns the same response shape as the real orchestrator
 - Creates real step sequences, skill events, and notes in the database
+- For diagnostic skills, injects real system diagnostic data (battery, disk, network) into Claude CLI prompts
 - Exercises all UI features without any external API calls
 
 #### `safetyMonitor.js` — Emergency & Scam Detection (~100 lines)
@@ -139,10 +158,19 @@ This is where all the important logic lives.
 - Maps skills to their corresponding visual guide images
 - Provides image paths for the annotated screenshot system
 
+#### `systemDiagnostics.js` — Sandboxed System Diagnostics
+- Provides 8 diagnostic functions: `getSystemInfo`, `checkNetwork`, `listRunningApps`, `readErrorLog`, `runSafeCommand`, `checkDiskHealth`, `checkInstalledSoftware`, `getBatteryStatus`
+- All functions execute real terminal commands on the host machine
+- Strict allowlist ensures only read-only commands are permitted
+- Dangerous patterns (rm, sudo, kill, curl, pipes, redirects) are always blocked
+- Cross-platform: supports macOS, Windows, and Linux commands
+
 #### `skillMatcher.js` — Skill Auto-Matching
-- Automatically matches user questions to the 10 visual guides
+- Automatically matches user questions to the 24 skill definitions (17 original + 7 diagnostic)
 - Injects specialized prompts to Claude for task-specific expertise
 - Keyword-based matching against skill definitions in `server/skills/`
+- Difficulty-based priority tie-breaking (critical skills outrank beginner skills when multiple match)
+- Imported into the orchestrator to enrich the system prompt
 
 #### `skillProgression.js` — Learning Chains (~75 lines)
 - Defines 3 skill progression chains:
@@ -151,6 +179,34 @@ This is where all the important logic lives.
   - `take_screenshot → zoom_text → use_taskbar → restart_computer`
 - `getNextSkill(userId)` — walks the chains and finds the first uncompleted skill
 - `getSkillStatus(userId)` — returns all skills with completion status
+
+---
+
+### `server/mcp/` — MCP Tool Server
+
+| File | What it does |
+|------|-------------|
+| `pcpalTools.js` | Exposes all 25 custom tools (17 core + 8 diagnostic) as an in-process MCP server using `@anthropic-ai/claude-agent-sdk`. Each tool is defined with Zod schemas for input validation and returns structured results via `textResult()`. Consumed by the Agent SDK orchestrator. Provider-agnostic — works with Claude direct, Bedrock, Vertex AI, or any LLM via LiteLLM proxy. |
+
+---
+
+### `server/skills/` — Skill Definitions (24 JSON files)
+
+Each skill is a JSON file with trigger keywords, specialized prompts, difficulty level, and category. The skill matcher loads these at startup.
+
+**Original skills (17):** copy-paste, send-email, attach-file, open-browser, find-wifi, open-settings, take-screenshot, zoom-text, use-taskbar, restart-computer, and others covering basic PC tasks.
+
+**Diagnostic skills (7):**
+
+| File | Skill | When it triggers |
+|------|-------|-----------------|
+| `diagnose-system.json` | System diagnosis | User asks "What's wrong with my computer?" |
+| `network-fix.json` | Network troubleshooting | User reports internet/Wi-Fi problems |
+| `slow-computer.json` | Slow computer diagnosis | User says "My computer is slow" |
+| `disk-cleanup.json` | Disk cleanup guidance | User reports low storage or slow disk |
+| `app-troubleshoot.json` | App troubleshooting | User says an app is crashing or not working |
+| `battery-power.json` | Battery/power diagnosis | User asks about battery or power issues |
+| `system-checkup.json` | Full system checkup | User asks "Check my computer" or wants a health check |
 
 ---
 
@@ -166,13 +222,18 @@ This is where all the important logic lives.
 
 ---
 
-### `server/__tests__/` — Backend Tests
+### `server/__tests__/` — Backend Tests (169 tests, 8 suites)
 
 | File | What it tests | # Tests |
 |------|-------------|---------|
 | `vocabularyFilter.test.js` | Word substitution, whole-word matching, readability splitting, edge cases | 30 |
 | `safetyMonitor.test.js` | Emergency keywords, scam patterns, partial-word non-matching, DB logging | 22 |
 | `taskClassifier.test.js` | Classification accuracy, error handling, JSON parsing, markdown stripping | 17 |
+| `systemDiagnostics.test.js` | Diagnostic function execution, sandbox allowlist enforcement, blocked command patterns, cross-platform support | — |
+| `skillMatcher.test.js` | Skill matching accuracy, keyword triggers, priority tie-breaking, prompt injection | — |
+| `mockResponder.test.js` | Mock response patterns, diagnostic data injection, step sequence creation | — |
+| `mcpServer.test.js` | MCP server initialization, tool registration, tool function execution, Zod schema validation | — |
+| `agentOrchestrator.test.js` | Orchestrator pipeline, tool dispatch, system prompt construction | — |
 
 All tests mock external dependencies (Claude API, database models) so they run instantly without any setup.
 

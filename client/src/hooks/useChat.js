@@ -95,6 +95,8 @@ export function useChat(userId) {
               stepSequence: data.stepSequence || null,
               images: data.images || null,
               videos: data.videos || null,
+              guide: data.guide || null,
+              findings: data.findings || null,
             },
           ]);
           if (data.stepSequence) {
@@ -108,10 +110,29 @@ export function useChat(userId) {
             setConversationId(data.conversationId);
           }
           if (data.endedConversationId) {
-            // The agent closed the session mid-turn (e.g. restart_conversation).
-            // Surface the feedback modal for that closed conversation.
             setFeedbackPrompt({ conversationId: data.endedConversationId });
           }
+          break;
+
+        case 'command_result':
+          // Update the command result in the most recent message's guide
+          setMessages((prev) => {
+            const updated = [...prev];
+            // Find the latest assistant message with a guide
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].guide) {
+                updated[i] = {
+                  ...updated[i],
+                  commandResults: {
+                    ...(updated[i].commandResults || {}),
+                    [data.command]: { output: data.output, running: false, error: data.error },
+                  },
+                };
+                break;
+              }
+            }
+            return updated;
+          });
           break;
 
         case 'chat_ended':
@@ -223,6 +244,35 @@ export function useChat(userId) {
   const dismissWelcomeBack = useCallback(() => setWelcomeBack(null), []);
 
   /**
+   * Run a user-approved command from a guide artifact.
+   * Sets the command as "running" immediately, then sends to server.
+   */
+  const runCommand = useCallback((command) => {
+    if (!command) return;
+    // Mark as running in the most recent guide
+    setMessages((prev) => {
+      const updated = [...prev];
+      for (let i = updated.length - 1; i >= 0; i--) {
+        if (updated[i].guide) {
+          updated[i] = {
+            ...updated[i],
+            commandResults: {
+              ...(updated[i].commandResults || {}),
+              [command]: { output: '', running: true, error: false },
+            },
+          };
+          break;
+        }
+      }
+      return updated;
+    });
+    // Send to server
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'run_command', command }));
+    }
+  }, []);
+
+  /**
    * Trigger the end-of-chat flow. Tells the server to close the session;
    * the server replies with `chat_ended` and the hook opens the modal.
    */
@@ -304,6 +354,7 @@ export function useChat(userId) {
   return {
     messages,
     sendMessage,
+    runCommand,
     isConnected,
     isTyping,
     connectionFailed,

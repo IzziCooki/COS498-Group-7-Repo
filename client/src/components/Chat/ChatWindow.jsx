@@ -20,6 +20,7 @@ function ChatWindow({ userId, hasBuddy }) {
   const {
     messages,
     sendMessage,
+    runCommand,
     isConnected,
     isTyping,
     activeSequence,
@@ -93,7 +94,7 @@ function ChatWindow({ userId, hasBuddy }) {
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+          <MessageBubble key={msg.id} message={msg} onRunCommand={runCommand} />
         ))}
 
         {/* Typing indicator */}
