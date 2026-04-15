@@ -13,7 +13,7 @@ import ResourceReport from './ResourceReport';
 function SidePanel({ artifact, onClose, onRunCommand, commandResults }) {
   if (!artifact) return null;
 
-  const { type, data, sourceMessage } = artifact;
+  const { type, data } = artifact;
 
   return (
     <div className="side-panel">
