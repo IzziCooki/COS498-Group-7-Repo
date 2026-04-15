@@ -11,8 +11,6 @@ function ConnectComputer({ isConnected, onPair }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [copyLabel, setCopyLabel] = useState('Copy');
 
-  // The server URL — use current page origin for deployed version
-  const serverWsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/agent-ws`;
   const connectCommand = `curl -sL ${window.location.origin}/api/connect-script | bash`;
 
   const handlePair = () => {
