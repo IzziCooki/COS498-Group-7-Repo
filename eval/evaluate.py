@@ -92,6 +92,11 @@ def evaluate_conversation(conversation_id, conversation, rubric_scores):
     """
     Combine structural metrics with rubric scores into a single evaluation result.
 
+    If the conversation has an end-of-chat ``feedback`` block (written by the
+    server's conversation exporter) and the rubric_scores don't already include
+    "User Satisfaction", the user's star rating and comment are folded in so
+    that real user feedback flows into the eval automatically.
+
     Parameters
     ----------
     conversation_id : str
@@ -103,6 +108,20 @@ def evaluate_conversation(conversation_id, conversation, rubric_scores):
     -------
     dict
     """
+    # Make a shallow copy so we don't mutate a caller's dict (e.g. PRECOMPUTED_SCORES)
+    rubric_scores = dict(rubric_scores) if rubric_scores else {}
+
+    feedback = conversation.get("feedback")
+    if (
+        feedback
+        and feedback.get("rating") is not None
+        and "User Satisfaction" not in rubric_scores
+    ):
+        rubric_scores["User Satisfaction"] = {
+            "score": feedback["rating"],
+            "notes": (feedback.get("comment") or "(no comment)"),
+        }
+
     structural = run_structural(conversation)
     summary = compute_summary(structural, rubric_scores)
 

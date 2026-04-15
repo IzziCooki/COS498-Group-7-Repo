@@ -1,0 +1,91 @@
+{
+  "conversation_id": "c200c17a-d416-4bd8-8251-6c0e7eebe14b",
+  "name": "follow_up — Dean (Windows)",
+  "user": {
+    "name": "Dean",
+    "os_type": "Windows",
+    "comfort_level": 5,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [
+    "Connect to WiFi",
+    "connecting to wifi network"
+  ],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-15T15:07:23.214Z",
+  "ended_at": "2026-04-15T15:11:38.746Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "How to connect to wifi",
+      "timestamp": "2026-04-15T15:07:29.667Z"
+    },
+    {
+      "role": "agent",
+      "content": "Also, just to make sure I give you the right instructions - are you using a Windows computer,. Or something else?",
+      "timestamp": "2026-04-15T15:07:36.290Z"
+    },
+    {
+      "role": "user",
+      "content": "Windows computer",
+      "timestamp": "2026-04-15T15:07:43.605Z"
+    },
+    {
+      "role": "agent",
+      "content": "Let's start with step 1: Look in the bottom-right corner of your screen for a small picture that looks like curved lines. Or signal bars. This is your WiFi symbol - it might look like stairs going up or curved lines like radio waves. Do you see that symbol in the bottom-right corner?",
+      "timestamp": "2026-04-15T15:07:57.552Z"
+    },
+    {
+      "role": "user",
+      "content": "Done, next step!",
+      "timestamp": "2026-04-15T15:08:12.634Z"
+    },
+    {
+      "role": "agent",
+      "content": "Perfect! You found the WiFi symbol. **Step 2:** Click once on that WiFi symbol. This will open up a list of all the wireless networks nearby - kind of like a menu of all the WiFi networks your computer can \"see.\"\n\nWhat happens when you click on it? Do you see a list pop up?",
+      "timestamp": "2026-04-15T15:08:22.269Z"
+    },
+    {
+      "role": "user",
+      "content": "Done, next step!",
+      "timestamp": "2026-04-15T15:09:05.559Z"
+    },
+    {
+      "role": "agent",
+      "content": "Excellent! You opened the WiFi menu. **Step 3:** Now look through that list for the name of your home WiFi network. This might be something like your internet company's name (like \"Xfinity-ABC123\". Or \"Verizon_WiFi\"). Or a custom name you. Or someone in your family chose. When you find your network name, click on it once to select it. What network names do you see in your list?",
+      "timestamp": "2026-04-15T15:09:11.751Z"
+    },
+    {
+      "role": "user",
+      "content": "Done, next step!",
+      "timestamp": "2026-04-15T15:10:00.726Z"
+    },
+    {
+      "role": "agent",
+      "content": "Great job selecting your network! **Step 4:** You should now see a button that says \"Connect\" next to your network name. Click on that \"Connect\" button. After you click it, your computer will ask you for the WiFi password - this is like the key to unlock your wireless internet. Do you see the \"Connect\" button, and what happens when you click it?",
+      "timestamp": "2026-04-15T15:10:08.898Z"
+    },
+    {
+      "role": "user",
+      "content": "Done, next step!",
+      "timestamp": "2026-04-15T15:10:55.333Z"
+    },
+    {
+      "role": "agent",
+      "content": "Perfect! Now you should see a box asking for your WiFi password. **Step 5:** Type in your WiFi password carefully. This password is usually printed on a sticker on your WiFi internet box (the box your internet company gave you) - it might be labeled as \"WiFi Password\", \"Network Key\",. Or \"Passkey\". You cannot break anything by trying this - it's safe to enter the password. After typing it in, click the \"Next\" or \"Connect\" button. What do you see after entering the password?",
+      "timestamp": "2026-04-15T15:11:00.767Z"
+    },
+    {
+      "role": "user",
+      "content": "Done, next step!",
+      "timestamp": "2026-04-15T15:11:09.277Z"
+    },
+    {
+      "role": "agent",
+      "content": "Wonderful! You did it, Dean! 🎉 You're now connected to your WiFi network. That WiFi symbol in the bottom-right corner should now show solid bars. Or look \"filled in\" instead of having an X. Or being dim - that means you have a strong internet connection. You now have wireless internet access on your computer! This means you can browse the web, check email, and do anything online without needing cables. The best part is your computer will remember this network, so it should connect automatically next time. I've saved a helpful tip about finding your WiFi password in case you need it again. Is there anything else you'd like to learn about using your computer?",
+      "timestamp": "2026-04-15T15:11:33.758Z"
+    }
+  ]
+}

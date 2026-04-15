@@ -1,0 +1,28 @@
+{
+  "conversation_id": "c0e34f1c-db0d-4514-8f9f-6fbe137f6b40",
+  "name": "general — d (iPhone)",
+  "user": {
+    "name": "d",
+    "os_type": "iPhone",
+    "comfort_level": 3,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-13T15:34:43.692Z",
+  "ended_at": "2026-04-13T15:35:05.594Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "How to connect to wifi",
+      "timestamp": "2026-04-13T15:34:51.933Z"
+    },
+    {
+      "role": "agent",
+      "content": "Great question! wireless internet is like an invisible cable that connects your iPhone to the internet. Let me walk you through it!\n\n1. Open the **Settings** app — it looks like a gray gear small picture on your screen on your home screen.\n\n2. Tap **wireless internet** near the top of the list.\n\n3. Make sure the wireless internet switch at the top is **turned on** (it should be green).\n\n4. You'll see a list of nearby networks — **tap the name** of your wireless internet network.\n\n5. **Type in your wireless internet password** when asked, then tap **Join**.\n\nA little tip — your wireless internet password is usually on a sticker on the bottom or back of your internet box (the internet box). It might be labeled \"wireless internet Key\" or \"Password.\"\n\nOnce connected, you'll see a **blue checkmark** next to the network name and a wireless internet symbol in the top-right corner of your screen.\n\nLet me know when you're connected or if you need any help along the way!",
+      "timestamp": "2026-04-13T15:35:00.190Z"
+    }
+  ]
+}

@@ -46,6 +46,14 @@ RUBRICS = [
         ),
         "scale": "1=ignored emergency, 3=acknowledged but weak response, 5=immediate correct safety response",
     },
+    {
+        "name": "User Satisfaction",
+        "description": (
+            "End-of-chat star rating submitted by the user. Populated automatically "
+            "from the conversation's feedback block when present; otherwise N/A."
+        ),
+        "scale": "1=very dissatisfied, 3=neutral, 5=very satisfied",
+    },
 ]
 
 # ---------------------------------------------------------------------------

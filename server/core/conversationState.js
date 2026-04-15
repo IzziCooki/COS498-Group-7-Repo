@@ -1,8 +1,15 @@
+const path = require('path');
+const { spawn } = require('child_process');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const exporter = require('./conversationExporter');
 
 const STALE_THRESHOLD_MINUTES = 30;
+
+const REPO_ROOT = path.join(__dirname, '..', '..');
+const EVAL_SCRIPT = path.join(REPO_ROOT, 'eval', 'run_eval.py');
+const EVAL_RESULTS_DIR = path.join(REPO_ROOT, 'eval', 'results');
+const PYTHON_BIN = process.env.PCPAL_PYTHON_BIN || 'python3';
 
 /**
  * Find the user's active conversation, or create a new one.
@@ -18,6 +25,36 @@ function getOrCreateSession(userId) {
 }
 
 /**
+ * Fire-and-forget: run the Python eval pipeline against the just-exported
+ * conversation JSON so results land in eval/results/ automatically.
+ *
+ * Never throws. Failure to spawn Python (e.g. no interpreter installed) is
+ * logged and ignored so it can't take the request path down.
+ *
+ * @param {string} conversationJsonPath  absolute path to the exported JSON
+ */
+function runEvalAsync(conversationJsonPath) {
+  try {
+    const child = spawn(
+      PYTHON_BIN,
+      [
+        EVAL_SCRIPT,
+        '--file', conversationJsonPath,
+        '--precomputed',
+        '--results-dir', EVAL_RESULTS_DIR,
+      ],
+      { detached: true, stdio: 'ignore' },
+    );
+    child.on('error', (err) => {
+      console.error('[conversationState] Auto-eval spawn failed:', err.message);
+    });
+    child.unref();
+  } catch (err) {
+    console.error('[conversationState] Auto-eval setup failed:', err.message);
+  }
+}
+
+/**
  * Mark a conversation as completed and set ended_at.
  * @param {string} sessionId
  * @returns {object} updated conversation record
@@ -29,9 +66,14 @@ function closeSession(sessionId) {
     ended_at: now,
   });
 
-  // Auto-export for evaluation
+  // Auto-export for evaluation, then kick off the Python eval pipeline in
+  // the background so each finished conversation (with any user feedback
+  // attached) gets scored without a manual run.
   try {
-    exporter.exportConversation(sessionId);
+    const exportedPath = exporter.exportConversation(sessionId);
+    if (exportedPath) {
+      runEvalAsync(exportedPath);
+    }
   } catch (err) {
     console.error('[conversationState] Auto-export failed:', err.message);
   }
