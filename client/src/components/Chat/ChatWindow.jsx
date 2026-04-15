@@ -5,6 +5,7 @@ import MessageInput from './MessageInput';
 import StepSequencePanel from './StepSequencePanel';
 import WelcomeBackBanner from './WelcomeBackBanner';
 import FeedbackModal from './FeedbackModal';
+import ConnectComputer from './ConnectComputer';
 import './ChatWindow.css';
 
 /**
@@ -21,6 +22,8 @@ function ChatWindow({ userId, hasBuddy }) {
     messages,
     sendMessage,
     gatherResources,
+    pairAgent,
+    agentConnected,
     runCommand,
     isConnected,
     isTyping,
@@ -57,6 +60,7 @@ function ChatWindow({ userId, hasBuddy }) {
     <div className="chat-window">
       {/* Chat header — End chat action */}
       <div className="chat-header">
+        <ConnectComputer isConnected={agentConnected} onPair={pairAgent} />
         <button
           type="button"
           className="chat-header__end-btn"

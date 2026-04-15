@@ -18,6 +18,7 @@ export function useChat(userId) {
   const [welcomeBack, setWelcomeBack] = useState(null);
   const [conversationId, setConversationId] = useState(null);
   const [feedbackPrompt, setFeedbackPrompt] = useState(null);
+  const [agentConnected, setAgentConnected] = useState(false);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -149,6 +150,17 @@ export function useChat(userId) {
           });
           break;
 
+        case 'pair_result':
+          if (data.success) {
+            setAgentConnected(true);
+          }
+          // The callback is handled via pairAgent below
+          break;
+
+        case 'agent_status':
+          setAgentConnected(!!data.connected);
+          break;
+
         case 'chat_ended':
           // User clicked "End chat". Server confirmed the session is closed;
           // show the feedback modal.
@@ -256,6 +268,28 @@ export function useChat(userId) {
   );
 
   const dismissWelcomeBack = useCallback(() => setWelcomeBack(null), []);
+
+  /**
+   * Pair with a relay agent using a code. Calls back with { success, message }.
+   */
+  const pairAgent = useCallback((code, callback) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      callback({ success: false, message: 'Not connected to PC Pal server.' });
+      return;
+    }
+    // Listen for the pair result
+    const handler = (event) => {
+      let data;
+      try { data = JSON.parse(event.data); } catch { return; }
+      if (data.type === 'pair_result') {
+        wsRef.current.removeEventListener('message', handler);
+        if (data.success) setAgentConnected(true);
+        callback(data);
+      }
+    };
+    wsRef.current.addEventListener('message', handler);
+    wsRef.current.send(JSON.stringify({ type: 'pair_agent', code }));
+  }, []);
 
   /**
    * Gather resources (videos + links) related to the conversation.
@@ -390,6 +424,8 @@ export function useChat(userId) {
     messages,
     sendMessage,
     gatherResources,
+    pairAgent,
+    agentConnected,
     runCommand,
     isConnected,
     isTyping,

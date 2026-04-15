@@ -1,0 +1,12 @@
+{
+  "name": "pcpal-agent",
+  "version": "1.0.0",
+  "description": "PC Pal relay agent — connects your computer to PC Pal for diagnostics",
+  "bin": {
+    "pcpal-agent": "./pcpal-agent.js"
+  },
+  "main": "pcpal-agent.js",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

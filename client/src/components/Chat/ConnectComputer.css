@@ -1,0 +1,212 @@
+/* ConnectComputer styles */
+
+.connect-btn {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #16a34a;
+  background: #f0fdf4;
+  color: #16a34a;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.connect-btn:hover {
+  background: #16a34a;
+  color: white;
+}
+
+.connect-badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.connect-badge--connected {
+  background: #dcfce7;
+  color: #16a34a;
+  border: 1px solid #86efac;
+}
+
+/* Modal overlay */
+.connect-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.connect-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.connect-modal__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.connect-modal__steps {
+  margin-bottom: 20px;
+}
+
+.connect-modal__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.connect-modal__step-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary, #2563eb);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connect-modal__open-terminal {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 10px 20px;
+  background: #1e293b;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.connect-modal__open-terminal:hover {
+  background: #334155;
+}
+
+.connect-modal__command-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.connect-modal__command {
+  flex: 1;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  color: #a5f3fc;
+  word-break: break-all;
+  user-select: all;
+}
+
+.connect-modal__copy-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  background: #334155;
+  color: #94a3b8;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 60px;
+}
+
+.connect-modal__copy-btn:hover {
+  background: #475569;
+  color: white;
+}
+
+.connect-modal__download-hint {
+  display: block;
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.connect-modal__input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.connect-modal__input {
+  flex: 1;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  text-align: center;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.connect-modal__input:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.connect-modal__pair-btn {
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.connect-modal__error {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.connect-modal__success {
+  font-size: 20px;
+  font-weight: 600;
+  color: #16a34a;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.connect-modal__close {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.connect-modal__close:hover {
+  color: #1e293b;
+}
