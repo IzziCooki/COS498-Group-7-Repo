@@ -1,6 +1,6 @@
 'use strict';
 
-const { filterResponse, enforceReadability } = require('../core/vocabularyFilter');
+const { filterResponse, enforceReadability, detectJargon } = require('../core/vocabularyFilter');
 
 // ─── filterResponse ───────────────────────────────────────────────────────────
 
@@ -190,5 +190,83 @@ describe('enforceReadability', () => {
         expect(seg.charAt(0)).toBe(seg.charAt(0).toUpperCase());
       }
     });
+  });
+});
+
+// ─── detectJargon ─────────────────────────────────────────────────────────────
+
+describe('detectJargon', () => {
+  test('returns empty array for standard vocab level', () => {
+    expect(detectJargon('Open your browser and download the file.', 'standard')).toEqual([]);
+  });
+
+  test('returns empty array for null input', () => {
+    expect(detectJargon(null, 'basic')).toEqual([]);
+  });
+
+  test('returns empty array for empty string', () => {
+    expect(detectJargon('', 'basic')).toEqual([]);
+  });
+
+  test('detects a jargon term present in text at basic level', () => {
+    const found = detectJargon('Open your browser now.', 'basic');
+    expect(found.length).toBeGreaterThan(0);
+    const termNames = found.map(f => f.term.toLowerCase());
+    expect(termNames).toContain('browser');
+  });
+
+  test('returns each found jargon term with its replacement', () => {
+    const found = detectJargon('Open your browser now.', 'basic');
+    const browserEntry = found.find(f => f.term.toLowerCase() === 'browser');
+    expect(browserEntry).toBeDefined();
+    expect(browserEntry.replacement).toBeTruthy();
+  });
+
+  test('returns empty array when no jargon is found', () => {
+    const found = detectJargon('Please click the button to continue.', 'basic');
+    expect(found).toEqual([]);
+  });
+
+  test('detects intermediate jargon at intermediate level', () => {
+    const found = detectJargon('Your computer has malware on it.', 'intermediate');
+    const termNames = found.map(f => f.term.toLowerCase());
+    expect(termNames).toContain('malware');
+  });
+
+  test('does not detect basic-only terms at intermediate level', () => {
+    // "spam" is a basic-only term, should not be checked at intermediate level
+    const found = detectJargon('That email looks like spam.', 'intermediate');
+    const termNames = found.map(f => f.term.toLowerCase());
+    expect(termNames).not.toContain('spam');
+  });
+
+  test('detects multiple jargon terms in the same text', () => {
+    const found = detectJargon('Open the browser and download the file.', 'basic');
+    const termNames = found.map(f => f.term.toLowerCase());
+    expect(termNames).toContain('browser');
+    expect(termNames).toContain('download');
+  });
+
+  test('is case-insensitive when detecting jargon', () => {
+    const found = detectJargon('Open your BROWSER now.', 'basic');
+    const termNames = found.map(f => f.term.toLowerCase());
+    expect(termNames).toContain('browser');
+  });
+});
+
+// ─── filterResponse — unexpected vocab level warning ─────────────────────────
+
+describe('filterResponse — unexpected vocab level', () => {
+  test('logs a warning for an unrecognized vocabulary level', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    filterResponse('Open your browser.', 'expert');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Unexpected vocabulary level'));
+    warnSpy.mockRestore();
+  });
+
+  test('still returns text (does not throw) for an unrecognized level', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() => filterResponse('Open your browser.', 'expert')).not.toThrow();
+    jest.restoreAllMocks();
   });
 });

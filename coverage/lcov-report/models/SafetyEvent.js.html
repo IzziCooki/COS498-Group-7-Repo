@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.66% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/15</span>
+                <span class='fraction'>15/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30.76% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/13</span>
+                <span class='fraction'>13/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -96,68 +96,68 @@
 <a name='L31'></a><a href='#L31'>31</a>
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a>
-<a name='L34'></a><a href='#L34'>34</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L34'></a><a href='#L34'>34</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const db = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
 &nbsp;
 const SafetyEvent = {
-<span class="fstat-no" title="function not covered" >  cr</span>eate(data) {
-<span class="cstat-no" title="statement not covered" >    if (!data.user_id) <span class="cstat-no" title="statement not covered" >throw new Error('SafetyEvent.create: user_id is required');</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!data.event_type) <span class="cstat-no" title="statement not covered" >throw new Error('SafetyEvent.create: event_type is required');</span></span>
-    const id = <span class="cstat-no" title="statement not covered" >data.id || uuidv4();</span>
-    const now = <span class="cstat-no" title="statement not covered" >new Date().toISOString();</span>
-    const stmt = <span class="cstat-no" title="statement not covered" >db.prepare(`</span>
+  create(data) {
+    if (!data.user_id) throw new Error('SafetyEvent.create: user_id is required');
+    if (!data.event_type) throw new Error('SafetyEvent.create: event_type is required');
+    const id = data.id || uuidv4();
+    const now = new Date().toISOString();
+    const stmt = db.prepare(`
       INSERT INTO safety_events (id, user_id, event_type, trigger_text, created_at)
       VALUES (?, ?, ?, ?, ?)
     `);
-<span class="cstat-no" title="statement not covered" >    stmt.run(</span>
+    stmt.run(
       id,
       data.user_id,
       data.event_type,
       data.trigger_text || null,
       data.created_at || now
     );
-<span class="cstat-no" title="statement not covered" >    return this.findById(id);</span>
+    return this.findById(id);
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  fi</span>ndById(id) {
-<span class="cstat-no" title="statement not covered" >    return db.prepare('SELECT * FROM safety_events WHERE id = ?').get(id) || null;</span>
+  findById(id) {
+    return db.prepare('SELECT * FROM safety_events WHERE id = ?').get(id) || null;
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  fi</span>ndByUserId(userId) {
-<span class="cstat-no" title="statement not covered" >    return db.prepare('SELECT * FROM safety_events WHERE user_id = ? ORDER BY created_at DESC').all(userId);</span>
+  findByUserId(userId) {
+    return db.prepare('SELECT * FROM safety_events WHERE user_id = ? ORDER BY created_at DESC').all(userId);
   },
 };
 &nbsp;
@@ -169,7 +169,7 @@ module.exports = SafetyEvent;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-15T22:16:14.357Z
+                at 2026-04-15T22:22:11.704Z
             </div>
         <script src="../prettify.js"></script>
         <script>
