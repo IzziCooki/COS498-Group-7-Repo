@@ -3,6 +3,7 @@ import './MessageBubble.css';
 import YouTubeEmbed from './YouTubeEmbed';
 import CommandGuide from './CommandGuide';
 import DiagnosticFindings from './DiagnosticFindings';
+import ResourceReport from './ResourceReport';
 
 /**
  * Parse simple markdown into React elements.
@@ -53,7 +54,7 @@ function renderInline(text) {
  * MessageBubble — displays a single chat message with formatted text and images.
  */
 function MessageBubble({ message, onRunCommand }) {
-  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings } = message;
+  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
   const isUser = role === 'user';
 
   const formattedTime = timestamp
@@ -81,6 +82,9 @@ function MessageBubble({ message, onRunCommand }) {
 
         {/* Interactive command guide */}
         {guide && <CommandGuide guide={guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
+
+        {/* Resource report (gathered videos + links) */}
+        {resources && <ResourceReport resources={resources} />}
 
         {/* YouTube tutorial videos */}
         {videos && <YouTubeEmbed videos={videos} />}

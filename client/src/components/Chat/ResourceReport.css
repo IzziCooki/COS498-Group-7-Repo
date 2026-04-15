@@ -1,0 +1,150 @@
+/* ResourceReport — gathered videos and links */
+
+.res-report {
+  margin-top: 16px;
+  margin-bottom: 12px;
+  border: 2px solid #a5b4fc;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafbff;
+}
+
+.res-report__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #eef2ff, #dbeafe);
+  border-bottom: 1px solid #a5b4fc;
+}
+
+.res-report__header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.res-report__icon { font-size: 20px; }
+
+.res-report__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.res-report__controls {
+  display: flex;
+  gap: 6px;
+}
+
+.res-report__toggle,
+.res-report__dismiss {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.res-report__toggle {
+  background: var(--color-primary, #2563eb);
+  color: white;
+}
+
+.res-report__dismiss {
+  background: #e2e8f0;
+  color: #64748b;
+  padding: 5px 10px;
+}
+
+.res-report__dismiss:hover { background: #cbd5e1; }
+
+.res-report__body {
+  padding: 16px;
+}
+
+.res-report__summary {
+  font-size: 17px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.res-report__section {
+  margin-bottom: 16px;
+}
+
+.res-report__section:last-child {
+  margin-bottom: 0;
+}
+
+.res-report__section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Nested YouTubeEmbed removes its own border to avoid double-boxing */
+.res-report__section .yt-embed {
+  border: none;
+  margin: 0;
+}
+
+.res-report__links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.res-report__link-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.res-report__link-item:last-child {
+  margin-bottom: 0;
+}
+
+.res-report__link-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.res-report__link {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary, #2563eb);
+  text-decoration: none;
+}
+
+.res-report__link-time {
+  font-size: 13px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.res-report__link:hover {
+  text-decoration: underline;
+}
+
+.res-report__link-desc {
+  font-size: 14px;
+  color: #64748b;
+  display: block;
+  margin-top: 4px;
+  line-height: 1.4;
+}

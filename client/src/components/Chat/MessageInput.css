@@ -49,3 +49,28 @@
   border-radius: var(--radius-md);
   white-space: nowrap;
 }
+
+.message-resources-btn {
+  flex-shrink: 0;
+  min-height: 56px;
+  padding: 14px 20px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  background: #f0f4ff;
+  color: var(--color-primary, #2563eb);
+  border: 2px solid var(--color-primary, #2563eb);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.message-resources-btn:hover:not(:disabled) {
+  background: var(--color-primary, #2563eb);
+  color: white;
+}
+
+.message-resources-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -136,6 +136,107 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify({ type: 'error', message: 'Unable to end the chat.' }));
           }
         }
+      } else if (msg.type === 'gather_resources') {
+        // User clicked "Resources" button — gather videos + links
+        if (!userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not initialized.' }));
+          }
+          return;
+        }
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'typing' }));
+        }
+
+        try {
+          const youtubeSearch = require('./core/youtubeSearch');
+
+          // Build search context from recent messages + user input
+          const session = conversationState.getOrCreateSession(userId);
+          const recentMsgs = conversationState.getSessionMessages(session.id, 10);
+          const conversationTopics = recentMsgs
+            .map(m => m.body)
+            .join(' ')
+            .substring(0, 500);
+          const extraText = msg.text || '';
+          const searchContext = extraText || conversationTopics;
+
+          // Extract a concise topic using simple keyword extraction
+          const topic = extraText || recentMsgs
+            .filter(m => m.role === 'user')
+            .map(m => m.body)
+            .slice(-2)
+            .join(' ')
+            .substring(0, 100) || 'computer help';
+
+          // Search YouTube
+          const videos = await youtubeSearch.searchVideos(topic, 3);
+
+          // Use the AI to generate a brief summary and relevant links
+          let summary = `Here are resources related to: ${topic}`;
+          let links = [];
+
+          try {
+            const { anthropicApiKey } = require('./config');
+            const { matchSkill, buildSkillPrompt } = require('./core/skillMatcher');
+
+            if (anthropicApiKey && process.env.MOCK_MODE !== 'true') {
+              // Load the gather-resources skill prompt for curation guidance
+              const skillMatch = matchSkill('find resources about ' + topic);
+              const skillPrompt = skillMatch ? buildSkillPrompt(skillMatch.skill) : '';
+
+              const Anthropic = require('@anthropic-ai/sdk');
+              const client = new Anthropic({ apiKey: anthropicApiKey });
+              const aiResponse = await client.messages.create({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 800,
+                system: `You curate learning resources for elderly and beginner computer users. ${skillPrompt}`,
+                messages: [{
+                  role: 'user',
+                  content: `The user is learning about: "${topic}". Recent conversation: "${conversationTopics.substring(0, 300)}".
+
+Return a JSON object with:
+1. "summary": A 2-3 sentence plain-English summary of the topic and why these resources help (under 60 words). Write like you're explaining to a grandparent.
+2. "links": An array of 3-5 resource objects, each with:
+   - "title": Name of the resource
+   - "url": Real URL (only well-known sites you're confident exist: Apple Support, Microsoft Support, wikiHow, YouTube, public libraries)
+   - "description": One sentence explaining WHY this is useful, e.g. "Shows you exactly which buttons to click with big pictures"
+   - "time": Estimated time, e.g. "Quick read (2 min)" or "Short video (5 min)"
+   - "type": One of "watch", "read", or "try"
+
+Order from easiest to most detailed. ONLY include URLs you are confident are real. Return ONLY valid JSON.`,
+                }],
+              });
+              const jsonText = aiResponse.content[0]?.text || '';
+              // Strip markdown fences if present
+              const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
+              const parsed = JSON.parse(cleanJson);
+              summary = parsed.summary || summary;
+              links = parsed.links || [];
+            }
+          } catch (aiErr) {
+            console.error('[ws] AI resource generation failed:', aiErr.message);
+          }
+
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'resources',
+              text: summary,
+              resources: {
+                topic: topic.substring(0, 80),
+                summary,
+                videos,
+                links,
+              },
+            }));
+          }
+        } catch (err) {
+          console.error('[ws] gather_resources error:', err);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Unable to gather resources right now.' }));
+          }
+        }
+
       } else if (msg.type === 'run_command') {
         // User approved a command from a guide artifact
         if (!userId || !msg.command) {

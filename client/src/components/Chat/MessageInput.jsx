@@ -2,42 +2,40 @@ import React, { useRef, useEffect } from 'react';
 import './MessageInput.css';
 
 /**
- * MessageInput — text input + send button for the chat.
+ * MessageInput — text input + send button + resources button.
  *
  * - Large input field (min 56px height)
- * - Prominent send button
+ * - Send button submits the message
+ * - Resources button gathers videos/links related to conversation
  * - Submits on Enter (Shift+Enter adds a newline)
  * - Disabled while isTyping
- * - Auto-focused on mount
  */
-function MessageInput({ onSend, isTyping }) {
+function MessageInput({ onSend, onGatherResources, isTyping }) {
   const inputRef = useRef(null);
 
-  // Auto-focus on mount
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (inputRef.current) inputRef.current.focus();
   }, []);
 
-  // Re-focus after response arrives
   useEffect(() => {
-    if (!isTyping && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (!isTyping && inputRef.current) inputRef.current.focus();
   }, [isTyping]);
 
   const handleSend = () => {
     const text = inputRef.current?.value ?? '';
     if (!text.trim() || isTyping) return;
     onSend(text);
-    if (inputRef.current) {
-      inputRef.current.value = '';
-    }
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const handleResources = () => {
+    if (isTyping) return;
+    const text = inputRef.current?.value ?? '';
+    onGatherResources(text.trim());
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   const handleKeyDown = (e) => {
-    // Enter submits; Shift+Enter adds newline (for textarea)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -60,6 +58,15 @@ function MessageInput({ onSend, isTyping }) {
         autoComplete="off"
         aria-label="Type your question here"
       />
+      <button
+        className="message-resources-btn"
+        onClick={handleResources}
+        disabled={isTyping}
+        aria-label="Find videos and resources on this topic"
+        title="Find videos and resources"
+      >
+        Resources
+      </button>
       <button
         className="message-send-btn btn-primary"
         onClick={handleSend}
