@@ -53,9 +53,10 @@ function renderInline(text) {
 /**
  * MessageBubble — displays a single chat message with formatted text and images.
  */
-function MessageBubble({ message, onRunCommand }) {
+function MessageBubble({ message, onRunCommand, onOpenSidePanel }) {
   const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
   const isUser = role === 'user';
+  const hasArtifact = !isUser && (guide || resources || findings || videos);
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -104,6 +105,21 @@ function MessageBubble({ message, onRunCommand }) {
               </div>
             ))}
           </div>
+        )}
+
+        {/* Open in side panel button — only on wide screens */}
+        {hasArtifact && onOpenSidePanel && (
+          <button
+            className="bubble__side-btn"
+            onClick={() => {
+              if (guide) onOpenSidePanel({ type: 'guide', data: guide });
+              else if (resources) onOpenSidePanel({ type: 'resources', data: resources });
+              else if (findings) onOpenSidePanel({ type: 'findings', data: findings });
+              else if (videos) onOpenSidePanel({ type: 'videos', data: videos });
+            }}
+          >
+            Open beside chat
+          </button>
         )}
 
         <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>
