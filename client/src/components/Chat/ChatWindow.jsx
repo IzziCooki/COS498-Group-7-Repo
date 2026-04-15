@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useChat } from '../../hooks/useChat';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -6,6 +6,7 @@ import StepSequencePanel from './StepSequencePanel';
 import WelcomeBackBanner from './WelcomeBackBanner';
 import FeedbackModal from './FeedbackModal';
 import ConnectComputer from './ConnectComputer';
+import SidePanel from './SidePanel';
 import './ChatWindow.css';
 
 /**
@@ -36,6 +37,7 @@ function ChatWindow({ userId, hasBuddy }) {
     skipFeedback,
   } = useChat(userId);
   const bottomRef = useRef(null);
+  const [sideArtifact, setSideArtifact] = useState(null);
 
   // Auto-scroll to the newest message
   useEffect(() => {
@@ -57,6 +59,7 @@ function ChatWindow({ userId, hasBuddy }) {
   const hasUserMessage = messages.some(m => m.role === 'user');
 
   return (
+    <div className={`chat-layout ${sideArtifact ? 'chat-layout--split' : ''}`}>
     <div className="chat-window">
       {/* Chat header — End chat action */}
       <div className="chat-header">
@@ -99,7 +102,7 @@ function ChatWindow({ userId, hasBuddy }) {
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} onRunCommand={runCommand} />
+          <MessageBubble key={msg.id} message={msg} onRunCommand={runCommand} onOpenSidePanel={setSideArtifact} />
         ))}
 
         {/* Typing indicator */}
@@ -128,6 +131,16 @@ function ChatWindow({ userId, hasBuddy }) {
       {feedbackPrompt && (
         <FeedbackModal onSubmit={submitFeedback} onSkip={skipFeedback} />
       )}
+    </div>
+
+    {/* Side panel for artifacts — only renders on wide screens when open */}
+    {sideArtifact && (
+      <SidePanel
+        artifact={sideArtifact}
+        onClose={() => setSideArtifact(null)}
+        onRunCommand={runCommand}
+      />
+    )}
     </div>
   );
 }

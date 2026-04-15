@@ -1,5 +1,18 @@
 /* ChatWindow styles */
 
+/* Split-pane layout container */
+.chat-layout {
+  display: flex;
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
+.chat-layout .chat-window {
+  flex: 1;
+  min-width: 0;
+}
+
 .chat-window {
   display: flex;
   flex-direction: column;
