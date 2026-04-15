@@ -20,6 +20,7 @@ function ChatWindow({ userId, hasBuddy }) {
   const {
     messages,
     sendMessage,
+    gatherResources,
     runCommand,
     isConnected,
     isTyping,
@@ -117,7 +118,7 @@ function ChatWindow({ userId, hasBuddy }) {
       <StepSequencePanel activeSequence={activeSequence} onSendMessage={sendMessage} hasBuddy={hasBuddy} />
 
       {/* Input area */}
-      <MessageInput onSend={sendMessage} isTyping={isTyping} />
+      <MessageInput onSend={sendMessage} onGatherResources={gatherResources} isTyping={isTyping} />
 
       {/* End-of-chat feedback modal */}
       {feedbackPrompt && (

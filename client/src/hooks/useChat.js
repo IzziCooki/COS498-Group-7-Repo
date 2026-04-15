@@ -114,6 +114,20 @@ export function useChat(userId) {
           }
           break;
 
+        case 'resources':
+          setIsTyping(false);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: nextId(),
+              role: 'assistant',
+              text: data.text ?? '',
+              timestamp: new Date().toISOString(),
+              resources: data.resources || null,
+            },
+          ]);
+          break;
+
         case 'command_result':
           // Update the command result in the most recent message's guide
           setMessages((prev) => {
@@ -244,6 +258,27 @@ export function useChat(userId) {
   const dismissWelcomeBack = useCallback(() => setWelcomeBack(null), []);
 
   /**
+   * Gather resources (videos + links) related to the conversation.
+   * Optionally takes extra text from the input field for context.
+   */
+  const gatherResources = useCallback((extraText) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    setIsTyping(true);
+    // Add a user message showing what was requested
+    const displayText = extraText
+      ? `Find resources about: ${extraText}`
+      : 'Find resources related to our conversation';
+    setMessages((prev) => [
+      ...prev,
+      { id: nextId(), role: 'user', text: displayText, timestamp: new Date().toISOString() },
+    ]);
+    wsRef.current.send(JSON.stringify({
+      type: 'gather_resources',
+      text: extraText || '',
+    }));
+  }, []);
+
+  /**
    * Run a user-approved command from a guide artifact.
    * Sets the command as "running" immediately, then sends to server.
    */
@@ -354,6 +389,7 @@ export function useChat(userId) {
   return {
     messages,
     sendMessage,
+    gatherResources,
     runCommand,
     isConnected,
     isTyping,

@@ -1,0 +1,29 @@
+{
+  "id": "gather_resources",
+  "name": "Gather Learning Resources",
+  "description": "Curate beginner-friendly videos, articles, and guides on a topic. Prioritize resources that are visual, step-by-step, jargon-free, and designed for people who are new to technology. Present them as a structured report the user can browse at their own pace.",
+  "triggers": [
+    "resources",
+    "find resources",
+    "get resources",
+    "learn more",
+    "more about this",
+    "where can I learn",
+    "articles",
+    "links",
+    "tutorials",
+    "guides",
+    "reading",
+    "further reading",
+    "helpful links",
+    "more info",
+    "more information",
+    "teach me more",
+    "what else",
+    "reference",
+    "documentation"
+  ],
+  "category": "media",
+  "difficulty": "beginner",
+  "prompt": "You are curating learning resources for someone who may be new to technology. Your audience is elderly or technologically inexperienced users. Follow these rules strictly:\n\n1. ONLY recommend resources that are beginner-friendly — no advanced docs, no developer references, no jargon-heavy sites\n2. For each link, write a one-sentence explanation of WHY it's useful in plain language: 'This shows you exactly which buttons to click, with big pictures'\n3. Prefer these source types (in order): official help pages (Apple Support, Microsoft Support), wikiHow (step-by-step with images), beginner YouTube channels, public library resources\n4. NEVER recommend: Stack Overflow, GitHub, developer documentation, Reddit, forums, or anything requiring an account to view\n5. Include 3-5 links max — quality over quantity\n6. Group resources by type: 'Watch' (videos), 'Read' (articles), 'Try' (interactive tutorials)\n7. For each resource, note the estimated time: 'Quick read (2 min)' or 'Short video (5 min)'\n8. Start with the easiest resource and progress to slightly more detailed ones"
+}
