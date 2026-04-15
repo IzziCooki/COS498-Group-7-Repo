@@ -136,6 +136,37 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify({ type: 'error', message: 'Unable to end the chat.' }));
           }
         }
+      } else if (msg.type === 'run_command') {
+        // User approved a command from a guide artifact
+        if (!userId || !msg.command) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'command_result', command: msg.command || '', output: 'Invalid request.', error: true }));
+          }
+          return;
+        }
+        const systemDiagnostics = require('./core/systemDiagnostics');
+        const cmd = msg.command.trim();
+        console.log(`[ws] User ${userId} approved command: "${cmd}"`);
+
+        // Use the safe command runner but with a broader allowlist for user-approved commands
+        let output;
+        try {
+          const { execSync } = require('child_process');
+          // Block only truly destructive patterns
+          const BLOCKED = [/\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/, />\s*\/dev\//, /\bshutdown\b/, /\breboot\b/];
+          const isBlocked = BLOCKED.some(p => p.test(cmd));
+          if (isBlocked) {
+            output = 'This command was blocked for safety. It could damage your system.';
+            ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: true }));
+          } else {
+            output = execSync(cmd, { encoding: 'utf-8', timeout: 30000, maxBuffer: 1024 * 512, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+            ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: false }));
+          }
+        } catch (err) {
+          output = err.stderr ? err.stderr.trim() : err.message;
+          ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: true }));
+        }
+
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
         if (!userId) {
@@ -171,6 +202,8 @@ wss.on('connection', (ws) => {
             stepSequence: result.stepSequence || null,
             images: images,
             videos: result.videos || null,
+            guide: result.guide || null,
+            findings: result.findings || null,
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
           }));

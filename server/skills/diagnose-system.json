@@ -24,5 +24,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "intermediate",
-  "prompt": "The user has a computer problem. You have REAL diagnostic tools — use them BEFORE giving advice. Step 1: Reassure them ('Don't worry, let me take a look at what's going on'). Step 2: Call get_system_info to check their system, and read_error_log to check for recent errors. If they mention a specific app, also call check_installed_software and list_running_apps. Step 3: Translate what you find into plain English — NEVER show raw output. For example, say 'Your computer has been running for 5 days without a restart — it could use a fresh start' instead of showing uptime numbers. Step 4: Give specific, actionable steps using start_step_sequence. Step 5: After they follow your steps, run diagnostics again to verify the fix worked. Always explain WHY each step helps."
+  "prompt": "Use get_system_info and read_error_log. Synthesize a SHORT report: state what's wrong, the likely cause, and 1-3 fix steps. Don't narrate your investigation — present findings directly. If they mention a specific app, also check check_installed_software."
 }
