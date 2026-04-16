@@ -51,7 +51,7 @@ function artifactLabel(msg) {
  * In the chat, only a small reference tag appears.
  * If inlineMode is true, the full artifact renders in the chat.
  */
-function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide }) {
+function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClickArtifact }) {
   const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
   const isUser = role === 'user';
   const hasArtifact = !isUser && (guide || resources || findings || videos);
@@ -91,11 +91,11 @@ function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide }) {
         )}
 
         {hasArtifact && !inlineMode && (
-          <div className="bubble__artifact-tag">
+          <button className="bubble__artifact-tag" onClick={onClickArtifact} type="button">
             <span className="bubble__artifact-tag-icon">&#9776;</span>
             <span className="bubble__artifact-tag-label">{label}</span>
-            <span className="bubble__artifact-tag-hint">Showing in side panel</span>
-          </div>
+            <span className="bubble__artifact-tag-hint">Click to view</span>
+          </button>
         )}
 
         {/* Annotated device screenshots (always inline) */}

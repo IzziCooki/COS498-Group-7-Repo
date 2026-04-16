@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 import './SidePanel.css';
 
-function artifactTitle(artifact) {
-  if (!artifact) return '';
-  const { type, data } = artifact;
-  if (type === 'guide') return data.title || 'Guide';
-  if (type === 'resources') return data.topic ? `Resources: ${data.topic}` : 'Resources';
-  if (type === 'findings') return data.title || 'Diagnostic Details';
-  if (type === 'videos') return 'Video Tutorials';
-  return 'Artifact';
-}
-
 function GuideContent({ guide, onRunCommand, commandResults = {} }) {
   const [copiedIdx, setCopiedIdx] = useState(null);
   function handleCopy(command, idx) {
@@ -166,10 +156,22 @@ function ResourcesContent({ resources }) {
   );
 }
 
+/** Get a display title for an artifact */
+function spArtifactTitle(artifact) {
+  if (artifact.guide) return artifact.guide.title || 'Guide';
+  if (artifact.resources) return artifact.resources.topic ? `Resources: ${artifact.resources.topic}` : 'Resources';
+  if (artifact.findings) return artifact.findings.title || 'Diagnostic Details';
+  if (artifact.videos) return 'Video Tutorials';
+  return 'Artifact';
+}
+
+/**
+ * SidePanel — renders all parts of an artifact (findings + guide + videos + resources)
+ * in a single scrollable panel, with left/right navigation between artifacts.
+ */
 function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMoveToInline, onRunCommand, commandResults }) {
   if (!artifact) return null;
 
-  const { type, data } = artifact;
   const total = artifacts ? artifacts.length : 1;
   const canPrev = activeIndex > 0;
   const canNext = activeIndex < total - 1;
@@ -182,7 +184,7 @@ function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMo
           <span className="side-panel__nav-label">{activeIndex + 1} / {total}</span>
           <button className="side-panel__nav-btn" onClick={() => onNavigate(activeIndex + 1)} disabled={!canNext} aria-label="Next">&#9654;</button>
         </div>
-        <span className="side-panel__title">{artifactTitle(artifact)}</span>
+        <span className="side-panel__title">{spArtifactTitle(artifact)}</span>
         <div className="side-panel__actions">
           <button className="side-panel__inline-btn" onClick={onMoveToInline}>Inline</button>
           <button className="side-panel__close" onClick={onClose}>Close</button>
@@ -190,10 +192,11 @@ function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMo
       </div>
 
       <div className="side-panel__content">
-        {type === 'guide' && <GuideContent guide={data} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
-        {type === 'findings' && <FindingsContent findings={data} />}
-        {type === 'videos' && <VideosContent videos={data} />}
-        {type === 'resources' && <ResourcesContent resources={data} />}
+        {/* Render ALL parts of this artifact — findings first, then guide, then videos/resources */}
+        {artifact.findings && <FindingsContent findings={artifact.findings} />}
+        {artifact.guide && <GuideContent guide={artifact.guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
+        {artifact.videos && <VideosContent videos={artifact.videos} />}
+        {artifact.resources && <ResourcesContent resources={artifact.resources} />}
       </div>
     </div>
   );
