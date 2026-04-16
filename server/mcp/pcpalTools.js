@@ -9,6 +9,9 @@
 const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
+// Shared constants
+const { VALID_GUIDE_IDS } = require('../core/sharedConstants');
+
 // Core modules
 const systemDiagnostics = require('../core/systemDiagnostics');
 const youtubeSearch = require('../core/youtubeSearch');
@@ -358,11 +361,7 @@ const askBuddyForHelp = tool(
 
 // ─── Visual Guide Tool ──────────────────────────────────────────
 
-const VALID_GUIDE_IDS = [
-  'copy_paste', 'take_screenshot', 'send_email', 'open_settings',
-  'zoom_text', 'find_wifi', 'attach_file', 'open_browser',
-  'restart_computer', 'use_taskbar'
-];
+// VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
 
 const showVisualGuide = tool(
   'show_visual_guide',

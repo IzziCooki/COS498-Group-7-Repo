@@ -5,27 +5,34 @@ import './YouTubeEmbed.css';
  * YouTubeEmbed — Renders YouTube videos inline in chat.
  * Uses youtube-nocookie.com embeds for privacy.
  * Shows "Open on YouTube" fallback if embed is blocked.
+ *
+ * When `embedded` is true, the header with collapse/dismiss controls is hidden
+ * (used by SidePanel which provides its own chrome).
  */
-function YouTubeEmbed({ videos }) {
+function YouTubeEmbed({ videos, embedded = false }) {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [playingId, setPlayingId] = useState(null);
 
   if (dismissed || !videos || videos.length === 0) return null;
 
+  const showList = embedded || !collapsed;
+
   return (
     <div className="yt-embed" role="region" aria-label="Video tutorials">
-      <div className="yt-embed__header">
-        <span className="yt-embed__title">Video Tutorials</span>
-        <div className="yt-embed__controls">
-          <button className="yt-embed__toggle" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
-            {collapsed ? 'Show' : 'Hide'}
-          </button>
-          <button className="yt-embed__dismiss" onClick={() => setDismissed(true)}>Dismiss</button>
+      {!embedded && (
+        <div className="yt-embed__header">
+          <span className="yt-embed__title">Video Tutorials</span>
+          <div className="yt-embed__controls">
+            <button className="yt-embed__toggle" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
+              {collapsed ? 'Show' : 'Hide'}
+            </button>
+            <button className="yt-embed__dismiss" onClick={() => setDismissed(true)}>Dismiss</button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {!collapsed && (
+      {showList && (
         <div className="yt-embed__list">
           {videos.map((video, i) => (
             <div key={video.id || i} className="yt-embed__card">

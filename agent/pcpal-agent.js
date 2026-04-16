@@ -21,6 +21,7 @@
 
 const { execSync } = require('child_process');
 const os = require('os');
+const { BLOCKED_PATTERNS } = require('../server/core/sharedConstants');
 
 // ─── Configuration ───────────────────────────────────────────────
 
@@ -28,13 +29,7 @@ const DEFAULT_SERVER = 'ws://localhost:3001/agent-ws';
 const serverUrl = process.argv[2] || process.env.PCPAL_SERVER || DEFAULT_SERVER;
 
 // ─── Safety: blocked command patterns ────────────────────────────
-
-const BLOCKED_PATTERNS = [
-  /\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/,
-  />\s*\/dev\//, /\bshutdown\b/, /\breboot\b/,
-  /\bchmod\b/, /\bchown\b/, /\bcurl\b.*\|.*sh/,
-  /\bwget\b.*\|.*sh/, /\bsudo\b.*rm/, /\bformat\b/,
-];
+// BLOCKED_PATTERNS imported from sharedConstants.js — single source of truth
 
 function isSafe(cmd) {
   return !BLOCKED_PATTERNS.some(p => p.test(cmd));
