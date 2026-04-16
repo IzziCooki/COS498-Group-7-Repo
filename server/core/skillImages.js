@@ -8,23 +8,7 @@
  * Add new entries as more screenshots are uploaded.
  */
 
-const SKILL_IMAGES = {
-  // Wi-Fi skill on iPhone — shows Settings screen + Wi-Fi page
-  'wifi': {
-    'iPhone': [
-      { file: 'iphone-settings-tap-wifi.png', alt: 'iPhone Settings screen — tap Wi-Fi' },
-      { file: 'iphone-wifi-toggle.png', alt: 'iPhone Wi-Fi page — make sure Wi-Fi is on' },
-      { file: 'iphone-wifi-select-network.png', alt: 'iPhone Wi-Fi page — tap your network name' },
-    ],
-  },
-
-  // Settings skill on iPhone — shows how to find Settings
-  'settings': {
-    'iPhone': [
-      { file: 'iphone-settings-overview.png', alt: 'iPhone Settings app overview' },
-    ],
-  },
-};
+const SKILL_IMAGES = {};
 
 /**
  * Get annotated images for a skill + device combination.
