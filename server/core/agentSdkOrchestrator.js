@@ -26,7 +26,6 @@ const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
 
-// Create the MCP server once at module load
 let mcpServer;
 try {
   mcpServer = createPcPalMcpServer();
@@ -101,28 +100,23 @@ ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 
 async function processMessage(text, userId) {
   try {
-    // Step 1: Safety check — runs before ANYTHING else
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
     if (!safetyCheck.safe) {
       return { response: safetyCheck.response, safetyAlert: { type: safetyCheck.type } };
     }
 
-    // Step 2: Get user profile
     const user = userProfileManager.getOrCreateUser(userId);
 
-    // Step 3: Mock mode fallback
     if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
       const mockResponder = require('./mockResponder');
       const session = conversationState.getOrCreateSession(userId);
       return mockResponder.respond(text, userId, session.id);
     }
 
-    // Step 4: Session management
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
     conversationState.addMessage(sessionId, 'user', text);
 
-    // Step 5: Classify + match skill
     const [profileString, classification] = await Promise.all([
       Promise.resolve(userProfileManager.getProfileForPrompt(userId)),
       taskClassifier.classifyMessage(text, user),
@@ -138,7 +132,6 @@ async function processMessage(text, userId) {
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt);
 
-    // Step 6: Build conversation history
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const historyContext = dbMessages
       .map(msg => `${msg.role === 'assistant' ? 'PC Pal' : 'User'}: ${msg.body}`)
@@ -148,7 +141,6 @@ async function processMessage(text, userId) {
       ? `Previous conversation:\n${historyContext}\n\nUser's new message: ${text}\n\nIMPORTANT: user_id="${userId}" session_id="${sessionId}". Pass these to any tool that needs them.`
       : `${text}\n\nIMPORTANT: user_id="${userId}" session_id="${sessionId}". Pass these to any tool that needs them.`;
 
-    // Step 7: Call Agent SDK
     let finalResponse = '';
     let safetyAlert = null;
     let stepSequence = null;
@@ -183,16 +175,14 @@ async function processMessage(text, userId) {
       }
     }
 
-    // Step 8: Extract structured data from response
-    // Check if response contains visual guide markers
+    // Extract structured data from response
     const guideMatch = finalResponse.match(/VISUAL_GUIDE:(\w+)/);
     if (guideMatch) {
       guideId = guideMatch[1];
       finalResponse = finalResponse.replace(/VISUAL_GUIDE:\w+/g, '').trim();
     }
 
-    // Step 8b: If the youtube_help skill matched, search YouTube server-side
-    // and pass videos as structured data (don't rely on Claude preserving markers)
+    // Search YouTube server-side when video skill matches (structured data, not markers)
     let videos = null;
     if (matchedSkillId === 'youtube_help' || (finalResponse.toLowerCase().includes('video') && finalResponse.toLowerCase().includes('youtube'))) {
       try {
@@ -207,7 +197,7 @@ async function processMessage(text, userId) {
       }
     }
 
-    // Step 8c: Check if artifacts were created during the tool loop
+    // Check if artifacts were created during the tool loop
     const guide = getAndClearLastGuide();
     const findings = getAndClearLastFindings();
     if (guide) {
@@ -217,7 +207,6 @@ async function processMessage(text, userId) {
       console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
     }
 
-    // Step 9: Vocabulary filter
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
@@ -226,10 +215,8 @@ async function processMessage(text, userId) {
       return { response: FALLBACK_RESPONSE, safetyAlert, guideId, stepSequence, conversationId: sessionId };
     }
 
-    // Step 10: Save assistant message
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
 
-    // Step 11: Quality tracking
     try {
       const allMessages = conversationState.getSessionMessages(sessionId, 50);
       const turnNumber = allMessages.filter(m => m.role === 'assistant').length;

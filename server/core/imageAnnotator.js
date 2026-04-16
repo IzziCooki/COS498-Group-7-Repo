@@ -5,15 +5,12 @@ const path = require('path');
 const SOURCE_DIR = path.join(__dirname, '..', 'assets', 'software-images');
 const OUTPUT_DIR = path.join(__dirname, '..', 'assets', 'annotated');
 
-// Annotation colors
 const RED = '#e74c3c';
 const RED_ALPHA = 'rgba(231, 76, 60, 0.25)';
 const WHITE = '#ffffff';
 const LABEL_BG = 'rgba(231, 76, 60, 0.9)';
 
-/**
- * Draw a red circle annotation on the canvas.
- */
+/** Draw a red circle annotation on the canvas. */
 function drawCircle(ctx, cx, cy, radius) {
   ctx.strokeStyle = RED;
   ctx.lineWidth = 4;
@@ -22,9 +19,7 @@ function drawCircle(ctx, cx, cy, radius) {
   ctx.stroke();
 }
 
-/**
- * Draw a red arrow from (x1,y1) to (x2,y2).
- */
+/** Draw a red arrow from (x1,y1) to (x2,y2). */
 function drawArrow(ctx, x1, y1, x2, y2) {
   const headLen = 14;
   const angle = Math.atan2(y2 - y1, x2 - x1);
@@ -46,9 +41,7 @@ function drawArrow(ctx, x1, y1, x2, y2) {
   ctx.fill();
 }
 
-/**
- * Draw a label with background.
- */
+/** Draw a label with background. */
 function drawLabel(ctx, text, x, y, fontSize = 18) {
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
   const metrics = ctx.measureText(text);
@@ -77,9 +70,7 @@ function drawLabel(ctx, text, x, y, fontSize = 18) {
   ctx.fillText(text, x + padding, y + fontSize + padding / 2);
 }
 
-/**
- * Draw a step number circle.
- */
+/** Draw a step number circle. */
 function drawStepNumber(ctx, num, cx, cy, radius = 16) {
   ctx.fillStyle = RED;
   ctx.beginPath();
@@ -147,9 +138,7 @@ async function annotateImage(sourceFile, outputFile, annotations) {
   return outputPath;
 }
 
-/**
- * Generate all annotated images for iOS guides.
- */
+/** Generate all annotated images for iOS guides. */
 async function generateAllAnnotations() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 

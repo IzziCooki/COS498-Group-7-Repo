@@ -48,10 +48,8 @@ function createWindow() {
     show: false, // Show after ready-to-show to avoid flash
   });
 
-  // Load the Express-served React app
   mainWindow.loadURL(`http://localhost:${SERVER_PORT}`);
 
-  // Show window once content is ready
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
@@ -61,7 +59,6 @@ function createWindow() {
   });
 }
 
-// App lifecycle
 app.whenReady().then(async () => {
   try {
     await startExpressServer();
@@ -85,7 +82,6 @@ app.on('activate', () => {
   }
 });
 
-// Graceful shutdown
 app.on('before-quit', () => {
   if (server && typeof server.close === 'function') {
     server.close();

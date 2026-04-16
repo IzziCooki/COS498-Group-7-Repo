@@ -31,10 +31,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve annotated screenshot images
 app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PC Pal server running' });
 });
@@ -106,17 +104,15 @@ app.get('/api/open-terminal', (req, res) => {
   }
 });
 
-// REST routes
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
 app.use('/api/buddy', buddyRouter);
 app.use('/api/quality', qualityRouter);
 
-// Serve React build in production
 app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
 
-// All non-API routes fall through to React's index.html
+// Non-API routes fall through to React's index.html
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/ws') || req.path.startsWith('/images')) {
     return next();
@@ -124,19 +120,17 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
 
-// Create HTTP server so WebSocket can share the same port
 const server = http.createServer(app);
 
-// WebSocket servers — use noServer mode and route by path on upgrade
+// noServer mode — route WebSocket upgrades by path
 const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
 
-// ─── Relay Agent Infrastructure ──────────────────────────────────
+// Relay Agent Infrastructure
 // Relay agents connect via /agent-ws and are paired with chat users
 // via a 6-character code. Commands are relayed through the server.
 
 const agentWss = new WebSocketServer({ noServer: true, maxPayload: 256 * 1024 });
 
-// Route WebSocket upgrades by path
 server.on('upgrade', (request, socket, head) => {
   const { pathname } = new URL(request.url, `http://${request.headers.host}`);
   if (pathname === '/ws') {
@@ -148,7 +142,6 @@ server.on('upgrade', (request, socket, head) => {
   }
 });
 
-// Maps: pairingCode → { ws, systemInfo }, userId → agentWs
 const pendingAgents = new Map();   // code → { ws, systemInfo }
 const pairedAgents = new Map();    // userId → { ws, systemInfo, code }
 const pendingCommands = new Map(); // requestId → { resolve, timer }
@@ -188,13 +181,11 @@ function sendCommandToAgent(userId, command, timeout = 20000) {
   });
 }
 
-// Check if a user has a connected relay agent
 function hasRelayAgent(userId) {
   const agent = pairedAgents.get(userId);
   return agent && agent.ws.readyState === 1;
 }
 
-// Expose for use by the orchestrator
 app.locals.sendCommandToAgent = sendCommandToAgent;
 app.locals.hasRelayAgent = hasRelayAgent;
 
@@ -562,12 +553,10 @@ process.on('SIGTERM', () => {
   wss.close(() => { server.close(() => process.exit(0)); });
 });
 
-// Generate annotated screenshots on startup
 imageAnnotator.generateAllAnnotations()
   .then(() => console.log('[imageAnnotator] All annotated images ready'))
   .catch(err => console.error('[imageAnnotator] Failed:', err.message));
 
-// Use server.listen instead of app.listen
 server.listen(config.port, () => {
   const mode = process.env.ELECTRON_MODE ? 'desktop (Electron)' : 'web';
   console.log(`PC Pal server listening on port ${config.port} [${mode} mode]`);

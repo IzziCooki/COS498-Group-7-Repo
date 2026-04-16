@@ -1,7 +1,5 @@
 # PC Pal — Architecture Overview
 
-<!-- Updated 2026-04-14: Added Electron desktop mode, MCP architecture, system diagnostics (8 tools), Agent SDK orchestrator, updated tool count (16→25), skill count (17→24), test count (69→169/8 suites), added provider flexibility and new npm scripts. -->
-
 ## What is PC Pal?
 
 PC Pal is a web-based AI chat assistant that helps elderly and beginner computer users learn basic PC skills. Think of it as a patient, friendly grandchild who teaches grandparents how to use their computer — through a simple chat interface with visual guides.

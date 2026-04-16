@@ -42,7 +42,6 @@ const VALID_GUIDE_IDS = [
   'restart_computer', 'use_taskbar'
 ];
 
-// Claude tool definitions
 const tools = [
   {
     name: 'log_skill_started',
@@ -243,7 +242,7 @@ const tools = [
     },
   },
 
-  // ─── Desktop Diagnostic Tools (available when running as Electron app) ───
+  // Desktop Diagnostic Tools (available when running as Electron app)
   {
     name: 'get_system_info',
     description: 'Get detailed information about the user\'s computer: operating system version, processor, memory (RAM) usage, disk space, and how long the computer has been running. Use this to understand the user\'s hardware and diagnose performance issues.',
@@ -825,7 +824,7 @@ IMPORTANT RULES FOR YOUR RESPONSE:
       console.error('[agentOrchestrator] Failed to analyze scam situation:', err.message);
       result = 'Unable to complete scam analysis. If you are unsure about a call or email, hang up and call the company directly using a number you trust (like the number on their website or on the back of your card).';
     }
-  // ─── Desktop Diagnostic Tool Handlers ───
+  // Desktop Diagnostic Tool Handlers
   } else if (name === 'get_system_info') {
     try {
       result = systemDiagnostics.getSystemInfo();
