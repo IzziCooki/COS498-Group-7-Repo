@@ -125,7 +125,7 @@ function respond(text, userId, sessionId) {
 function askClaudeCli(text, user, history, skill, diagnosticContext) {
   const name = user?.name || 'friend';
   const os = user?.os_type || 'a computer';
-  const comfort = user?.comfort_level || 1;
+  const comfort = user?.comfort_level ?? 1;
 
   const historyBlock = history
     ? `\nRecent conversation:\n${history}\n`
