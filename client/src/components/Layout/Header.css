@@ -215,3 +215,119 @@
 .profile-edit__cancel:hover {
   color: #1e293b;
 }
+
+.profile-edit__memories-btn {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #f0f4ff;
+  color: var(--color-primary, #2563eb);
+  border: 2px solid var(--color-primary, #2563eb);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.profile-edit__memories-btn:hover:not(:disabled) {
+  background: var(--color-primary, #2563eb);
+  color: white;
+}
+
+/* Memories modal */
+.memories-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.memories-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.memories-modal__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.memories-modal__close {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.memories-modal__close:hover { background: #cbd5e1; }
+
+.memories-modal__body {
+  padding: 16px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.memories-modal__empty {
+  font-size: 17px;
+  color: #64748b;
+  text-align: center;
+  padding: 32px 0;
+  line-height: 1.5;
+}
+
+.memories-modal__item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid #e2e8f0;
+}
+
+.memories-modal__item--preference { background: #f0f4ff; border-left-color: #6366f1; }
+.memories-modal__item--struggle { background: #fff7ed; border-left-color: #f97316; }
+.memories-modal__item--breakthrough { background: #f0fdf4; border-left-color: #16a34a; }
+.memories-modal__item--context { background: #fdf4ff; border-left-color: #a855f7; }
+.memories-modal__item--pattern { background: #f0f9ff; border-left-color: #0ea5e9; }
+
+.memories-modal__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.memories-modal__type {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.memories-modal__item--preference .memories-modal__type { color: #6366f1; }
+.memories-modal__item--struggle .memories-modal__type { color: #f97316; }
+.memories-modal__item--breakthrough .memories-modal__type { color: #16a34a; }
+.memories-modal__item--context .memories-modal__type { color: #a855f7; }
+.memories-modal__item--pattern .memories-modal__type { color: #0ea5e9; }
+
+.memories-modal__date {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.memories-modal__content {
+  font-size: 16px;
+  color: #1e293b;
+  line-height: 1.5;
+  margin: 0;
+}
