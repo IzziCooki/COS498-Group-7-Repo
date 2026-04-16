@@ -90,10 +90,16 @@ cd "$DIR" && node agent.js
 `);
 });
 
-// Open Terminal on macOS (only works when running locally)
+// Open Terminal on macOS (only works when running locally, not on deployed servers)
 app.get('/api/open-terminal', (req, res) => {
+  // Only allow on localhost — never on deployed servers
+  const host = req.hostname || '';
+  if (host !== 'localhost' && host !== '127.0.0.1') {
+    return res.json({ ok: false, reason: 'Only available when running locally' });
+  }
   try {
-    require('child_process').exec('open -a Terminal');
+    // Hardcoded command — no user input, safe
+    require('child_process').execSync('open -a Terminal', { timeout: 5000 });
     res.json({ ok: true });
   } catch {
     res.json({ ok: false });
@@ -149,9 +155,10 @@ const pendingCommands = new Map(); // requestId → { resolve, timer }
 let commandIdCounter = 0;
 
 function generatePairingCode() {
-  const words = ['APPLE', 'MAPLE', 'SUNNY', 'OCEAN', 'CLOUD', 'RIVER', 'BLOOM', 'PEARL', 'COZY', 'HAPPY'];
+  const words = ['APPLE', 'MAPLE', 'SUNNY', 'OCEAN', 'CLOUD', 'RIVER', 'BLOOM', 'PEARL', 'COZY', 'HAPPY',
+    'BREEZE', 'GARDEN', 'SUNSET', 'MEADOW', 'CORAL', 'HARBOR', 'FOREST', 'WILLOW', 'CLOVER', 'SPARROW'];
   const word = words[Math.floor(Math.random() * words.length)];
-  const num = Math.floor(Math.random() * 10);
+  const num = Math.floor(Math.random() * 90) + 10; // 2 digits: 10-99
   return word + num;
 }
 
@@ -203,6 +210,13 @@ agentWss.on('connection', (ws) => {
       pendingAgents.set(agentCode, { ws, systemInfo: msg.systemInfo || {} });
       ws.send(JSON.stringify({ type: 'agent_registered', pairingCode: agentCode }));
       console.log(`[relay] Agent registered with code: ${agentCode}`);
+      // Auto-expire pairing code after 5 minutes if not paired
+      setTimeout(() => {
+        if (pendingAgents.has(agentCode)) {
+          pendingAgents.delete(agentCode);
+          console.log(`[relay] Pairing code ${agentCode} expired`);
+        }
+      }, 5 * 60 * 1000);
 
     } else if (msg.type === 'agent_command_result') {
       const pending = pendingCommands.get(msg.requestId);
@@ -319,12 +333,22 @@ wss.on('connection', (ws) => {
       } else if (msg.type === 'pair_agent') {
         // User is entering a pairing code to connect their computer
         const code = (msg.code || '').toUpperCase().trim();
-        if (!userId || !code) {
+        if (!userId || !code || code.length > 10) {
           if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Please enter a code.' }));
+            ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Please enter a valid code.' }));
           }
           return;
         }
+        // Rate limit: max 5 pairing attempts per minute per user
+        const now = Date.now();
+        if (!ws._pairAttempts) ws._pairAttempts = [];
+        ws._pairAttempts = ws._pairAttempts.filter(t => now - t < 60000);
+        if (ws._pairAttempts.length >= 5) {
+          ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Too many attempts. Please wait a minute and try again.' }));
+          return;
+        }
+        ws._pairAttempts.push(now);
+
         const agent = pendingAgents.get(code);
         if (!agent) {
           ws.send(JSON.stringify({ type: 'pair_result', success: false, message: 'Code not found. Make sure the helper program is running and try again.' }));
@@ -464,24 +488,16 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         const cmd = msg.command.trim();
         console.log(`[ws] User ${userId} approved command: "${cmd}"`);
 
-        // Use the safe command runner but with a broader allowlist for user-approved commands
-        let output;
-        try {
-          const { execSync } = require('child_process');
-          // Block only truly destructive patterns
-          const BLOCKED = [/\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/, />\s*\/dev\//, /\bshutdown\b/, /\breboot\b/];
-          const isBlocked = BLOCKED.some(p => p.test(cmd));
-          if (isBlocked) {
-            output = 'This command was blocked for safety. It could damage your system.';
-            ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: true }));
-          } else {
-            output = execSync(cmd, { encoding: 'utf-8', timeout: 30000, maxBuffer: 1024 * 512, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-            ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: false }));
-          }
-        } catch (err) {
-          output = err.stderr ? err.stderr.trim() : err.message;
-          ws.send(JSON.stringify({ type: 'command_result', command: cmd, output, error: true }));
-        }
+        // Use the same sandbox as systemDiagnostics.runSafeCommand
+        // This ensures ALL commands go through the allowlist + blocklist
+        const output = systemDiagnostics.runSafeCommand(cmd);
+        const isBlocked = output.includes('BLOCKED');
+        ws.send(JSON.stringify({
+          type: 'command_result',
+          command: cmd,
+          output: output,
+          error: isBlocked,
+        }));
 
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
