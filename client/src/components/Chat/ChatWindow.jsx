@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useChat } from '../../hooks/useChat';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -10,14 +10,20 @@ import SidePanel from './SidePanel';
 import './ChatWindow.css';
 
 /**
- * ChatWindow — main chat container.
- *
- * - Full-height layout with scrollable message list above input
- * - Auto-scrolls to the latest message
- * - Shows "PC Pal is typing..." indicator
- * - Shows WelcomeBackBanner for returning users with skill reviews or buddy replies
- * - "End chat" button opens FeedbackModal so we can learn from the conversation
+ * Extract all artifacts from messages into a flat list with references.
  */
+function collectArtifacts(messages) {
+  const artifacts = [];
+  for (const msg of messages) {
+    if (msg.role !== 'assistant') continue;
+    if (msg.guide) artifacts.push({ type: 'guide', data: msg.guide, msgId: msg.id });
+    if (msg.resources) artifacts.push({ type: 'resources', data: msg.resources, msgId: msg.id });
+    if (msg.findings) artifacts.push({ type: 'findings', data: msg.findings, msgId: msg.id });
+    if (msg.videos) artifacts.push({ type: 'videos', data: msg.videos, msgId: msg.id });
+  }
+  return artifacts;
+}
+
 function ChatWindow({ userId, hasBuddy }) {
   const {
     messages,
@@ -37,7 +43,26 @@ function ChatWindow({ userId, hasBuddy }) {
     skipFeedback,
   } = useChat(userId);
   const bottomRef = useRef(null);
-  const [sideArtifact, setSideArtifact] = useState(null);
+
+  // Collect all artifacts from messages
+  const artifacts = useMemo(() => collectArtifacts(messages), [messages]);
+
+  // Track which message IDs have been set to inline mode
+  const [inlineMsgIds, setInlineMsgIds] = useState(new Set());
+  // User-selected artifact index (-1 = auto/latest, or explicit index)
+  const [userSelectedIdx, setUserSelectedIdx] = useState(-1);
+
+  // Derive active artifact: show user's selection, or default to latest non-inline artifact
+  const activeArtifactIdx = useMemo(() => {
+    if (userSelectedIdx >= 0 && userSelectedIdx < artifacts.length) return userSelectedIdx;
+    // Default: last artifact that isn't inline
+    for (let i = artifacts.length - 1; i >= 0; i--) {
+      if (!inlineMsgIds.has(artifacts[i].msgId)) return i;
+    }
+    return -1;
+  }, [artifacts, inlineMsgIds, userSelectedIdx]);
+
+  const setActiveArtifactIdx = setUserSelectedIdx;
 
   // Auto-scroll to the newest message
   useEffect(() => {
@@ -49,19 +74,40 @@ function ChatWindow({ userId, hasBuddy }) {
   // Dismiss welcome back when user sends their first message
   useEffect(() => {
     if (messages.length > 0 && welcomeBack) {
-      const hasUserMessage = messages.some(m => m.role === 'user');
-      if (hasUserMessage) {
-        dismissWelcomeBack();
-      }
+      const hasUserMsg = messages.some(m => m.role === 'user');
+      if (hasUserMsg) dismissWelcomeBack();
     }
   }, [messages, welcomeBack, dismissWelcomeBack]);
 
   const hasUserMessage = messages.some(m => m.role === 'user');
+  const currentArtifact = activeArtifactIdx >= 0 && activeArtifactIdx < artifacts.length
+    ? artifacts[activeArtifactIdx] : null;
+  const showSidePanel = currentArtifact && !inlineMsgIds.has(currentArtifact.msgId);
+
+  // Move artifact to inline mode
+  const handleMoveToInline = (msgId) => {
+    setInlineMsgIds(prev => new Set([...prev, msgId]));
+    // If this was the active artifact, close the panel
+    if (currentArtifact && currentArtifact.msgId === msgId) {
+      setActiveArtifactIdx(-1);
+    }
+  };
+
+  // Move artifact back to side panel
+  const handleMoveToSide = (msgId) => {
+    setInlineMsgIds(prev => {
+      const next = new Set(prev);
+      next.delete(msgId);
+      return next;
+    });
+    // Find this artifact's index and show it
+    const idx = artifacts.findIndex(a => a.msgId === msgId);
+    if (idx >= 0) setActiveArtifactIdx(idx);
+  };
 
   return (
-    <div className={`chat-layout ${sideArtifact ? 'chat-layout--split' : ''}`}>
+    <div className={`chat-layout ${showSidePanel ? 'chat-layout--split' : ''}`}>
     <div className="chat-window">
-      {/* Chat header — End chat action */}
       <div className="chat-header">
         <ConnectComputer isConnected={agentConnected} onPair={pairAgent} />
         <button
@@ -75,16 +121,13 @@ function ChatWindow({ userId, hasBuddy }) {
         </button>
       </div>
 
-      {/* Connection status banner */}
       {!isConnected && (
         <div className="connection-banner" role="status">
           Connecting to PC Pal... please wait.
         </div>
       )}
 
-      {/* Scrollable message list */}
       <div className="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
-        {/* Welcome back banner for returning users */}
         <WelcomeBackBanner
           welcomeData={welcomeBack}
           onSendMessage={sendMessage}
@@ -102,42 +145,43 @@ function ChatWindow({ userId, hasBuddy }) {
         )}
 
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} onRunCommand={runCommand} onOpenSidePanel={setSideArtifact} />
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            onRunCommand={runCommand}
+            inlineMode={inlineMsgIds.has(msg.id)}
+            onMoveToSide={() => handleMoveToSide(msg.id)}
+          />
         ))}
 
-        {/* Typing indicator */}
         {isTyping && (
           <div className="typing-indicator" aria-live="polite" role="status">
             <div className="typing-indicator__dots">
-              <span></span>
-              <span></span>
-              <span></span>
+              <span></span><span></span><span></span>
             </div>
             <span className="typing-indicator__label">PC Pal is typing...</span>
           </div>
         )}
 
-        {/* Invisible anchor to scroll to */}
         <div ref={bottomRef} aria-hidden="true" />
       </div>
 
-      {/* Step sequence guidance panel — shown above input when active */}
       <StepSequencePanel activeSequence={activeSequence} onSendMessage={sendMessage} hasBuddy={hasBuddy} />
-
-      {/* Input area */}
       <MessageInput onSend={sendMessage} onGatherResources={gatherResources} isTyping={isTyping} />
 
-      {/* End-of-chat feedback modal */}
       {feedbackPrompt && (
         <FeedbackModal onSubmit={submitFeedback} onSkip={skipFeedback} />
       )}
     </div>
 
-    {/* Side panel for artifacts — only renders on wide screens when open */}
-    {sideArtifact && (
+    {showSidePanel && (
       <SidePanel
-        artifact={sideArtifact}
-        onClose={() => setSideArtifact(null)}
+        artifact={currentArtifact}
+        artifacts={artifacts}
+        activeIndex={activeArtifactIdx}
+        onNavigate={setActiveArtifactIdx}
+        onClose={() => setActiveArtifactIdx(-1)}
+        onMoveToInline={() => handleMoveToInline(currentArtifact.msgId)}
         onRunCommand={runCommand}
       />
     )}
