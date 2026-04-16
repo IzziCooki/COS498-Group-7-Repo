@@ -171,6 +171,21 @@ CREATE TABLE IF NOT EXISTS conversation_quality_summaries (
   FOREIGN KEY (conversation_id) REFERENCES conversations(id)
 );
 
+-- Per-user memories that persist across sessions
+-- The agent observes patterns, preferences, struggles, and breakthroughs
+-- and uses them to personalize future interactions
+CREATE TABLE IF NOT EXISTS user_memories (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('preference', 'struggle', 'breakthrough', 'context', 'pattern')),
+  content TEXT NOT NULL,
+  source TEXT,
+  relevance INTEGER DEFAULT 5 CHECK (relevance BETWEEN 1 AND 10),
+  created_at TEXT DEFAULT (datetime('now')),
+  last_referenced_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- End-of-chat user feedback (star rating + optional comment)
 CREATE TABLE IF NOT EXISTS conversation_feedback (
   id TEXT PRIMARY KEY,
