@@ -10,16 +10,24 @@ import SidePanel from './SidePanel';
 import './ChatWindow.css';
 
 /**
- * Extract all artifacts from messages into a flat list with references.
+ * Extract artifacts from messages — one artifact per message (not per type).
+ * A message with both findings + guide becomes one combined artifact.
  */
 function collectArtifacts(messages) {
   const artifacts = [];
   for (const msg of messages) {
     if (msg.role !== 'assistant') continue;
-    if (msg.guide) artifacts.push({ type: 'guide', data: msg.guide, msgId: msg.id });
-    if (msg.resources) artifacts.push({ type: 'resources', data: msg.resources, msgId: msg.id });
-    if (msg.findings) artifacts.push({ type: 'findings', data: msg.findings, msgId: msg.id });
-    if (msg.videos) artifacts.push({ type: 'videos', data: msg.videos, msgId: msg.id });
+    const hasAny = msg.guide || msg.resources || msg.findings || msg.videos;
+    if (!hasAny) continue;
+
+    // One artifact per message — bundle all types together
+    artifacts.push({
+      msgId: msg.id,
+      guide: msg.guide || null,
+      findings: msg.findings || null,
+      resources: msg.resources || null,
+      videos: msg.videos || null,
+    });
   }
   return artifacts;
 }
@@ -93,6 +101,18 @@ function ChatWindow({ userId, hasBuddy }) {
     }
   };
 
+  // Navigate to a specific artifact by message ID (when clicking tag in chat)
+  const navigateToArtifact = (msgId) => {
+    // Remove from inline if it was inline
+    setInlineMsgIds(prev => {
+      const next = new Set(prev);
+      next.delete(msgId);
+      return next;
+    });
+    const idx = artifacts.findIndex(a => a.msgId === msgId);
+    if (idx >= 0) setActiveArtifactIdx(idx);
+  };
+
   // Move artifact back to side panel
   const handleMoveToSide = (msgId) => {
     setInlineMsgIds(prev => {
@@ -151,6 +171,7 @@ function ChatWindow({ userId, hasBuddy }) {
             onRunCommand={runCommand}
             inlineMode={inlineMsgIds.has(msg.id)}
             onMoveToSide={() => handleMoveToSide(msg.id)}
+            onClickArtifact={() => navigateToArtifact(msg.id)}
           />
         ))}
 

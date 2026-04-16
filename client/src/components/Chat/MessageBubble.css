@@ -160,7 +160,7 @@
   background: #fff;
 }
 
-/* Artifact reference tag — shown in chat when artifact is in side panel */
+/* Artifact reference tag — clickable, shown in chat when artifact is in side panel */
 .bubble__artifact-tag {
   display: flex;
   align-items: center;
@@ -171,6 +171,15 @@
   border: 1px solid #c7d2fe;
   border-radius: 8px;
   font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 120ms, border-color 120ms;
+}
+
+.bubble__artifact-tag:hover {
+  background: #dbeafe;
+  border-color: var(--color-primary, #2563eb);
 }
 
 .bubble__artifact-tag-icon {
