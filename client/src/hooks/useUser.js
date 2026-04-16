@@ -53,7 +53,7 @@ export function useUser() {
           if (res.ok) {
             const data = await res.json();
             setUser(data);
-            setIsOnboarded(Boolean(data.is_onboarded ?? data.isOnboarded));
+            setIsOnboarded(Boolean(data.onboarded ?? data.is_onboarded ?? data.isOnboarded));
             saveProfileLocally(data);
             setIsLoading(false);
             return;
