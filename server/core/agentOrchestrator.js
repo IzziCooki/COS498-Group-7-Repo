@@ -21,6 +21,7 @@ const qualityTracker = require('./conversationQualityTracker');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
 const systemDiagnostics = require('./systemDiagnostics');
+const clientInfoStore = require('./clientInfoStore');
 const skillMatcher = require('./skillMatcher');
 const youtubeSearch = require('./youtubeSearch');
 const { VALID_GUIDE_IDS, buildComfortGuidelines } = require('./sharedConstants');
@@ -802,7 +803,18 @@ IMPORTANT RULES FOR YOUR RESPONSE:
   // Desktop Diagnostic Tool Handlers
   } else if (name === 'get_system_info') {
     try {
-      result = systemDiagnostics.getSystemInfo();
+      if (process.env.ELECTRON_MODE) {
+        result = systemDiagnostics.getSystemInfo();
+      } else {
+        const browserInfo = clientInfoStore.get(userId);
+        if (browserInfo) {
+          result = clientInfoStore.formatBrowserSystemInfo(browserInfo);
+        } else {
+          result = systemDiagnostics.getSystemInfo() +
+            '\n\nNote: This is the server environment, not the user\'s computer. ' +
+            'Browser-based system detection was not available.';
+        }
+      }
       console.log(`[agentOrchestrator] System info retrieved for user ${userId}`);
     } catch (err) {
       console.error('[agentOrchestrator] Failed to get system info:', err.message);

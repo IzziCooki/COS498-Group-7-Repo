@@ -24,6 +24,7 @@ function setActiveUserContext(userId, sessionId) {
 function getUserId() { return _activeUserId; }
 function getSessionId() { return _activeSessionId; }
 const systemDiagnostics = require('../core/systemDiagnostics');
+const clientInfoStore = require('../core/clientInfoStore');
 const youtubeSearch = require('../core/youtubeSearch');
 const skillProgression = require('../core/skillProgression');
 const SkillEvent = require('../models/SkillEvent');
@@ -67,7 +68,26 @@ const getSystemInfo = tool(
   'get_system_info',
   "Get detailed info about the user's computer: OS version, CPU, RAM usage, disk space, uptime. Use to diagnose performance issues.",
   {},
-  async () => textResult(systemDiagnostics.getSystemInfo())
+  async () => {
+    // In Electron/desktop mode, server diagnostics ARE the user's machine
+    if (process.env.ELECTRON_MODE) {
+      return textResult(systemDiagnostics.getSystemInfo());
+    }
+
+    // In web mode, use browser-collected system info if available
+    const userId = getUserId();
+    const browserInfo = userId ? clientInfoStore.get(userId) : null;
+    if (browserInfo) {
+      return textResult(clientInfoStore.formatBrowserSystemInfo(browserInfo));
+    }
+
+    // Fallback: server diagnostics with disclaimer
+    return textResult(
+      systemDiagnostics.getSystemInfo() +
+      '\n\nNote: This is the server environment, not the user\'s computer. ' +
+      'Browser-based system detection was not available.'
+    );
+  }
 );
 
 const checkNetwork = tool(
