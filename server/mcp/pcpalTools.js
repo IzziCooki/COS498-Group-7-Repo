@@ -9,10 +9,7 @@
 const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
-// Shared constants
 const { VALID_GUIDE_IDS } = require('../core/sharedConstants');
-
-// Core modules
 const systemDiagnostics = require('../core/systemDiagnostics');
 const youtubeSearch = require('../core/youtubeSearch');
 const skillProgression = require('../core/skillProgression');
@@ -30,7 +27,6 @@ const ScamCheckEvent = require('../models/ScamCheckEvent');
 const conversationState = require('../core/conversationState');
 const userProfileManager = require('../core/userProfileManager');
 
-// Helper: wrap text result for MCP
 function textResult(text) {
   return { content: [{ type: 'text', text: String(text) }] };
 }
@@ -52,7 +48,7 @@ function getAndClearLastFindings() {
   return f;
 }
 
-// ─── System Diagnostic Tools ─────────────────────────────────────
+// System Diagnostic Tools
 
 const getSystemInfo = tool(
   'get_system_info',
@@ -116,7 +112,7 @@ const getBatteryStatus = tool(
   async () => textResult(systemDiagnostics.getBatteryStatus())
 );
 
-// ─── Teaching & Skill Tools ──────────────────────────────────────
+// Teaching & Skill Tools
 
 const logSkillStarted = tool(
   'log_skill_started',
@@ -160,7 +156,7 @@ const scheduleSkillReview = tool(
   }
 );
 
-// ─── Step Sequence Tools ─────────────────────────────────────────
+// Step Sequence Tools
 
 const startStepSequence = tool(
   'start_step_sequence',
@@ -207,7 +203,7 @@ const completeStepSequence = tool(
   }
 );
 
-// ─── Safety Tools ────────────────────────────────────────────────
+// Safety Tools
 
 const flagEmergency = tool(
   'flag_emergency',
@@ -251,7 +247,7 @@ const analyzeScamSituation = tool(
   }
 );
 
-// ─── User & Notes Tools ──────────────────────────────────────────
+// User & Notes Tools
 
 const saveNoteForUser = tool(
   'save_note_for_user',
@@ -312,7 +308,7 @@ const adjustVocabularyLevel = tool(
   }
 );
 
-// ─── Buddy System Tools ──────────────────────────────────────────
+// Buddy System Tools
 
 const shareProgressWithBuddy = tool(
   'share_progress_with_buddy',
@@ -359,7 +355,7 @@ const askBuddyForHelp = tool(
   }
 );
 
-// ─── Visual Guide Tool ──────────────────────────────────────────
+// Visual Guide Tool
 
 // VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
 
@@ -375,7 +371,7 @@ const showVisualGuide = tool(
   }
 );
 
-// ─── YouTube Video Tool ──────────────────────────────────────────
+// YouTube Video Tool
 
 const findYoutubeVideos = tool(
   'find_youtube_videos',
@@ -393,7 +389,7 @@ const findYoutubeVideos = tool(
   }
 );
 
-// ─── Diagnostic Findings Artifact Tool ────────────────────────────
+// Diagnostic Findings Artifact Tool
 
 const createFindings = tool(
   'create_findings',
@@ -414,7 +410,7 @@ const createFindings = tool(
   }
 );
 
-// ─── Guide Artifact Tool ─────────────────────────────────────────
+// Guide Artifact Tool
 
 const createGuide = tool(
   'create_guide',
@@ -440,7 +436,7 @@ const createGuide = tool(
   }
 );
 
-// ─── Build the MCP Server ────────────────────────────────────────
+// Build the MCP Server
 
 function createPcPalMcpServer() {
   return createSdkMcpServer({

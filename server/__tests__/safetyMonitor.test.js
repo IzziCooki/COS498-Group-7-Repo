@@ -16,7 +16,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ─── Safe messages ────────────────────────────────────────────────────────────
+// Safe messages
 
 describe('safe messages', () => {
   test('returns { safe: true } for a normal help request', () => {
@@ -35,7 +35,7 @@ describe('safe messages', () => {
   });
 });
 
-// ─── Emergency detection ──────────────────────────────────────────────────────
+// Emergency detection
 
 describe('emergency keyword detection', () => {
   const EMERGENCY_RESPONSE_FRAGMENT = 'Please call 911';
@@ -99,7 +99,7 @@ describe('emergency keyword detection', () => {
   });
 });
 
-// ─── Scam detection ───────────────────────────────────────────────────────────
+// Scam detection
 
 describe('scam pattern detection', () => {
   const SCAM_RESPONSE_FRAGMENT = 'scam';
@@ -139,7 +139,7 @@ describe('scam pattern detection', () => {
   });
 });
 
-// ─── Partial-word non-matching ────────────────────────────────────────────────
+// Partial-word non-matching
 
 describe('partial-word non-matching', () => {
   test('"browser" does not trigger any emergency or scam alert', () => {
@@ -154,7 +154,7 @@ describe('partial-word non-matching', () => {
   });
 });
 
-// ─── Edge cases ───────────────────────────────────────────────────────────────
+// Edge cases
 
 describe('edge cases', () => {
   test('returns safe for empty string', () => {
