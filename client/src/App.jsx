@@ -13,7 +13,7 @@ import BuddyPanel from './components/Collaboration/BuddyPanel';
  * Once onboarded, shows the Header + ChatWindow + BuddyPanel.
  */
 function App() {
-  const { user, isOnboarded, isLoading, createUser, completeOnboarding } = useUser();
+  const { user, isOnboarded, isLoading, createUser, completeOnboarding, updateProfile } = useUser();
   const buddyData = useBuddy(user?.id);
   const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
 
@@ -64,6 +64,7 @@ function App() {
         user={user}
         onBuddyClick={() => setBuddyPanelOpen(true)}
         buddyBadge={buddyBadge}
+        onUpdateProfile={updateProfile}
       />
       {user && <ChatWindow userId={user.id} hasBuddy={buddyData.hasBuddy} />}
 
