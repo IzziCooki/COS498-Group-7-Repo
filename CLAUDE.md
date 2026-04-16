@@ -79,6 +79,25 @@ Create a JSON file in `server/skills/`:
 - Safety monitor checks every message for emergencies before AI sees it
 - Never show raw command output to users — always translate to plain English
 
+## Git Workflow (MUST follow)
+
+Never push directly to main. Always:
+
+1. **Create a feature branch**: `git checkout -b feature/short-description` or `fix/short-description`
+2. **Commit your changes** on the branch
+3. **Push the branch**: `git push -u origin feature/short-description`
+4. **Wait for CI to pass** — check with `git log --oneline origin/main..HEAD` and monitor the GitHub Actions run
+5. **Verify all checks pass**: lint, build, tests, smoke tests, audit
+6. **Merge to main**: `git checkout main && git pull origin main && git merge feature/short-description && git push origin main`
+
+If CI fails, fix the issue on the feature branch, push again, and wait for CI to pass before merging.
+
+Branch naming convention:
+- `feature/...` — new features
+- `fix/...` — bug fixes
+- `refactor/...` — code restructuring
+- `docs/...` — documentation updates
+
 ## Testing
 
 ```bash
