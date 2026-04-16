@@ -11,6 +11,7 @@ const { execSync } = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const { BLOCKED_PATTERNS } = require('./sharedConstants');
 
 const COMMAND_TIMEOUT = 10000; // 10 seconds max per command
 
@@ -332,32 +333,7 @@ const ALLOWED_COMMANDS = {
   ],
 };
 
-// Dangerous patterns that should NEVER be allowed regardless of allowlist
-const BLOCKED_PATTERNS = [
-  /[;&|`$]/,           // command chaining / injection
-  /\brm\b/i,           // remove files
-  /\bdel\b/i,          // delete (windows)
-  /\bformat\b/i,       // format disk
-  /\bmkfs\b/i,         // make filesystem
-  /\bdd\b/i,           // disk dump
-  /\bsudo\b/i,         // privilege escalation
-  /\brunas\b/i,        // windows privilege escalation
-  /\bchmod\b/i,        // change permissions
-  /\bchown\b/i,        // change ownership
-  /\bkill\b/i,         // kill process
-  /\btaskkill\b/i,     // windows kill process
-  /\bshutdown\b/i,     // shutdown
-  /\breboot\b/i,       // reboot
-  /\bcurl\b/i,         // download from internet
-  /\bwget\b/i,         // download from internet
-  /\bnpm\b/i,          // package manager
-  /\bpip\b/i,          // package manager
-  /\bapt\b/i,          // package manager
-  /\bbrew\b/i,         // package manager
-  /\breg\b/i,          // windows registry
-  />\s*/,              // output redirection
-  /\bpowershell\b.*\b(Remove|Set|New|Stop|Restart)/i, // destructive PS commands
-];
+// BLOCKED_PATTERNS imported from sharedConstants.js — single source of truth
 
 function runSafeCommand(command) {
   if (!command || typeof command !== 'string') {

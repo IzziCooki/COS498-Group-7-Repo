@@ -1,118 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './SidePanel.css';
-
-function GuideContent({ guide, onRunCommand, commandResults = {} }) {
-  const [copiedIdx, setCopiedIdx] = useState(null);
-  function handleCopy(command, idx) {
-    navigator.clipboard.writeText(command).then(() => {
-      setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx(null), 2000);
-    });
-  }
-
-  return (
-    <div className="sp-guide">
-      {guide.description && <p className="sp-guide__desc">{guide.description}</p>}
-      <ol className="sp-guide__steps">
-        {guide.steps.map((step, i) => {
-          const result = step.command ? commandResults[step.command] : null;
-          return (
-            <li key={i} className="sp-guide__step">
-              <div className="sp-guide__step-text">{step.text}</div>
-              {step.command && (
-                <div className="sp-guide__cmd-block">
-                  <div className="sp-guide__cmd-row">
-                    <code className="sp-guide__code">{step.command}</code>
-                    <div className="sp-guide__cmd-actions">
-                      <button className="sp-guide__copy" onClick={() => handleCopy(step.command, i)}>
-                        {copiedIdx === i ? 'Copied!' : 'Copy'}
-                      </button>
-                      {onRunCommand && (
-                        <button className="sp-guide__run" onClick={() => onRunCommand(step.command)} disabled={result?.running}>
-                          {result?.running ? 'Running...' : 'Run'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {result && !result.running && result.output && (
-                    <pre className={`sp-guide__output ${result.error ? 'sp-guide__output--err' : ''}`}>{result.output}</pre>
-                  )}
-                </div>
-              )}
-              {step.note && <p className="sp-guide__note">{step.note}</p>}
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-}
-
-function FindingsContent({ findings }) {
-  const icons = { good: '\u2705', warning: '\u26A0\uFE0F', bad: '\u274C' };
-  return (
-    <div className="sp-findings">
-      {findings.findings.map((f, i) => (
-        <div key={i} className={`sp-findings__row sp-findings__row--${f.status}`}>
-          <span className="sp-findings__icon">{icons[f.status] || '\u2139\uFE0F'}</span>
-          <div>
-            <div className="sp-findings__label">{f.label}</div>
-            <div className="sp-findings__value">{f.value}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * VideosContent — tries iframe embed first, falls back to "Watch on YouTube" link.
- * Embeds work on deployed domains but are blocked on localhost by YouTube.
- */
-function VideosContent({ videos }) {
-  const [playingId, setPlayingId] = useState(null);
-  const [embedFailed, setEmbedFailed] = useState(new Set());
-
-  return (
-    <div className="sp-videos">
-      {videos.map((video, i) => {
-        const isPlaying = playingId === video.id && video.id;
-        const isFailed = embedFailed.has(video.id);
-
-        return (
-          <div key={video.id || i} className="sp-videos__card">
-            {isPlaying && !isFailed ? (
-              <div className="sp-videos__player">
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="sp-videos__iframe"
-                  onError={() => setEmbedFailed(prev => new Set([...prev, video.id]))}
-                />
-                <a href={video.url} target="_blank" rel="noopener noreferrer" className="sp-videos__external-link">
-                  Having trouble? Open on YouTube
-                </a>
-              </div>
-            ) : (
-              <button className="sp-videos__thumb-btn" onClick={() => video.id ? setPlayingId(video.id) : window.open(video.url, '_blank')}>
-                {video.thumbnail && <img src={video.thumbnail} alt="" className="sp-videos__thumb" loading="lazy" />}
-                <div className="sp-videos__play-overlay">
-                  <span className="sp-videos__play-icon">&#9654;</span>
-                </div>
-              </button>
-            )}
-            <div className="sp-videos__info">
-              <a href={video.url} target="_blank" rel="noopener noreferrer" className="sp-videos__title">{video.title}</a>
-              {video.channel && <span className="sp-videos__channel">{video.channel}</span>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import CommandGuide from './CommandGuide';
+import DiagnosticFindings from './DiagnosticFindings';
+import YouTubeEmbed from './YouTubeEmbed';
 
 function ResourcesContent({ resources }) {
   const { summary, videos, links } = resources;
@@ -145,7 +35,7 @@ function ResourcesContent({ resources }) {
       {videos && videos.length > 0 && (
         <div className="sp-res__section">
           <h4 className="sp-res__section-title">Watch</h4>
-          <VideosContent videos={videos} />
+          <YouTubeEmbed videos={videos} embedded />
         </div>
       )}
       {renderLinks(watchLinks, 'More Videos')}
@@ -168,6 +58,9 @@ function spArtifactTitle(artifact) {
 /**
  * SidePanel — renders all parts of an artifact (findings + guide + videos + resources)
  * in a single scrollable panel, with left/right navigation between artifacts.
+ *
+ * Reuses CommandGuide, DiagnosticFindings, and YouTubeEmbed with embedded=true
+ * to suppress their individual collapse/dismiss chrome.
  */
 function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMoveToInline, onRunCommand, commandResults }) {
   if (!artifact) return null;
@@ -193,9 +86,9 @@ function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMo
 
       <div className="side-panel__content">
         {/* Render ALL parts of this artifact — findings first, then guide, then videos/resources */}
-        {artifact.findings && <FindingsContent findings={artifact.findings} />}
-        {artifact.guide && <GuideContent guide={artifact.guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
-        {artifact.videos && <VideosContent videos={artifact.videos} />}
+        {artifact.findings && <DiagnosticFindings findings={artifact.findings} embedded />}
+        {artifact.guide && <CommandGuide guide={artifact.guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} embedded />}
+        {artifact.videos && <YouTubeEmbed videos={artifact.videos} embedded />}
         {artifact.resources && <ResourcesContent resources={artifact.resources} />}
       </div>
     </div>

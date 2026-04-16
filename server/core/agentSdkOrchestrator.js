@@ -20,6 +20,7 @@ const skillMatcher = require('./skillMatcher');
 const qualityTracker = require('./conversationQualityTracker');
 const { anthropicApiKey } = require('../config');
 const youtubeSearch = require('./youtubeSearch');
+const { buildComfortGuidelines } = require('./sharedConstants');
 
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 
@@ -35,15 +36,7 @@ try {
   console.error('[agentSdkOrchestrator] Failed to create MCP server:', err.message);
 }
 
-function buildComfortGuidelines(comfortLevel) {
-  const level = parseInt(comfortLevel) || 1;
-  if (level <= 1) {
-    return `BRAND NEW to computers. Use analogies. MAXIMUM 2 steps per response. Always use show_visual_guide and start_step_sequence.`;
-  } else if (level <= 3) {
-    return `Knows basics but needs guidance. 3-5 numbered steps. Use show_visual_guide for new topics.`;
-  }
-  return `Fairly comfortable. Be concise. Only use visual guides when asked.`;
-}
+// buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
 function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);

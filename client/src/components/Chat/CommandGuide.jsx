@@ -5,9 +5,12 @@ import './CommandGuide.css';
  * CommandGuide — Interactive guide artifact with copy-paste commands
  * and optional "Run" buttons for user-approved terminal execution.
  *
- * @param {{ guide: { title: string, description?: string, steps: Array<{ text: string, command?: string, note?: string }> }, onRunCommand?: (command: string) => void, commandResults?: Record<string, { output: string, running: boolean, error?: boolean }> }} props
+ * @param {{ guide: { title: string, description?: string, steps: Array<{ text: string, command?: string, note?: string }> }, onRunCommand?: (command: string) => void, commandResults?: Record<string, { output: string, running: boolean, error?: boolean }>, embedded?: boolean }} props
+ *
+ * When `embedded` is true, the header with collapse/dismiss controls is hidden
+ * (used by SidePanel which provides its own chrome).
  */
-function CommandGuide({ guide, onRunCommand, commandResults = {} }) {
+function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = false }) {
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState(null);
@@ -21,32 +24,36 @@ function CommandGuide({ guide, onRunCommand, commandResults = {} }) {
     });
   }
 
+  const showBody = embedded || !collapsed;
+
   return (
     <div className="cmd-guide" role="region" aria-label={guide.title || 'Guide'}>
-      <div className="cmd-guide__header">
-        <div className="cmd-guide__header-left">
-          <span className="cmd-guide__icon" aria-hidden="true">&#9776;</span>
-          <span className="cmd-guide__title">{guide.title || 'Guide'}</span>
+      {!embedded && (
+        <div className="cmd-guide__header">
+          <div className="cmd-guide__header-left">
+            <span className="cmd-guide__icon" aria-hidden="true">&#9776;</span>
+            <span className="cmd-guide__title">{guide.title || 'Guide'}</span>
+          </div>
+          <div className="cmd-guide__controls">
+            <button
+              className="cmd-guide__toggle"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-expanded={!collapsed}
+            >
+              {collapsed ? 'Open' : 'Collapse'}
+            </button>
+            <button
+              className="cmd-guide__dismiss"
+              onClick={() => setDismissed(true)}
+              aria-label="Dismiss guide"
+            >
+              X
+            </button>
+          </div>
         </div>
-        <div className="cmd-guide__controls">
-          <button
-            className="cmd-guide__toggle"
-            onClick={() => setCollapsed(!collapsed)}
-            aria-expanded={!collapsed}
-          >
-            {collapsed ? 'Open' : 'Collapse'}
-          </button>
-          <button
-            className="cmd-guide__dismiss"
-            onClick={() => setDismissed(true)}
-            aria-label="Dismiss guide"
-          >
-            X
-          </button>
-        </div>
-      </div>
+      )}
 
-      {!collapsed && (
+      {showBody && (
         <div className="cmd-guide__body">
           {guide.description && (
             <p className="cmd-guide__desc">{guide.description}</p>
