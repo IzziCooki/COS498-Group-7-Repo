@@ -12,25 +12,44 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
   const [editOs, setEditOs] = useState('');
   const [editComfort, setEditComfort] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const openEdit = () => {
     if (!user) return;
     setEditName(user.name || '');
     setEditOs(user.os_type || 'Windows');
     setEditComfort(user.comfort_level || 1);
+    setSaveError('');
     setEditing(true);
   };
 
   const handleSave = async () => {
-    if (!onUpdateProfile || !editName.trim()) return;
+    if (!onUpdateProfile) {
+      setSaveError('Profile update is unavailable right now.');
+      return;
+    }
+    if (!editName.trim()) {
+      setSaveError('Please enter your name.');
+      return;
+    }
+    setSaveError('');
     setSaving(true);
     try {
-      await onUpdateProfile({ name: editName.trim(), os_type: editOs, comfort_level: editComfort });
+      const result = await onUpdateProfile({
+        name: editName.trim(),
+        os_type: editOs,
+        comfort_level: editComfort,
+      });
+      if (!result) {
+        throw new Error('No profile was returned. Try reloading the page.');
+      }
       setEditing(false);
     } catch (e) {
       console.error('Failed to update profile:', e);
+      setSaveError(e?.message || 'Could not save your profile. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (
@@ -108,11 +127,20 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
               </select>
             </label>
 
+            {saveError && (
+              <div className="profile-edit__error" role="alert">{saveError}</div>
+            )}
+
             <div className="profile-edit__actions">
-              <button className="profile-edit__save btn-primary" onClick={handleSave} disabled={saving || !editName.trim()}>
+              <button
+                type="button"
+                className="profile-edit__save btn-primary"
+                onClick={handleSave}
+                disabled={saving || !editName.trim()}
+              >
                 {saving ? 'Saving...' : 'Save'}
               </button>
-              <button className="profile-edit__cancel" onClick={() => setEditing(false)}>
+              <button type="button" className="profile-edit__cancel" onClick={() => setEditing(false)}>
                 Cancel
               </button>
             </div>

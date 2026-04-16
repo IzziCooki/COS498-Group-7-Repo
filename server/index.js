@@ -16,6 +16,7 @@ try {
   agentOrchestrator = require('./core/agentOrchestrator');
 }
 const skillProgression = require('./core/skillProgression');
+const clientInfoStore = require('./core/clientInfoStore');
 const conversationState = require('./core/conversationState');
 const HelpRequest = require('./models/HelpRequest');
 const usersRouter = require('./routes/users');
@@ -263,6 +264,10 @@ wss.on('connection', (ws) => {
         }
         // Client sends userId to associate the connection
         userId = msg.userId;
+        // Store browser-collected system info if provided
+        if (msg.browserSystemInfo && typeof msg.browserSystemInfo === 'object') {
+          clientInfoStore.set(userId, msg.browserSystemInfo);
+        }
         if (ws.readyState === ws.OPEN) {
           let conversationId = null;
           try {
@@ -534,6 +539,7 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
 
   ws.on('close', () => {
     console.log(`[ws] Connection closed for userId=${userId}`);
+    if (userId) clientInfoStore.remove(userId);
   });
 
   ws.on('error', (err) => {
