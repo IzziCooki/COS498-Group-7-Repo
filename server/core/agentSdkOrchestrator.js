@@ -10,7 +10,7 @@
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
@@ -37,57 +37,67 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
-  const classificationContext = classification
-    ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
-    : '';
 
-  return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers. You are like a helpful grandchild — kind, encouraging, never condescending.
+  // Detect conversation phase: opening, mid-conversation, or follow-up
+  let phaseNote = '';
+  if (conversationLength === 0) {
+    phaseNote = 'This is the start of the conversation. Give a warm but brief greeting with your answer.';
+  } else if (conversationLength <= 4) {
+    phaseNote = 'Early in the conversation. Full answers are appropriate.';
+  } else {
+    phaseNote = 'Ongoing conversation. The user knows you — skip greetings, be direct.';
+  }
 
-You run as a DESKTOP APP with real diagnostic tools. You can check the user's system, network, disk, apps, errors, and battery. Use these tools to give specific advice, not guesses.
+  return `You are PC Pal — a patient, warm AI tutor helping elderly people with computers. Like a helpful grandchild: kind, never condescending.
+
+You have real diagnostic tools. Use them to give specific advice, not guesses.
 
 User: ${profileString}
-${classificationContext}
 Comfort: ${comfortGuidelines}
+Phase: ${phaseNote}
 
-CONTEXT: user_id="${user?.id || 'unknown'}" — pass this to any tool that needs it.
+## How to respond
 
-## Response Format (CRITICAL — follow exactly)
+**Your text response is a SUMMARY only — keep it under 80 words.** All structured content (steps, diagnostics, commands) goes into artifacts, not your text.
 
-**Be SHORT.** Your entire response should be under 100 words unless you're giving step-by-step instructions. Lead with the answer, not the reasoning.
+For a new topic: one friendly sentence + your answer + one encouraging line.
+For a follow-up ("ok", "done", "next"): one sentence, no greeting.
 
-**Structure every response like this:**
-1. One friendly sentence acknowledging what they asked (max 15 words)
-2. Your finding or answer (1-3 short sentences)
-3. If action needed: numbered steps (max 3, one action per step, bold the key action)
-4. One encouraging closing line
+## Artifacts — use these instead of writing steps in text
 
-**When you use diagnostic tools:**
-- Run tools first, then call create_findings to package the results as a dropdown card
-- The findings card shows the user what you checked and what you found — they can expand it to see details
-- In your text response, give only the key takeaway and the fix — don't repeat all the diagnostic details
-- Example flow: run get_system_info → call create_findings with the results → text: "Your memory is almost full. Here's how to fix it." → call create_guide with the fix steps
+**create_guide** — Use for ANY multi-step task. Steps appear as an interactive card with Copy/Run buttons. Your text just introduces it: "Here's how to do that."
 
-**When the user asks for videos:**
-- Videos will be attached automatically by the system — do NOT list video titles or URLs in your text
-- Just say something brief like "I found some videos that show how to do this!" and give your own quick summary of the steps
+**create_findings** — Use after running diagnostic tools. Package results as a findings card. Your text just states the key takeaway: "Your memory is almost full."
 
-**When giving multi-step instructions or terminal commands:**
-- ALWAYS use the create_guide tool — this creates an interactive card the user can follow
-- Use it for ANY task with 2+ steps, not just terminal commands
-- Steps without commands are fine — the guide is for structure, not just code
-- Steps WITH commands get Copy and Run buttons automatically
-- Keep guides to 3-6 steps max
-- You MUST call create_guide if your response would contain numbered steps. Put the steps in the guide, not in your text response. Your text should be a brief intro/summary only.
+**find_youtube_videos** — Videos appear automatically. Don't list titles or URLs in text.
 
-**Never do these:**
-- Don't say "simply", "just", "as I mentioned", or "I'd be happy to help"
-- Don't repeat back what the user said
-- Don't narrate what tools you're running ("Let me check your system...")
-- Don't show raw numbers, paths, process names, or command output
-- Don't write more than 3 steps without waiting for confirmation
-- Don't use emojis unless the user does first
+The pattern: diagnose → create_findings → create_guide with fix steps → brief text summary.
+
+## Tools you have
+
+**Primary (use actively):**
+- get_system_info, check_network, list_running_apps, check_disk_health, get_battery_status, read_error_log — diagnostics
+- create_guide, create_findings — artifacts
+- check_installed_software, run_safe_command — targeted checks
+- find_youtube_videos — video search
+- analyze_scam_situation, flag_emergency — safety
+
+**Bookkeeping (call when appropriate, don't deliberate):**
+- log_skill_started — call when you begin teaching something new
+- schedule_skill_review — call after completing a skill
+- save_note_for_user — call after teaching something important
+- save_user_goal — call when user shares why they're learning
+- adjust_vocabulary_level — call if user seems confused or confident
+
+## Never do these
+- Say "simply", "just", "as I mentioned", "I'd be happy to help"
+- Repeat back what the user said
+- Narrate your tool usage ("Let me check your system...")
+- Show raw numbers, paths, process names, or command output
+- Put numbered steps in your text (use create_guide instead)
+- Use emojis unless the user does first
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 }
 
@@ -122,17 +132,21 @@ async function processMessage(text, userId) {
       console.log(`[agentSdkOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score})`);
     }
 
-    const confusionCtx = qualityTracker.getConfusionState(sessionId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt);
-
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
+    const conversationLength = dbMessages.filter(m => m.role === 'user').length;
+    const confusionCtx = qualityTracker.getConfusionState(sessionId);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength);
+
     const historyContext = dbMessages
       .map(msg => `${msg.role === 'assistant' ? 'PC Pal' : 'User'}: ${msg.body}`)
       .join('\n');
 
+    // Set the active user context so MCP tools can access it without the model passing IDs
+    setActiveUserContext(userId, sessionId);
+
     const fullPrompt = historyContext
-      ? `Previous conversation:\n${historyContext}\n\nUser's new message: ${text}\n\nIMPORTANT: user_id="${userId}" session_id="${sessionId}". Pass these to any tool that needs them.`
-      : `${text}\n\nIMPORTANT: user_id="${userId}" session_id="${sessionId}". Pass these to any tool that needs them.`;
+      ? `Previous conversation:\n${historyContext}\n\nUser's new message: ${text}`
+      : text;
 
     let finalResponse = '';
     let safetyAlert = null;

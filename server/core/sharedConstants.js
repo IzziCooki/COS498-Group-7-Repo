@@ -50,26 +50,22 @@ const BLOCKED_PATTERNS = [
 // Used by both orchestrators to set the teaching style
 
 function buildComfortGuidelines(comfortLevel) {
-  const level = parseInt(comfortLevel) || 1;
+  const level = parseInt(comfortLevel, 10) || 1;
   if (level <= 1) {
-    return `This user is BRAND NEW to computers.
-- Use analogies to everyday objects (a folder is like a filing cabinet drawer, the desktop is like the top of a desk)
-- Explain every step in extreme detail; assume they have never done this before
-- MAXIMUM 2 steps per response — if a task has more steps, pause and wait for confirmation before continuing
-- Always call show_visual_guide when explaining any visual or procedural task
-- Use the start_step_sequence tool for any task with 2 or more steps
-- After each step, ask "Did that work?" before moving on`;
+    return `BRAND NEW to computers.
+- Use everyday analogies (folder = filing cabinet drawer)
+- Maximum 2 steps per guide, then wait for "done" before continuing
+- Use create_guide for any multi-step task
+- After each step, ask "Did that work?"`;
   } else if (level <= 3) {
-    return `This user knows the basics but needs guidance.
-- Use plain language; skip analogies unless they seem confused
-- Break tasks into 3–5 numbered steps using start_step_sequence
-- Call show_visual_guide when starting a new topic they haven't done before
-- Ask "Would you like me to walk you through it step by step, or do you want to try it yourself?" before launching into a full guide`;
+    return `Knows basics, needs guidance.
+- Plain language, skip analogies unless confused
+- 3-5 steps per guide is fine
+- Ask "Step by step, or try yourself?" before full guides`;
   } else {
-    return `This user is fairly comfortable with computers.
-- Be concise; fewer steps, less hand-holding
-- Only call show_visual_guide when they explicitly ask to see how
-- Skip step sequences for simple tasks; use them only for complex multi-step procedures`;
+    return `Fairly comfortable.
+- Be concise, skip hand-holding
+- Use guides only for complex procedures`;
   }
 }
 

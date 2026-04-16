@@ -10,6 +10,19 @@ const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
 const { VALID_GUIDE_IDS } = require('../core/sharedConstants');
+
+// Active user context — set by the orchestrator before each query()
+// so tools can read user_id/session_id without the model passing them
+let _activeUserId = null;
+let _activeSessionId = null;
+
+function setActiveUserContext(userId, sessionId) {
+  _activeUserId = userId;
+  _activeSessionId = sessionId;
+}
+
+function getUserId() { return _activeUserId; }
+function getSessionId() { return _activeSessionId; }
 const systemDiagnostics = require('../core/systemDiagnostics');
 const youtubeSearch = require('../core/youtubeSearch');
 const skillProgression = require('../core/skillProgression');
@@ -116,11 +129,11 @@ const getBatteryStatus = tool(
 
 const logSkillStarted = tool(
   'log_skill_started',
-  'Log that the user started learning a new skill. Call when you begin teaching a topic.',
-  { skill_name: z.string().describe('Name of the skill'), user_id: z.string().describe('User ID') },
+  'Log that the user started learning a new skill.',
+  { skill_name: z.string().describe('Name of the skill') },
   async (args) => {
     try {
-      SkillEvent.create({ user_id: args.user_id, skill_name: args.skill_name, status: 'started' });
+      SkillEvent.create({ user_id: getUserId(), skill_name: args.skill_name, status: 'started' });
       return textResult(`Logged skill started: ${args.skill_name}`);
     } catch (err) {
       return textResult(`Failed: ${err.message}`);
@@ -130,10 +143,10 @@ const logSkillStarted = tool(
 
 const suggestNextSkill = tool(
   'suggest_next_skill',
-  "Recommend what to learn next based on the user's completion history.",
-  { user_id: z.string().describe('User ID') },
-  async (args) => {
-    const suggestion = skillProgression.getNextSkill(args.user_id);
+  "Recommend what to learn next based on completion history.",
+  {},
+  async () => {
+    const suggestion = skillProgression.getNextSkill(getUserId());
     return textResult(suggestion.skillId
       ? `Suggested: ${suggestion.skillName} (${suggestion.skillId}). ${suggestion.reason}`
       : suggestion.reason);
@@ -142,16 +155,15 @@ const suggestNextSkill = tool(
 
 const scheduleSkillReview = tool(
   'schedule_skill_review',
-  'Schedule a spaced repetition review for a completed skill. Call after completing a skill.',
+  'Schedule a spaced repetition review for a completed skill.',
   {
-    user_id: z.string().describe('User ID'),
     skill_name: z.string().describe('Skill to review later'),
     days_until_review: z.number().optional().describe('Days until review (default 7)'),
   },
   async (args) => {
-    const days = args.days_until_review || 7;
+    const days = args.days_until_review ?? 7;
     const dueDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-    SkillReview.create({ user_id: args.user_id, skill_name: args.skill_name, review_due_at: dueDate });
+    SkillReview.create({ user_id: getUserId(), skill_name: args.skill_name, review_due_at: dueDate });
     return textResult(`Review scheduled for "${args.skill_name}" in ${days} days`);
   }
 );
@@ -162,12 +174,11 @@ const startStepSequence = tool(
   'start_step_sequence',
   'Start a numbered step-by-step walkthrough for a multi-step task.',
   {
-    session_id: z.string().describe('Conversation/session ID'),
     task_name: z.string().describe('Short name for the task'),
     steps: z.array(z.string()).describe('Array of step descriptions'),
   },
   async (args) => {
-    const seq = StepSequence.create({ conversation_id: args.session_id, steps: args.steps, current_index: 0 });
+    const seq = StepSequence.create({ conversation_id: getSessionId(), steps: args.steps, current_index: 0 });
     return textResult(JSON.stringify({ id: seq.id, taskName: args.task_name, steps: seq.steps, currentIndex: 0, completed: false }));
   }
 );
@@ -175,9 +186,9 @@ const startStepSequence = tool(
 const advanceStep = tool(
   'advance_step',
   'Move to the next step when user confirms they completed the current one.',
-  { session_id: z.string().describe('Conversation/session ID') },
-  async (args) => {
-    const sequences = StepSequence.findByConversationId(args.session_id);
+  {},
+  async () => {
+    const sequences = StepSequence.findByConversationId(getSessionId());
     const activeSeq = sequences.filter(s => !s.completed).pop();
     if (!activeSeq) return textResult('No active step sequence found');
     const updated = StepSequence.update(activeSeq.id, { current_index: activeSeq.current_index + 1 });
@@ -189,16 +200,14 @@ const completeStepSequence = tool(
   'complete_step_sequence',
   'Mark the current step sequence as fully completed and log the skill.',
   {
-    session_id: z.string().describe('Conversation/session ID'),
-    user_id: z.string().describe('User ID'),
     skill_name: z.string().describe('Name of the completed skill'),
   },
   async (args) => {
-    const sequences = StepSequence.findByConversationId(args.session_id);
+    const sequences = StepSequence.findByConversationId(getSessionId());
     const activeSeq = sequences.filter(s => !s.completed).pop();
     if (!activeSeq) return textResult('No active step sequence to complete');
     StepSequence.update(activeSeq.id, { completed: 1 });
-    SkillEvent.create({ user_id: args.user_id, skill_name: args.skill_name, status: 'completed' });
+    SkillEvent.create({ user_id: getUserId(), skill_name: args.skill_name, status: 'completed' });
     return textResult(`Step sequence completed: "${args.skill_name}"`);
   }
 );
@@ -209,21 +218,18 @@ const flagEmergency = tool(
   'flag_emergency',
   'Flag a potential emergency. Use when user mentions falling, injury, chest pain, or medical concerns.',
   {
-    user_id: z.string().describe('User ID'),
     reason: z.string().describe('Why this is flagged as an emergency'),
   },
   async (args) => {
-    SafetyEvent.create({ user_id: args.user_id, event_type: 'emergency', trigger_text: args.reason });
+    SafetyEvent.create({ user_id: getUserId(), event_type: 'emergency', trigger_text: args.reason });
     return textResult(`EMERGENCY FLAGGED: ${args.reason}. Advise user to call 911 if needed.`);
   }
 );
 
 const analyzeScamSituation = tool(
   'analyze_scam_situation',
-  "Analyze whether a situation is a scam. NEVER say 'it\\'s safe'. Always recommend verification through official channels.",
+  "Analyze whether a situation is a scam. NEVER say 'it\\'s safe'. Always recommend verification.",
   {
-    user_id: z.string().describe('User ID'),
-    session_id: z.string().describe('Session ID'),
     situation_summary: z.string().describe('What the user described'),
     claimed_organization: z.string().optional().describe('Company/agency the caller claims to be from'),
     red_flags_found: z.array(z.string()).describe('Specific red flags detected'),
@@ -233,8 +239,8 @@ const analyzeScamSituation = tool(
   },
   async (args) => {
     ScamCheckEvent.create({
-      user_id: args.user_id,
-      conversation_id: args.session_id,
+      user_id: getUserId(),
+      conversation_id: getSessionId(),
       situation_summary: args.situation_summary,
       claimed_organization: args.claimed_organization || null,
       red_flags: args.red_flags_found,
@@ -253,12 +259,11 @@ const saveNoteForUser = tool(
   'save_note_for_user',
   'Save a helpful tip for the user to reference later.',
   {
-    user_id: z.string().describe('User ID'),
     title: z.string().describe('Short title'),
     content: z.string().describe('The note content — 1-2 sentences'),
   },
   async (args) => {
-    UserNote.create({ user_id: args.user_id, title: args.title, content: args.content });
+    UserNote.create({ user_id: getUserId(), title: args.title, content: args.content });
     return textResult(`Note saved: "${args.title}"`);
   }
 );
@@ -266,9 +271,9 @@ const saveNoteForUser = tool(
 const getUserNotes = tool(
   'get_user_notes',
   "Retrieve the user's saved notes and tips.",
-  { user_id: z.string().describe('User ID') },
-  async (args) => {
-    const notes = UserNote.findByUserId(args.user_id);
+  {},
+  async () => {
+    const notes = UserNote.findByUserId(getUserId());
     if (notes.length === 0) return textResult('No saved notes yet.');
     const list = notes.map((n, i) => `${i + 1}. ${n.title}: ${n.content}`).join('\n');
     return textResult(`${notes.length} saved note(s):\n${list}`);
@@ -277,19 +282,19 @@ const getUserNotes = tool(
 
 const saveUserGoal = tool(
   'save_user_goal',
-  "Save the user's learning goal when they mention WHY they want to learn something.",
+  "Save the user's learning goal when they share WHY they want to learn something.",
   {
-    user_id: z.string().describe('User ID'),
     goal_text: z.string().describe("The user's goal in their own words"),
     related_skills: z.array(z.string()).optional().describe('Skill IDs this goal connects to'),
   },
   async (args) => {
+    const uid = getUserId();
     UserGoal.create({
-      user_id: args.user_id,
+      user_id: uid,
       goal_text: args.goal_text,
       related_skills: args.related_skills ? JSON.stringify(args.related_skills) : '[]',
     });
-    User.update(args.user_id, { goal_summary: args.goal_text });
+    User.update(uid, { goal_summary: args.goal_text });
     return textResult(`Goal saved: "${args.goal_text}"`);
   }
 );
@@ -298,12 +303,11 @@ const adjustVocabularyLevel = tool(
   'adjust_vocabulary_level',
   'Change the vocabulary simplification level if user seems confused or confident.',
   {
-    user_id: z.string().describe('User ID'),
     new_level: z.enum(['basic', 'intermediate', 'standard']).describe('New level'),
     reason: z.string().describe('Why adjusting'),
   },
   async (args) => {
-    userProfileManager.updateProfile(args.user_id, { vocabulary_level: args.new_level });
+    userProfileManager.updateProfile(getUserId(), { vocabulary_level: args.new_level });
     return textResult(`Vocabulary changed to ${args.new_level}: ${args.reason}`);
   }
 );
@@ -314,16 +318,16 @@ const shareProgressWithBuddy = tool(
   'share_progress_with_buddy',
   "Share a skill completion with the user's learning buddy.",
   {
-    user_id: z.string().describe('User ID'),
     skill_name: z.string().describe('Completed skill'),
     celebration_message: z.string().describe('Warm celebration message'),
   },
   async (args) => {
-    const pairs = BuddyPair.findByUserId(args.user_id);
+    const uid = getUserId();
+    const pairs = BuddyPair.findByUserId(uid);
     if (pairs.length === 0) return textResult('User has no active buddy.');
     for (const pair of pairs) {
       ProgressShare.create({
-        user_id: args.user_id,
+        user_id: uid,
         buddy_pair_id: pair.id,
         skill_name: args.skill_name,
         message: args.celebration_message,
@@ -337,16 +341,16 @@ const askBuddyForHelp = tool(
   'ask_buddy_for_help',
   "Send a help request to the user's buddy when they're stuck.",
   {
-    user_id: z.string().describe('User ID'),
     question: z.string().describe('What the user needs help with'),
     context_summary: z.string().optional().describe('What they were trying to do'),
   },
   async (args) => {
-    const pairs = BuddyPair.findByUserId(args.user_id);
+    const uid = getUserId();
+    const pairs = BuddyPair.findByUserId(uid);
     if (pairs.length === 0) return textResult('User has no active buddy.');
     const pair = pairs[0];
     HelpRequest.create({
-      learner_id: args.user_id,
+      learner_id: uid,
       buddy_pair_id: pair.id,
       question: args.question,
       context_summary: args.context_summary || null,
@@ -479,4 +483,4 @@ function createPcPalMcpServer() {
   });
 }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext };
