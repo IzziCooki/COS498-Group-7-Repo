@@ -11,12 +11,8 @@ function artifactTitle(artifact) {
   return 'Artifact';
 }
 
-/**
- * Render a guide artifact fully expanded with Copy/Run buttons.
- */
 function GuideContent({ guide, onRunCommand, commandResults = {} }) {
   const [copiedIdx, setCopiedIdx] = useState(null);
-
   function handleCopy(command, idx) {
     navigator.clipboard.writeText(command).then(() => {
       setCopiedIdx(idx);
@@ -42,20 +38,14 @@ function GuideContent({ guide, onRunCommand, commandResults = {} }) {
                         {copiedIdx === i ? 'Copied!' : 'Copy'}
                       </button>
                       {onRunCommand && (
-                        <button
-                          className="sp-guide__run"
-                          onClick={() => onRunCommand(step.command)}
-                          disabled={result?.running}
-                        >
+                        <button className="sp-guide__run" onClick={() => onRunCommand(step.command)} disabled={result?.running}>
                           {result?.running ? 'Running...' : 'Run'}
                         </button>
                       )}
                     </div>
                   </div>
                   {result && !result.running && result.output && (
-                    <pre className={`sp-guide__output ${result.error ? 'sp-guide__output--err' : ''}`}>
-                      {result.output}
-                    </pre>
+                    <pre className={`sp-guide__output ${result.error ? 'sp-guide__output--err' : ''}`}>{result.output}</pre>
                   )}
                 </div>
               )}
@@ -68,9 +58,6 @@ function GuideContent({ guide, onRunCommand, commandResults = {} }) {
   );
 }
 
-/**
- * Render findings fully expanded.
- */
 function FindingsContent({ findings }) {
   const icons = { good: '\u2705', warning: '\u26A0\uFE0F', bad: '\u274C' };
   return (
@@ -89,45 +76,54 @@ function FindingsContent({ findings }) {
 }
 
 /**
- * Render videos with inline players.
+ * VideosContent — tries iframe embed first, falls back to "Watch on YouTube" link.
+ * Embeds work on deployed domains but are blocked on localhost by YouTube.
  */
 function VideosContent({ videos }) {
   const [playingId, setPlayingId] = useState(null);
+  const [embedFailed, setEmbedFailed] = useState(new Set());
+
   return (
     <div className="sp-videos">
-      {videos.map((video, i) => (
-        <div key={video.id || i} className="sp-videos__card">
-          {playingId === video.id && video.id ? (
-            <div className="sp-videos__player">
-              <iframe
-                src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`}
-                title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="sp-videos__iframe"
-              />
-            </div>
-          ) : (
-            <button className="sp-videos__thumb-btn" onClick={() => video.id ? setPlayingId(video.id) : window.open(video.url, '_blank')}>
-              {video.thumbnail && <img src={video.thumbnail} alt="" className="sp-videos__thumb" loading="lazy" />}
-              <div className="sp-videos__play-overlay">
-                <span className="sp-videos__play-icon">&#9654;</span>
+      {videos.map((video, i) => {
+        const isPlaying = playingId === video.id && video.id;
+        const isFailed = embedFailed.has(video.id);
+
+        return (
+          <div key={video.id || i} className="sp-videos__card">
+            {isPlaying && !isFailed ? (
+              <div className="sp-videos__player">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`}
+                  title={video.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="sp-videos__iframe"
+                  onError={() => setEmbedFailed(prev => new Set([...prev, video.id]))}
+                />
+                <a href={video.url} target="_blank" rel="noopener noreferrer" className="sp-videos__external-link">
+                  Having trouble? Open on YouTube
+                </a>
               </div>
-            </button>
-          )}
-          <div className="sp-videos__info">
-            <a href={video.url} target="_blank" rel="noopener noreferrer" className="sp-videos__title">{video.title}</a>
-            {video.channel && <span className="sp-videos__channel">{video.channel}</span>}
+            ) : (
+              <button className="sp-videos__thumb-btn" onClick={() => video.id ? setPlayingId(video.id) : window.open(video.url, '_blank')}>
+                {video.thumbnail && <img src={video.thumbnail} alt="" className="sp-videos__thumb" loading="lazy" />}
+                <div className="sp-videos__play-overlay">
+                  <span className="sp-videos__play-icon">&#9654;</span>
+                </div>
+              </button>
+            )}
+            <div className="sp-videos__info">
+              <a href={video.url} target="_blank" rel="noopener noreferrer" className="sp-videos__title">{video.title}</a>
+              {video.channel && <span className="sp-videos__channel">{video.channel}</span>}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-/**
- * Render resources with videos + links.
- */
 function ResourcesContent({ resources }) {
   const { summary, videos, links } = resources;
   const watchLinks = links ? links.filter(l => l.type === 'watch') : [];
@@ -170,9 +166,6 @@ function ResourcesContent({ resources }) {
   );
 }
 
-/**
- * SidePanel — displays artifacts beside the chat with left/right navigation.
- */
 function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMoveToInline, onRunCommand, commandResults }) {
   if (!artifact) return null;
 
