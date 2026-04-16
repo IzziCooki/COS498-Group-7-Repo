@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import './YouTubeEmbed.css';
 
 /**
- * YouTubeEmbed — Renders YouTube videos inline in chat messages.
- * Collapsible and dismissable so users can easily continue reading.
- *
- * @param {{ videos: Array<{id: string, title: string, url: string, thumbnail: string, channel: string}> }} props
+ * YouTubeEmbed — Renders YouTube videos inline in chat.
+ * Uses youtube-nocookie.com embeds for privacy.
+ * Shows "Open on YouTube" fallback if embed is blocked.
  */
 function YouTubeEmbed({ videos }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -19,21 +18,10 @@ function YouTubeEmbed({ videos }) {
       <div className="yt-embed__header">
         <span className="yt-embed__title">Video Tutorials</span>
         <div className="yt-embed__controls">
-          <button
-            className="yt-embed__toggle"
-            onClick={() => setCollapsed(!collapsed)}
-            aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Show videos' : 'Hide videos'}
-          >
+          <button className="yt-embed__toggle" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
             {collapsed ? 'Show' : 'Hide'}
           </button>
-          <button
-            className="yt-embed__dismiss"
-            onClick={() => setDismissed(true)}
-            aria-label="Dismiss videos"
-          >
-            Dismiss
-          </button>
+          <button className="yt-embed__dismiss" onClick={() => setDismissed(true)}>Dismiss</button>
         </div>
       </div>
 
@@ -44,26 +32,20 @@ function YouTubeEmbed({ videos }) {
               {playingId === video.id && video.id ? (
                 <div className="yt-embed__player">
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`}
+                    src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`}
                     title={video.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     className="yt-embed__iframe"
                   />
+                  <a href={video.url} target="_blank" rel="noopener noreferrer" className="yt-embed__external">
+                    Having trouble? Open on YouTube
+                  </a>
                 </div>
               ) : (
-                <button
-                  className="yt-embed__thumbnail-btn"
-                  onClick={() => video.id ? setPlayingId(video.id) : window.open(video.url, '_blank')}
-                  aria-label={`Play: ${video.title}`}
-                >
+                <button className="yt-embed__thumbnail-btn" onClick={() => video.id ? setPlayingId(video.id) : window.open(video.url, '_blank')} aria-label={`Play: ${video.title}`}>
                   {video.thumbnail ? (
-                    <img
-                      src={video.thumbnail}
-                      alt=""
-                      className="yt-embed__thumbnail"
-                      loading="lazy"
-                    />
+                    <img src={video.thumbnail} alt="" className="yt-embed__thumbnail" loading="lazy" />
                   ) : (
                     <div className="yt-embed__thumbnail-placeholder" />
                   )}
@@ -73,17 +55,8 @@ function YouTubeEmbed({ videos }) {
                 </button>
               )}
               <div className="yt-embed__info">
-                <a
-                  href={video.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="yt-embed__video-title"
-                >
-                  {video.title}
-                </a>
-                {video.channel && (
-                  <span className="yt-embed__channel">{video.channel}</span>
-                )}
+                <a href={video.url} target="_blank" rel="noopener noreferrer" className="yt-embed__video-title">{video.title}</a>
+                {video.channel && <span className="yt-embed__channel">{video.channel}</span>}
               </div>
             </div>
           ))}

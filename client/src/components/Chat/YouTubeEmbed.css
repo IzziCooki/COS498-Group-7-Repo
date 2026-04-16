@@ -167,6 +167,19 @@
   margin-top: 4px;
 }
 
+.yt-embed__external {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  padding: 6px;
+  text-decoration: underline;
+}
+
+.yt-embed__external:hover {
+  color: var(--color-primary, #2563eb);
+}
+
 /* Responsive — stack on small screens */
 @media (max-width: 480px) {
   .yt-embed__play-icon {

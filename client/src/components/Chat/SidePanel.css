@@ -91,6 +91,8 @@
 .sp-videos__title { font-size: 15px; font-weight: 600; color: var(--color-text, #1e293b); text-decoration: none; display: block; line-height: 1.4; }
 .sp-videos__title:hover { color: var(--color-primary, #2563eb); text-decoration: underline; }
 .sp-videos__channel { font-size: 13px; color: #64748b; display: block; margin-top: 2px; }
+.sp-videos__external-link { display: block; text-align: center; font-size: 13px; color: #64748b; padding: 6px; text-decoration: underline; }
+.sp-videos__external-link:hover { color: var(--color-primary, #2563eb); }
 
 /* ─── Resources content ─── */
 .sp-res__summary { font-size: 16px; color: #475569; line-height: 1.5; margin: 0 0 16px; }
