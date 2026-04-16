@@ -12,6 +12,7 @@
 const { query } = require('@anthropic-ai/claude-agent-sdk');
 const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
+const UserMemory = require('../models/UserMemory');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
 const userProfileManager = require('./userProfileManager');
@@ -37,7 +38,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -57,6 +58,7 @@ You have real diagnostic tools. Use them to give specific advice, not guesses.
 User: ${profileString}
 Comfort: ${comfortGuidelines}
 Phase: ${phaseNote}
+${memorySummary ? `\n## What you know about this person (from past sessions)\n${memorySummary}\n\nUse this naturally — reference past breakthroughs, avoid known struggles, connect to their goals. Don't announce that you "remember" — just show it through your advice.` : ''}
 
 ## How to respond
 
@@ -90,6 +92,10 @@ The pattern: diagnose → create_findings → create_guide with fix steps → br
 - save_note_for_user — call after teaching something important
 - save_user_goal — call when user shares why they're learning
 - adjust_vocabulary_level — call if user seems confused or confident
+
+**Memory (builds your relationship with this person):**
+- save_memory — save observations that will help in future sessions. Save: preferences ("prefers step-by-step"), struggles ("confused by right-click"), breakthroughs ("sent first email independently"), context ("grandson Tom in Portland"), patterns ("asks about email every Monday")
+- recallMemories — retrieve past observations (auto-loaded at session start, use this mid-conversation if needed)
 
 ## Never do these
 - Say "simply", "just", "as I mentioned", "I'd be happy to help"
@@ -135,7 +141,10 @@ async function processMessage(text, userId) {
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const conversationLength = dbMessages.filter(m => m.role === 'user').length;
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength);
+
+    // Load persistent memories for this user
+    const memorySummary = UserMemory.buildMemorySummary(userId);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary);
 
     const historyContext = dbMessages
       .map(msg => `${msg.role === 'assistant' ? 'PC Pal' : 'User'}: ${msg.body}`)
