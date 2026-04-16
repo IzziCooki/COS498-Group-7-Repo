@@ -80,32 +80,26 @@ function respond(text, userId, sessionId) {
   const user = userProfileManager.getOrCreateUser(userId);
   const vocabLevel = user.vocabulary_level || 'basic';
 
-  // Save user message
   conversationState.addMessage(sessionId, 'user', text);
 
-  // Auto-match a skill from the user's message
   const match = matchSkill(text);
   if (match) {
     console.log(`[skillMatcher] Matched skill: "${match.skill.name}" (score: ${match.score})`);
   }
 
-  // Gather real diagnostic data if the skill is diagnostic
   const diagnosticContext = gatherDiagnosticContext(match?.skill || null);
   if (diagnosticContext) {
     console.log(`[mockResponder] Gathered diagnostic data for skill: ${match.skill.id}`);
   }
 
-  // Load recent conversation history for context
   const recentMessages = conversationState.getSessionMessages(sessionId, 10);
   const historyText = recentMessages
     .slice(0, -1)
     .map(m => `${m.role === 'user' ? 'User' : 'PC Pal'}: ${m.body}`)
     .join('\n');
 
-  // Ask Claude CLI with skill context + diagnostic data
   const rawResponse = askClaudeCli(text, user, historyText, match?.skill || null, diagnosticContext);
 
-  // Filter vocabulary
   const filtered = vocabularyFilter.filterResponse(rawResponse, vocabLevel);
 
   if (!filtered) {
@@ -114,7 +108,6 @@ function respond(text, userId, sessionId) {
     return { response: fallback, safetyAlert: null, guideId: null, stepSequence: null };
   }
 
-  // Save and return
   conversationState.addMessage(sessionId, 'assistant', filtered);
   return {
     response: filtered,

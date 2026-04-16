@@ -17,10 +17,8 @@ const db = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
 const { detectJargon } = require('./vocabularyFilter');
 
-// ---------------------------------------------------------------------------
 // Confusion signal patterns (user-side)
 // Based on gerontology research on how elderly users express confusion
-// ---------------------------------------------------------------------------
 
 const CONFUSION_SIGNALS = [
   /\bi (?:don'?t|do not) (?:understand|get it|follow|know what you mean)\b/i,
@@ -57,9 +55,7 @@ const DEVICE_VERB_VIOLATIONS = {
 // In-memory confusion state per conversation (reset on server restart)
 const confusionState = new Map();
 
-// ---------------------------------------------------------------------------
 // Core tracking function — called on every turn
-// ---------------------------------------------------------------------------
 
 /**
  * Analyze one complete turn (user input + agent response) and log quality events.
@@ -205,9 +201,7 @@ function updateSummary(conversationId, userId, newEvents, turnNumber) {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Query functions for monitoring and evaluation
-// ---------------------------------------------------------------------------
 
 /**
  * Get the confusion state for a conversation (used to inject into system prompt).

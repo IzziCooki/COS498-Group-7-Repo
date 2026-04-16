@@ -15,9 +15,7 @@ const { BLOCKED_PATTERNS } = require('./sharedConstants');
 
 const COMMAND_TIMEOUT = 10000; // 10 seconds max per command
 
-/**
- * Safely execute a command with timeout and size limits
- */
+/** Safely execute a command with timeout and size limits. */
 function safeExec(cmd, timeoutMs = COMMAND_TIMEOUT) {
   try {
     const output = execSync(cmd, {
@@ -34,9 +32,7 @@ function safeExec(cmd, timeoutMs = COMMAND_TIMEOUT) {
   }
 }
 
-/**
- * Detect the current platform for command selection
- */
+/** Detect the current platform for command selection. */
 function getPlatform() {
   const p = process.platform;
   if (p === 'win32') return 'windows';
@@ -44,11 +40,9 @@ function getPlatform() {
   return 'linux';
 }
 
-// ─── Tool Implementations ────────────────────────────────────────────
+// Tool Implementations
 
-/**
- * get_system_info — OS version, CPU, RAM, disk space, uptime
- */
+/** get_system_info — OS version, CPU, RAM, disk space, uptime. */
 function getSystemInfo() {
   const platform = getPlatform();
 
@@ -119,9 +113,7 @@ function getSystemInfo() {
   return lines.join('\n');
 }
 
-/**
- * check_network — connectivity, DNS, Wi-Fi status, IP info
- */
+/** check_network — connectivity, DNS, Wi-Fi status, IP info. */
 function checkNetwork() {
   const platform = getPlatform();
   const results = [];
@@ -177,9 +169,7 @@ function checkNetwork() {
   return results.join('\n\n');
 }
 
-/**
- * list_running_apps — show running applications and resource usage
- */
+/** list_running_apps — show running applications and resource usage. */
 function listRunningApps() {
   const platform = getPlatform();
 
@@ -195,9 +185,7 @@ function listRunningApps() {
   }
 }
 
-/**
- * read_error_log — grab recent system/application error logs
- */
+/** read_error_log — grab recent system/application error logs. */
 function readErrorLog(source) {
   const platform = getPlatform();
   const src = (source || 'system').toLowerCase();
@@ -234,12 +222,6 @@ function readErrorLog(source) {
     return safeExec('journalctl -p err --no-pager -n 20 2>/dev/null');
   }
 }
-
-/**
- * run_safe_command — execute an allowlisted diagnostic command
- *
- * Only read-only, non-destructive commands are permitted.
- */
 
 // Allowlisted command patterns (regex)
 const ALLOWED_COMMANDS = {
@@ -364,9 +346,7 @@ function runSafeCommand(command) {
   return safeExec(cmd);
 }
 
-/**
- * check_disk_health — disk usage, large files, temp file cleanup suggestions
- */
+/** check_disk_health — disk usage, large files, temp file cleanup suggestions. */
 function checkDiskHealth() {
   const platform = getPlatform();
   const results = [];
@@ -406,9 +386,7 @@ function checkDiskHealth() {
   return results.join('\n');
 }
 
-/**
- * check_installed_software — list installed applications
- */
+/** check_installed_software — list installed applications. */
 function checkInstalledSoftware(searchTerm) {
   const platform = getPlatform();
 
@@ -434,9 +412,7 @@ function checkInstalledSoftware(searchTerm) {
   }
 }
 
-/**
- * get_battery_status — battery level and charging state (laptops)
- */
+/** get_battery_status — battery level and charging state (laptops). */
 function getBatteryStatus() {
   const platform = getPlatform();
 

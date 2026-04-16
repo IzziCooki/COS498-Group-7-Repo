@@ -8,7 +8,7 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'assets', 'generated');
 const WIDTH = 600;
 const HEIGHT = 400;
 
-// ─── Palette ────────────────────────────────────────────────────────────────
+// Palette
 const BG            = '#f8f9fa';
 const KEY_NORMAL    = '#e0e0e0';
 const KEY_HIGHLIGHT = '#e74c3c';
@@ -18,7 +18,7 @@ const SCREEN_FRAME  = '#4a4a6a';
 const ANNOTATION    = '#e74c3c';
 const BLUE_HIGHLIGHT= '#3498db';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// Helpers
 
 function drawRoundedRect(ctx, x, y, w, h, radius, fillColor, strokeColor) {
   ctx.beginPath();
@@ -221,7 +221,7 @@ function drawTaskbar(ctx, activeIconCx) {
   return { y: tbY, h: tbH };
 }
 
-// ─── Canvas factory ──────────────────────────────────────────────────────────
+// Canvas factory
 
 function makeCanvas() {
   const canvas = createCanvas(WIDTH, HEIGHT);
@@ -237,7 +237,7 @@ function saveCanvas(canvas, guideId, type) {
   fs.writeFileSync(outPath, canvas.toBuffer('image/png'));
 }
 
-// ─── Guide generators ────────────────────────────────────────────────────────
+// Guide generators
 
 // 1. copy_paste
 function genCopyPaste() {
@@ -777,7 +777,7 @@ function genUseTaskbar() {
   }
 }
 
-// ─── Router ──────────────────────────────────────────────────────────────────
+// Router
 
 function generateGuide(guideId) {
   switch (guideId) {
@@ -796,7 +796,7 @@ function generateGuide(guideId) {
   }
 }
 
-// ─── Main export ─────────────────────────────────────────────────────────────
+// Main export
 
 async function generateAllGuideImages() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
