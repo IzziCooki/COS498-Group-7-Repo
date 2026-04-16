@@ -5,43 +5,28 @@ import CommandGuide from './CommandGuide';
 import DiagnosticFindings from './DiagnosticFindings';
 import ResourceReport from './ResourceReport';
 
-/**
- * Parse simple markdown into React elements.
- * Supports: **bold**, numbered lists (1. 2. 3.), and line breaks.
- */
 function formatMessage(text) {
   if (!text) return null;
-
   const paragraphs = text.split(/\n\n+/);
-
   return paragraphs.map((para, i) => {
     const trimmed = para.trim();
     if (!trimmed) return null;
-
     const stepMatch = trimmed.match(/^(\d+)\.\s*(.*)/s);
     if (stepMatch) {
-      const num = stepMatch[1];
-      const content = stepMatch[2];
       return (
         <div key={i} className="bubble__step">
-          <span className="bubble__step-num">{num}</span>
-          <span className="bubble__step-text">{renderInline(content)}</span>
+          <span className="bubble__step-num">{stepMatch[1]}</span>
+          <span className="bubble__step-text">{renderInline(stepMatch[2])}</span>
         </div>
       );
     }
-
     return <p key={i} className="bubble__paragraph">{renderInline(trimmed)}</p>;
   });
 }
 
-/**
- * Render inline markdown: **bold** text.
- */
 function renderInline(text) {
   if (!text) return null;
-
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
-
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i} className="bubble__bold">{part.slice(2, -2)}</strong>;
@@ -50,13 +35,27 @@ function renderInline(text) {
   });
 }
 
+/** Get a short label for an artifact type */
+function artifactLabel(msg) {
+  if (msg.guide) return msg.guide.title || 'Guide';
+  if (msg.resources) return msg.resources.topic ? `Resources: ${msg.resources.topic}` : 'Resources';
+  if (msg.findings) return msg.findings.title || 'Diagnostic Details';
+  if (msg.videos) return 'Video Tutorials';
+  return null;
+}
+
 /**
- * MessageBubble — displays a single chat message with formatted text and images.
+ * MessageBubble — displays a single chat message.
+ *
+ * Artifacts are shown in the side panel by default.
+ * In the chat, only a small reference tag appears.
+ * If inlineMode is true, the full artifact renders in the chat.
  */
-function MessageBubble({ message, onRunCommand, onOpenSidePanel }) {
+function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide }) {
   const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
   const isUser = role === 'user';
   const hasArtifact = !isUser && (guide || resources || findings || videos);
+  const label = hasArtifact ? artifactLabel(message) : null;
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -78,48 +77,37 @@ function MessageBubble({ message, onRunCommand, onOpenSidePanel }) {
           <div className="bubble__formatted">{formatMessage(text)}</div>
         )}
 
-        {/* Diagnostic findings dropdown */}
-        {findings && <DiagnosticFindings findings={findings} />}
+        {/* Artifact rendering: inline mode shows full artifact, otherwise just a reference tag */}
+        {hasArtifact && inlineMode && (
+          <>
+            {findings && <DiagnosticFindings findings={findings} />}
+            {guide && <CommandGuide guide={guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
+            {resources && <ResourceReport resources={resources} />}
+            {videos && <YouTubeEmbed videos={videos} />}
+            <button className="bubble__side-btn" onClick={onMoveToSide}>
+              Open beside chat
+            </button>
+          </>
+        )}
 
-        {/* Interactive command guide */}
-        {guide && <CommandGuide guide={guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} />}
+        {hasArtifact && !inlineMode && (
+          <div className="bubble__artifact-tag">
+            <span className="bubble__artifact-tag-icon">&#9776;</span>
+            <span className="bubble__artifact-tag-label">{label}</span>
+            <span className="bubble__artifact-tag-hint">Showing in side panel</span>
+          </div>
+        )}
 
-        {/* Resource report (gathered videos + links) */}
-        {resources && <ResourceReport resources={resources} />}
-
-        {/* YouTube tutorial videos */}
-        {videos && <YouTubeEmbed videos={videos} />}
-
-        {/* Annotated device screenshots */}
+        {/* Annotated device screenshots (always inline) */}
         {images && images.length > 0 && (
           <div className="bubble__screenshots">
             {images.map((img, i) => (
               <div key={i} className="bubble__screenshot-card">
-                <img
-                  src={img.url}
-                  alt={img.alt}
-                  className="bubble__screenshot-img"
-                  loading="lazy"
-                />
+                <img src={img.url} alt={img.alt} className="bubble__screenshot-img" loading="lazy" />
                 <p className="bubble__screenshot-caption">{img.alt}</p>
               </div>
             ))}
           </div>
-        )}
-
-        {/* Open in side panel button — only on wide screens */}
-        {hasArtifact && onOpenSidePanel && (
-          <button
-            className="bubble__side-btn"
-            onClick={() => {
-              if (guide) onOpenSidePanel({ type: 'guide', data: guide });
-              else if (resources) onOpenSidePanel({ type: 'resources', data: resources });
-              else if (findings) onOpenSidePanel({ type: 'findings', data: findings });
-              else if (videos) onOpenSidePanel({ type: 'videos', data: videos });
-            }}
-          >
-            Open beside chat
-          </button>
         )}
 
         <time className="bubble__time" dateTime={timestamp}>{formattedTime}</time>

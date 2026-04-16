@@ -32,18 +32,18 @@ export function useUser() {
   const [user, setUser] = useState(null);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [isLoading, setIsLoading] = useState(() => {
-    return Boolean(localStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_PROFILE_KEY));
+    // Check synchronously during init — if nothing saved, don't load
+    const hasSaved = Boolean(localStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_PROFILE_KEY));
+    return hasSaved;
   });
 
-  // On mount: check localStorage for a saved userId or profile
+  // On mount: restore user from server or localStorage backup
   useEffect(() => {
     const savedId = localStorage.getItem(USER_ID_KEY);
     const savedProfile = localStorage.getItem(USER_PROFILE_KEY);
 
-    if (!savedId && !savedProfile) {
-      setIsLoading(false);
-      return;
-    }
+    // Nothing saved — isLoading is already false from init
+    if (!savedId && !savedProfile) return;
 
     async function restoreUser() {
       // Try loading from server first
