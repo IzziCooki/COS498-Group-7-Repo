@@ -73,11 +73,17 @@ Create a JSON file in `server/skills/`:
 - **OpenAI/Gemini/Ollama:** Use LiteLLM proxy, set `ANTHROPIC_BASE_URL=http://localhost:4000`
 - **MCP tools are fully provider-agnostic** — any MCP-compatible framework can use them
 
-### Safety rules
-- `systemDiagnostics.js` has a strict allowlist — only read-only commands pass
-- Dangerous patterns (rm, sudo, kill, curl, pipes, redirects) are always blocked
+### Command execution security
+All terminal commands pass through a two-layer filter in `systemDiagnostics.js`:
+1. **Block list** (lines 318-342): instantly rejects `rm`, `sudo`, `curl`, `kill`, `shutdown`, pipes, semicolons, redirects, package managers, and 20+ other dangerous patterns
+2. **Allow list** (lines 244-314): command must match a specific regex (~24 Mac, ~17 Windows, ~17 Linux patterns). Only read-only diagnostics: system info, network checks, process listing, disk usage, file reading (text/log only)
+
+The agent's built-in tools (`get_system_info`, `check_network`, etc.) run hardcoded commands — not user input. The "Run" button in guide artifacts also goes through the same sandbox. See `SECURITY.md` for the full breakdown.
+
+### Other safety rules
 - Safety monitor checks every message for emergencies before AI sees it
 - Never show raw command output to users — always translate to plain English
+- Relay agent pairing codes expire after 5 minutes, rate-limited to 5 attempts/minute
 
 ## Git Workflow (MUST follow)
 

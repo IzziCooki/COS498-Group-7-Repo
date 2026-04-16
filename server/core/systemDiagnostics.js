@@ -287,6 +287,24 @@ const ALLOWED_COMMANDS = {
     /^launchctl\s+list$/i,
     /^softwareupdate\s+-l$/i,
     /^mdutil\s+-s\s+\//i,
+    // App and system interaction (read-only / safe open)
+    /^open\s+-a\s+"[^"]+"\s*$/i,                          // open an app by name
+    /^open\s+"?[^;|&]+"?\s*$/i,                           // open a file/folder/URL
+    /^mdfind\s+"[^"]+"\s*$/i,                             // spotlight search
+    /^which\s+\w+$/i,                                     // find a command
+    /^sysctl\s+(hw\.|machdep\.cpu)/i,                     // hardware info
+    /^vm_stat$/i,                                          // memory stats
+    /^ioreg\s+-l\s+-w\s+0$/i,                              // hardware registry
+    /^plutil\s+-p\s+"?[^;|&]+"?\s*$/i,                   // read plist files
+    /^dscl\s+\.\s+-read\s+/i,                             // directory service read
+    /^spctl\s+--status$/i,                                 // Gatekeeper status
+    /^csrutil\s+status$/i,                                 // SIP status
+    /^xcode-select\s+-p$/i,                                // Xcode CLI tools path
+    /^python3?\s+--version$/i,                             // Python version
+    /^node\s+--version$/i,                                 // Node version
+    /^git\s+--version$/i,                                  // Git version
+    /^ollama\s+(list|show|ps)$/i,                          // Ollama model listing (no run/pull)
+    /^docker\s+(ps|images|version)$/i,                     // Docker read-only status
   ],
   linux: [
     /^uname\s+-[a-z]+$/i,
