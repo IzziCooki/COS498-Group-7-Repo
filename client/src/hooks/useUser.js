@@ -150,7 +150,9 @@ export function useUser() {
    * Update profile fields (name, os_type, comfort_level).
    */
   const updateProfile = useCallback(async (fields) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      throw new Error('No user loaded — please reload the page.');
+    }
     const res = await fetch(`/api/users/${user.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -158,7 +160,8 @@ export function useUser() {
     });
 
     if (!res.ok) {
-      throw new Error('Failed to update profile');
+      const body = await res.text().catch(() => '');
+      throw new Error(`Failed to update profile (${res.status}): ${body || 'unknown error'}`);
     }
 
     const updatedUser = await res.json();

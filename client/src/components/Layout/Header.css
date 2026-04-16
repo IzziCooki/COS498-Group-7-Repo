@@ -54,16 +54,26 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: background 120ms;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.app-header__user::after {
+  content: 'Edit';
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .app-header__user:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .app-header__user-greeting {
@@ -72,9 +82,9 @@
 }
 
 .app-header__user-os {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.75);
-  background-color: rgba(255, 255, 255, 0.15);
+  font-size: 14px;
+  color: var(--color-white);
+  background-color: rgba(255, 255, 255, 0.25);
   border-radius: var(--radius-full);
   padding: 2px 10px;
 }
@@ -147,27 +157,27 @@
 }
 
 .profile-edit {
-  background: white;
-  border-radius: 20px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 32px;
-  max-width: 400px;
+  max-width: 420px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px var(--color-shadow);
 }
 
 .profile-edit__title {
-  font-size: 22px;
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text);
   margin: 0 0 20px;
   text-align: center;
 }
 
 .profile-edit__label {
   display: block;
-  font-size: 16px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text);
   margin-bottom: 16px;
 }
 
@@ -177,41 +187,59 @@
   width: 100%;
   margin-top: 6px;
   padding: 12px 14px;
-  font-size: 18px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  background: white;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
 }
 
 .profile-edit__input:focus,
 .profile-edit__select:focus {
   outline: none;
-  border-color: var(--color-primary, #2563eb);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.profile-edit__error {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
 }
 
 .profile-edit__actions {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .profile-edit__save {
   flex: 1;
   padding: 12px;
-  font-size: 18px;
+  font-size: var(--font-size-md);
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .profile-edit__cancel {
-  padding: 12px 20px;
-  font-size: 16px;
-  background: none;
-  border: none;
-  color: #64748b;
+  flex: 1;
+  padding: 12px;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
   cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
 }
 
 .profile-edit__cancel:hover {
-  color: #1e293b;
+  background: var(--color-surface-alt);
+  border-color: var(--color-text-light);
 }
