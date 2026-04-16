@@ -15,8 +15,6 @@ try {
   console.warn('[server] Agent SDK orchestrator unavailable, using original:', err.message);
   agentOrchestrator = require('./core/agentOrchestrator');
 }
-const imageAnnotator = require('./core/imageAnnotator');
-const { getImagesForSkill } = require('./core/skillImages');
 const skillProgression = require('./core/skillProgression');
 const conversationState = require('./core/conversationState');
 const HelpRequest = require('./models/HelpRequest');
@@ -513,17 +511,11 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         const result = await agentOrchestrator.processMessage(msg.text, userId);
 
         if (ws.readyState === ws.OPEN) {
-          // Look up annotated images if a skill matched
-          const images = (result.matchedSkillId && result.userOsType)
-            ? getImagesForSkill(result.matchedSkillId, result.userOsType)
-            : null;
-
           ws.send(JSON.stringify({
             type: 'response',
             text: result.response,
             safetyAlert: result.safetyAlert,
             stepSequence: result.stepSequence || null,
-            images: images,
             videos: result.videos || null,
             guide: result.guide || null,
             findings: result.findings || null,
@@ -552,10 +544,6 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
 process.on('SIGTERM', () => {
   wss.close(() => { server.close(() => process.exit(0)); });
 });
-
-imageAnnotator.generateAllAnnotations()
-  .then(() => console.log('[imageAnnotator] All annotated images ready'))
-  .catch(err => console.error('[imageAnnotator] Failed:', err.message));
 
 server.listen(config.port, () => {
   const mode = process.env.ELECTRON_MODE ? 'desktop (Electron)' : 'web';
