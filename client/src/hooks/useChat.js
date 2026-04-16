@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { collectBrowserSystemInfo } from '../utils/collectBrowserSystemInfo';
 
 /**
  * useChat — WebSocket chat hook for PC Pal
@@ -53,7 +54,8 @@ export function useChat(userId) {
       setConnectionFailed(false);
       reconnectAttemptsRef.current = 0;
       // Send init message so the server knows who we are
-      ws.send(JSON.stringify({ type: 'init', userId }));
+      const browserSystemInfo = collectBrowserSystemInfo();
+      ws.send(JSON.stringify({ type: 'init', userId, browserSystemInfo }));
     };
 
     ws.onmessage = (event) => {
