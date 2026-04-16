@@ -1,7 +1,5 @@
 # PC Pal — File-by-File Guide
 
-<!-- Updated 2026-04-14: Added Electron files, Agent SDK orchestrator, system diagnostics, MCP tool server, diagnostic skill files, updated tool count (16→25), test count (69→169/8 suites), and new test file listings. -->
-
 Every file in the project, what it does, and where it fits.
 
 ---

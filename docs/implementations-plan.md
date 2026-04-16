@@ -1,7 +1,5 @@
  Here is Claude's plan:                                                                                                                    ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌ PC Pal - Implementation Plan
 
- <!-- Updated 2026-04-13: Added correction notes throughout. This was the original AI-generated plan written before implementation.
-      Several planned names/technologies diverged during actual development. Corrections are marked with [ACTUAL: ...] annotations. -->
 
   
  Context

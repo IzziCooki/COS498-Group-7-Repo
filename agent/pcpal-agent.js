@@ -22,12 +22,12 @@
 const { execSync } = require('child_process');
 const os = require('os');
 
-// ─── Configuration ───────────────────────────────────────────────
+// Configuration
 
 const DEFAULT_SERVER = 'ws://localhost:3001/agent-ws';
 const serverUrl = process.argv[2] || process.env.PCPAL_SERVER || DEFAULT_SERVER;
 
-// ─── Safety: blocked command patterns ────────────────────────────
+// Safety: blocked command patterns
 
 const BLOCKED_PATTERNS = [
   /\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/,
@@ -57,7 +57,7 @@ function runCommand(cmd, timeout = 15000) {
   }
 }
 
-// ─── System info (sent on connect for context) ───────────────────
+// System info (sent on connect for context)
 
 function getSystemSummary() {
   return {
@@ -74,7 +74,7 @@ function getSystemSummary() {
   };
 }
 
-// ─── WebSocket connection ────────────────────────────────────────
+// WebSocket connection
 
 let WebSocket;
 try {

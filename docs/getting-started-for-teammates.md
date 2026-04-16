@@ -1,7 +1,5 @@
 # Getting Started — For Teammates
 
-<!-- Updated 2026-04-14: Added Electron desktop mode, diagnostic demo suggestions, updated tool count (16→25), skill count (17→24), test count (69→169/8 suites), added MCP/Agent SDK/Electron to tech stack, updated project structure. -->
-
 Welcome to PC Pal! This guide will get you up and running in 5 minutes.
 
 ---

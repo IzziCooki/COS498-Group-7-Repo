@@ -2,7 +2,7 @@
 
 const { filterResponse, enforceReadability } = require('../core/vocabularyFilter');
 
-// ─── filterResponse ───────────────────────────────────────────────────────────
+// filterResponse
 
 describe('filterResponse', () => {
   // Basic level — every substitution in basicSubstitutions.json is applied
@@ -125,7 +125,7 @@ describe('filterResponse', () => {
   });
 });
 
-// ─── enforceReadability ───────────────────────────────────────────────────────
+// enforceReadability
 
 describe('enforceReadability', () => {
   test('leaves a short sentence (≤20 words) unchanged', () => {
