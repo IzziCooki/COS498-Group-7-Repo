@@ -61,7 +61,7 @@ function exportConversation(conversationId) {
     user: {
       name: userName,
       os_type: osType,
-      comfort_level: user?.comfort_level || 1,
+      comfort_level: user?.comfort_level ?? 1,
       vocabulary_level: user?.vocabulary_level || 'basic',
     },
     skills_activated: [...new Set(skills.map(s => s.skill_name))],

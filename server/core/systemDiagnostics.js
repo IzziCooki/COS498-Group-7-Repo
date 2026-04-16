@@ -58,7 +58,7 @@ function getSystemInfo() {
     const inactiveMatch = vmStat.match(/Pages inactive:\s+(\d+)/);
     const purgableMatch = vmStat.match(/Pages purgeable:\s+(\d+)/);
     if (freeMatch && inactiveMatch) {
-      const freePages = parseInt(freeMatch[1]) + parseInt(inactiveMatch[1]) + parseInt(purgableMatch?.[1] || 0);
+      const freePages = parseInt(freeMatch[1], 10) + parseInt(inactiveMatch[1], 10) + parseInt(purgableMatch?.[1] || 0, 10);
       freeRamGb = (freePages * pageSize / (1024 ** 3)).toFixed(1);
     } else {
       freeRamGb = (os.freemem() / (1024 ** 3)).toFixed(1);
