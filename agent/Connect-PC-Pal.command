@@ -30,7 +30,7 @@ cat > "$WORKDIR/agent.js" << 'AGENT_SCRIPT'
 const { execSync } = require('child_process');
 const os = require('os');
 
-const serverUrl = process.env.PCPAL_SERVER || 'ws://localhost:3001/agent-ws';
+const serverUrl = process.env.PCPAL_SERVER || 'ws://localhost:3001/ws';
 const BLOCKED = [/\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/, />\s*\/dev\//, /\bshutdown\b/, /\breboot\b/, /\bchmod\b/, /\bchown\b/, /\bcurl\b.*\|.*sh/, /\bformat\b/];
 
 function run(cmd, timeout) {

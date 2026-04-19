@@ -57,18 +57,26 @@ function ChatWindow({ userId, hasBuddy }) {
 
   // Track which message IDs have been set to inline mode
   const [inlineMsgIds, setInlineMsgIds] = useState(new Set());
+  // Track which message IDs have been dismissed (closed) from the side panel
+  const [dismissedMsgIds, setDismissedMsgIds] = useState(new Set());
   // User-selected artifact index (-1 = auto/latest, or explicit index)
   const [userSelectedIdx, setUserSelectedIdx] = useState(-1);
 
-  // Derive active artifact: show user's selection, or default to latest non-inline artifact
+  // Visible artifacts = all artifacts minus dismissed ones
+  const visibleArtifacts = useMemo(
+    () => artifacts.filter(a => !dismissedMsgIds.has(a.msgId)),
+    [artifacts, dismissedMsgIds]
+  );
+
+  // Derive active artifact: show user's selection, or default to latest non-inline visible artifact
   const activeArtifactIdx = useMemo(() => {
-    if (userSelectedIdx >= 0 && userSelectedIdx < artifacts.length) return userSelectedIdx;
-    // Default: last artifact that isn't inline
-    for (let i = artifacts.length - 1; i >= 0; i--) {
-      if (!inlineMsgIds.has(artifacts[i].msgId)) return i;
+    if (userSelectedIdx >= 0 && userSelectedIdx < visibleArtifacts.length) return userSelectedIdx;
+    // Default: last visible artifact that isn't inline
+    for (let i = visibleArtifacts.length - 1; i >= 0; i--) {
+      if (!inlineMsgIds.has(visibleArtifacts[i].msgId)) return i;
     }
     return -1;
-  }, [artifacts, inlineMsgIds, userSelectedIdx]);
+  }, [visibleArtifacts, inlineMsgIds, userSelectedIdx]);
 
   const setActiveArtifactIdx = setUserSelectedIdx;
 
@@ -88,8 +96,8 @@ function ChatWindow({ userId, hasBuddy }) {
   }, [messages, welcomeBack, dismissWelcomeBack]);
 
   const hasUserMessage = messages.some(m => m.role === 'user');
-  const currentArtifact = activeArtifactIdx >= 0 && activeArtifactIdx < artifacts.length
-    ? artifacts[activeArtifactIdx] : null;
+  const currentArtifact = activeArtifactIdx >= 0 && activeArtifactIdx < visibleArtifacts.length
+    ? visibleArtifacts[activeArtifactIdx] : null;
   const showSidePanel = currentArtifact && !inlineMsgIds.has(currentArtifact.msgId);
 
   // Move artifact to inline mode
@@ -101,28 +109,55 @@ function ChatWindow({ userId, hasBuddy }) {
     }
   };
 
+  // Dismiss artifact from the side panel slider
+  const handleDismiss = (msgId) => {
+    setDismissedMsgIds(prev => new Set([...prev, msgId]));
+    setActiveArtifactIdx(-1);
+  };
+
   // Navigate to a specific artifact by message ID (when clicking tag in chat)
   const navigateToArtifact = (msgId) => {
+    // Un-dismiss if it was dismissed
+    setDismissedMsgIds(prev => {
+      const next = new Set(prev);
+      next.delete(msgId);
+      return next;
+    });
     // Remove from inline if it was inline
     setInlineMsgIds(prev => {
       const next = new Set(prev);
       next.delete(msgId);
       return next;
     });
+    // Find index in the visible list (after un-dismissing, need to search full artifacts)
     const idx = artifacts.findIndex(a => a.msgId === msgId);
-    if (idx >= 0) setActiveArtifactIdx(idx);
+    if (idx >= 0) {
+      // Compute what the visible index will be after un-dismissing
+      const visibleIdx = artifacts
+        .filter(a => !dismissedMsgIds.has(a.msgId) || a.msgId === msgId)
+        .findIndex(a => a.msgId === msgId);
+      setActiveArtifactIdx(visibleIdx >= 0 ? visibleIdx : 0);
+    }
   };
 
   // Move artifact back to side panel
   const handleMoveToSide = (msgId) => {
+    // Un-dismiss if it was dismissed
+    setDismissedMsgIds(prev => {
+      const next = new Set(prev);
+      next.delete(msgId);
+      return next;
+    });
     setInlineMsgIds(prev => {
       const next = new Set(prev);
       next.delete(msgId);
       return next;
     });
-    // Find this artifact's index and show it
-    const idx = artifacts.findIndex(a => a.msgId === msgId);
-    if (idx >= 0) setActiveArtifactIdx(idx);
+    // Find this artifact's index in visible list
+    const visibleIdx = artifacts
+      .filter(a => !dismissedMsgIds.has(a.msgId) || a.msgId === msgId)
+      .findIndex(a => a.msgId === msgId);
+    if (visibleIdx >= 0) setActiveArtifactIdx(visibleIdx);
   };
 
   return (
@@ -198,10 +233,10 @@ function ChatWindow({ userId, hasBuddy }) {
     {showSidePanel && (
       <SidePanel
         artifact={currentArtifact}
-        artifacts={artifacts}
+        artifacts={visibleArtifacts}
         activeIndex={activeArtifactIdx}
         onNavigate={setActiveArtifactIdx}
-        onClose={() => setActiveArtifactIdx(-1)}
+        onClose={() => handleDismiss(currentArtifact.msgId)}
         onMoveToInline={() => handleMoveToInline(currentArtifact.msgId)}
         onRunCommand={runCommand}
       />

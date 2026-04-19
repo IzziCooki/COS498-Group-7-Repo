@@ -92,4 +92,23 @@ router.get('/:id/memories', (req, res) => {
   }
 });
 
+// GET /api/users/:id/conversations — list conversations with preview
+router.get('/:id/conversations', (req, res) => {
+  try {
+    const Conversation = require('../models/Conversation');
+    const db = require('../db/database');
+    const rows = db.prepare(`
+      SELECT c.*,
+        (SELECT body FROM messages WHERE conversation_id = c.id AND role = 'user' ORDER BY created_at ASC LIMIT 1) AS preview
+      FROM conversations c
+      WHERE c.user_id = ?
+      ORDER BY c.started_at DESC
+    `).all(req.params.id);
+    res.json(rows);
+  } catch (err) {
+    console.error('[users] GET /:id/conversations error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve conversations.' });
+  }
+});
+
 module.exports = router;

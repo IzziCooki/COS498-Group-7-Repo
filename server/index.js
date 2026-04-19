@@ -41,7 +41,7 @@ app.get('/api/connect-script', (req, res) => {
   // Determine the WebSocket URL for the agent to connect to
   const host = req.headers.host || 'localhost:3001';
   const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'wss' : 'ws';
-  const wsUrl = `${protocol}://${host}/agent-ws`;
+  const wsUrl = `${protocol}://${host}/ws`;
 
   res.type('text/plain').send(`#!/bin/bash
 # PC Pal — Connect Your Computer
@@ -145,25 +145,11 @@ app.get('*', (req, res, next) => {
 
 const server = http.createServer(app);
 
-// noServer mode — route WebSocket upgrades by path
-const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
-
-// Relay Agent Infrastructure
-// Relay agents connect via /agent-ws and are paired with chat users
-// via a 6-character code. Commands are relayed through the server.
-
-const agentWss = new WebSocketServer({ noServer: true, maxPayload: 256 * 1024 });
-
-server.on('upgrade', (request, socket, head) => {
-  const { pathname } = new URL(request.url, `http://${request.headers.host}`);
-  if (pathname === '/ws') {
-    wss.handleUpgrade(request, socket, head, (ws) => wss.emit('connection', ws, request));
-  } else if (pathname === '/agent-ws') {
-    agentWss.handleUpgrade(request, socket, head, (ws) => agentWss.emit('connection', ws, request));
-  } else {
-    socket.destroy();
-  }
-});
+// Single WebSocket server — chat clients and relay agents share /ws
+// The first message determines the connection type:
+//   { type: 'init', userId } → chat client
+//   { type: 'agent_register', systemInfo } → relay agent
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 256 * 1024 });
 
 const pendingAgents = new Map();   // code → { ws, systemInfo }
 const pairedAgents = new Map();    // userId → { ws, systemInfo, code }
@@ -212,67 +198,10 @@ function hasRelayAgent(userId) {
 app.locals.sendCommandToAgent = sendCommandToAgent;
 app.locals.hasRelayAgent = hasRelayAgent;
 
-agentWss.on('connection', (ws) => {
-  let agentCode = null;
-
-  ws.on('message', (data) => {
-    let msg;
-    try { msg = JSON.parse(data); } catch { return; }
-
-    if (msg.type === 'agent_register') {
-      agentCode = generatePairingCode();
-      pendingAgents.set(agentCode, { ws, systemInfo: msg.systemInfo || {} });
-      ws.send(JSON.stringify({ type: 'agent_registered', pairingCode: agentCode }));
-      console.log(`[relay] Agent registered with code: ${agentCode}`);
-      // Auto-expire pairing code after 5 minutes if not paired
-      setTimeout(() => {
-        if (pendingAgents.has(agentCode)) {
-          pendingAgents.delete(agentCode);
-          console.log(`[relay] Pairing code ${agentCode} expired`);
-        }
-      }, 5 * 60 * 1000);
-
-    } else if (msg.type === 'agent_command_result') {
-      const pending = pendingCommands.get(msg.requestId);
-      if (pending) {
-        clearTimeout(pending.timer);
-        pendingCommands.delete(msg.requestId);
-        pending.resolve({ output: msg.output, error: msg.error });
-      }
-
-    } else if (msg.type === 'agent_pong') {
-      // keepalive response — do nothing
-    }
-  });
-
-  ws.on('close', () => {
-    if (agentCode) {
-      pendingAgents.delete(agentCode);
-      // Remove from paired if this agent was paired
-      for (const [userId, agent] of pairedAgents.entries()) {
-        if (agent.code === agentCode) {
-          pairedAgents.delete(userId);
-          console.log(`[relay] Agent ${agentCode} disconnected from user ${userId}`);
-          break;
-        }
-      }
-    }
-  });
-
-  // Keepalive ping every 30s
-  const pingInterval = setInterval(() => {
-    if (ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'agent_ping' }));
-    } else {
-      clearInterval(pingInterval);
-    }
-  }, 30000);
-
-  ws.on('close', () => clearInterval(pingInterval));
-});
-
 wss.on('connection', (ws) => {
   let userId = null;
+  let agentCode = null; // set if this connection is a relay agent
+  let agentPingInterval = null;
 
   ws.on('message', async (data) => {
     try {
@@ -552,6 +481,34 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
             conversationId: result.conversationId || null,
           }));
         }
+      // Relay agent messages — same /ws path, distinguished by message type
+      } else if (msg.type === 'agent_register') {
+        agentCode = generatePairingCode();
+        pendingAgents.set(agentCode, { ws, systemInfo: msg.systemInfo || {} });
+        ws.send(JSON.stringify({ type: 'agent_registered', pairingCode: agentCode }));
+        console.log(`[relay] Agent registered with code: ${agentCode}`);
+        setTimeout(() => {
+          if (pendingAgents.has(agentCode)) {
+            pendingAgents.delete(agentCode);
+            console.log(`[relay] Pairing code ${agentCode} expired`);
+          }
+        }, 5 * 60 * 1000);
+        // Start keepalive pings for relay agents
+        agentPingInterval = setInterval(() => {
+          if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'agent_ping' }));
+          else clearInterval(agentPingInterval);
+        }, 30000);
+
+      } else if (msg.type === 'agent_command_result') {
+        const pending = pendingCommands.get(msg.requestId);
+        if (pending) {
+          clearTimeout(pending.timer);
+          pendingCommands.delete(msg.requestId);
+          pending.resolve({ output: msg.output, error: msg.error });
+        }
+
+      } else if (msg.type === 'agent_pong') {
+        // keepalive response
       }
     } catch (err) {
       console.error('[ws] Error processing message:', err);
@@ -562,8 +519,20 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
   });
 
   ws.on('close', () => {
-    console.log(`[ws] Connection closed for userId=${userId}`);
+    console.log(`[ws] Connection closed for userId=${userId} agentCode=${agentCode}`);
     if (userId) clientInfoStore.remove(userId);
+    if (agentPingInterval) clearInterval(agentPingInterval);
+    // Clean up relay agent state
+    if (agentCode) {
+      pendingAgents.delete(agentCode);
+      for (const [uid, agent] of pairedAgents.entries()) {
+        if (agent.code === agentCode) {
+          pairedAgents.delete(uid);
+          console.log(`[relay] Agent ${agentCode} disconnected from user ${uid}`);
+          break;
+        }
+      }
+    }
   });
 
   ws.on('error', (err) => {
