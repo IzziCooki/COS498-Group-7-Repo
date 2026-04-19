@@ -1,0 +1,30 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "7bd17e7bde13",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 11,
+  "files_touched": [
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/sharedConstants.js",
+    "server/skills/send-email.json",
+    "server/skills/text-message.json",
+    "server/skills/video-call.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7b/d17e7bde13/0/metadata.json",
+      "transcript": "/7b/d17e7bde13/0/full.jsonl",
+      "content_hash": "/7b/d17e7bde13/0/content_hash.txt",
+      "prompt": "/7b/d17e7bde13/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 177,
+    "cache_creation_tokens": 654683,
+    "cache_read_tokens": 12505522,
+    "output_tokens": 44711,
+    "api_call_count": 135
+  }
+}
