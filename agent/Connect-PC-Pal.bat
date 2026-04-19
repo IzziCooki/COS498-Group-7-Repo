@@ -31,7 +31,7 @@ REM Write the agent script
 echo const { execSync } = require('child_process'^);
 echo const os = require('os'^);
 echo const WebSocket = require('ws'^);
-echo const serverUrl = process.env.PCPAL_SERVER ^|^| 'ws://localhost:3001/agent-ws';
+echo const serverUrl = process.env.PCPAL_SERVER ^|^| 'ws://localhost:3001/ws';
 echo const BLOCKED = [/\brm\s+-rf\s+\//, /\bmkfs\b/, /\bdd\b.*of=\/dev/, /\bshutdown\b/, /\breboot\b/, /\bformat\b/];
 echo function run(cmd, t^) { if (BLOCKED.some(p =^> p.test(cmd^)^)^) return {output:'BLOCKED',error:true}; try { return {output:execSync(cmd,{encoding:'utf-8',timeout:t^|^|15000,maxBuffer:512*1024,stdio:['pipe','pipe','pipe']}^).trim(^),error:false}; } catch(e^) { return {output:e.stderr?e.stderr.trim(^):e.message,error:true}; } }
 echo function sysInfo(^) { return {platform:process.platform,hostname:os.hostname(^),username:os.userInfo(^).username,cpu:os.cpus(^)[0]?.model,cpu_cores:os.cpus(^).length,total_ram_gb:(os.totalmem(^)/(1024**3^)^).toFixed(1^),free_ram_gb:(os.freemem(^)/(1024**3^)^).toFixed(1^)}; }

@@ -3,6 +3,18 @@ const exporter = require('../core/conversationExporter');
 
 const router = express.Router();
 
+// GET /api/conversations/:id/messages — get messages for a conversation
+router.get('/:id/messages', (req, res) => {
+  try {
+    const Message = require('../models/Message');
+    const messages = Message.findByConversationId(req.params.id);
+    res.json(messages);
+  } catch (err) {
+    console.error('[export] GET /:id/messages error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve messages.' });
+  }
+});
+
 // POST /api/conversations/:id/export — export a single conversation
 router.post('/:id/export', (req, res) => {
   try {

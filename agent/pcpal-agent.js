@@ -25,7 +25,7 @@ const { BLOCKED_PATTERNS } = require('../server/core/sharedConstants');
 
 // Configuration
 
-const DEFAULT_SERVER = 'ws://localhost:3001/agent-ws';
+const DEFAULT_SERVER = 'ws://localhost:3001/ws';
 const serverUrl = process.argv[2] || process.env.PCPAL_SERVER || DEFAULT_SERVER;
 
 // BLOCKED_PATTERNS imported from sharedConstants.js
