@@ -148,3 +148,7 @@ Please output:
 4. Any small suggestions for other files if needed (e.g. userProfileManager.js).
 
 Make the changes clean, well-commented, and easy to merge into the current branch.
+
+---
+
+yea commit this to my branch and guide me on how to test the latest updates to my branch
