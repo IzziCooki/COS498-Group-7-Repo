@@ -24,5 +24,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "intermediate",
-  "prompt": "Use get_system_info and read_error_log. Synthesize a SHORT report: state what's wrong, the likely cause, and 1-3 fix steps. Don't narrate your investigation — present findings directly. If they mention a specific app, also check check_installed_software."
+  "prompt": "Run get_system_info and read_error_log. ONLY report what the tools actually return — do not invent errors or system specs. State the likely cause from the data and give 1-3 fix steps. If tools return nothing useful, say so and ask the user to describe what happened."
 }

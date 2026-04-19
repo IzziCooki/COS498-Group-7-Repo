@@ -63,6 +63,24 @@ function getAndClearLastFindings() {
   return f;
 }
 
+/**
+ * Check if diagnostics can actually see the user's machine.
+ * Returns true in Electron mode (local) or if running on localhost.
+ * Returns false on deployed web servers where diagnostics would show container data.
+ */
+function canRunLocalDiagnostics() {
+  if (process.env.ELECTRON_MODE) return true;
+  // If running on localhost (dev mode), server IS the user's machine
+  const port = process.env.PORT || '3001';
+  if (port === '3001') return true; // dev default
+  return false; // deployed (HF Spaces, etc.) — diagnostics show container, not user
+}
+
+function noAccessMessage(toolName) {
+  return `Cannot run ${toolName} — this would show server data, not the user's computer. ` +
+    'Ask the user to click "Connect Computer" to connect their machine, or ask them to describe their setup.';
+}
+
 // System Diagnostic Tools
 
 const getSystemInfo = tool(
@@ -82,11 +100,11 @@ const getSystemInfo = tool(
       return textResult(clientInfoStore.formatBrowserSystemInfo(browserInfo));
     }
 
-    // Fallback: server diagnostics with disclaimer
+    // No relay agent and no browser info — cannot see the user's computer
     return textResult(
-      systemDiagnostics.getSystemInfo() +
-      '\n\nNote: This is the server environment, not the user\'s computer. ' +
-      'Browser-based system detection was not available.'
+      'IMPORTANT: I cannot see this user\'s actual computer. No relay agent is connected and browser detection was not available. ' +
+      'DO NOT guess or make up system specs. Tell the user you need them to connect their computer using the Connect Computer button, ' +
+      'or ask them to describe their device manually.'
     );
   }
 );
@@ -95,21 +113,30 @@ const checkNetwork = tool(
   'check_network',
   "Check internet connection, Wi-Fi status, DNS resolution, and network latency. Use when user reports internet or Wi-Fi problems.",
   {},
-  async () => textResult(systemDiagnostics.checkNetwork())
+  async () => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('network check'));
+    return textResult(systemDiagnostics.checkNetwork());
+  }
 );
 
 const listRunningApps = tool(
   'list_running_apps',
   "List running applications and their resource usage (CPU/memory). Use to find apps slowing down the computer.",
   {},
-  async () => textResult(systemDiagnostics.listRunningApps())
+  async () => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('app listing'));
+    return textResult(systemDiagnostics.listRunningApps());
+  }
 );
 
 const readErrorLog = tool(
   'read_error_log',
   "Read recent system error logs to diagnose crashes, freezes, or other problems.",
   { source: z.enum(['system', 'application', 'crash']).optional().describe('Which log: system, application, or crash') },
-  async (args) => textResult(systemDiagnostics.readErrorLog(args.source))
+  async (args) => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('error log'));
+    return textResult(systemDiagnostics.readErrorLog(args.source));
+  }
 );
 
 const runSafeCommand = tool(
@@ -120,6 +147,7 @@ const runSafeCommand = tool(
     reason: z.string().describe('Why you are running this command'),
   },
   async (args) => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('terminal command'));
     console.log(`[MCP] Safe command: "${args.command}" — ${args.reason}`);
     return textResult(systemDiagnostics.runSafeCommand(args.command));
   }
@@ -129,7 +157,10 @@ const checkDiskHealth = tool(
   'check_disk_health',
   "Check disk space usage, large folders, and temp files. Use when user says computer is full or running out of space.",
   {},
-  async () => textResult(systemDiagnostics.checkDiskHealth())
+  async () => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('disk check'));
+    return textResult(systemDiagnostics.checkDiskHealth());
+  }
 );
 
 const checkInstalledSoftware = tool(
@@ -143,7 +174,10 @@ const getBatteryStatus = tool(
   'get_battery_status',
   "Check battery level and charging state. Use when user asks about battery or computer keeps shutting off.",
   {},
-  async () => textResult(systemDiagnostics.getBatteryStatus())
+  async () => {
+    if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('battery check'));
+    return textResult(systemDiagnostics.getBatteryStatus());
+  }
 );
 
 // Teaching & Skill Tools

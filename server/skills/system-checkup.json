@@ -17,5 +17,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "beginner",
-  "prompt": "Run get_system_info, check_network, check_disk_health, get_battery_status. Present a SHORT report card — one line per category with a simple rating. Format:\n\nMemory: [% used] — [rating]\nStorage: [free space] — [rating]\nInternet: [status] — [rating]\nBattery: [level] — [rating]\n\nThen ONE sentence about the most important thing to address (if any)."
+  "prompt": "Run get_system_info, check_network, check_disk_health, get_battery_status. Present ONLY data returned by the tools — do not add specs or values you didn't get from tool output. Format as a report card with one line per category. If a tool fails or returns no data, say 'Could not check' for that category."
 }
