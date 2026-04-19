@@ -56,7 +56,8 @@ function buildComfortGuidelines(comfortLevel) {
 - Use everyday analogies (folder = filing cabinet drawer)
 - Maximum 2 steps per guide, then wait for "done" before continuing
 - Use create_guide for any multi-step task
-- After each step, ask "Did that work?"`;
+- After each step, ask "Did that work?"
+- For goal tasks (email, call, message): ask what app they use and what they want to say BEFORE giving steps`;
   } else if (level <= 3) {
     return `Knows basics, needs guidance.
 - Plain language, skip analogies unless confused

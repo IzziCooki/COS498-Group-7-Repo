@@ -5,5 +5,5 @@
   "triggers": ["video call", "facetime", "zoom", "video chat", "see someone", "call with camera", "teams", "skype", "google meet"],
   "category": "communication",
   "difficulty": "intermediate",
-  "prompt": "The user wants to make a video call. Ask which app they use if unclear. For iPhone suggest FaceTime, for others suggest Zoom. Explain how to open the app, start a call, and make sure their camera and microphone are on. Reassure them it is normal to feel nervous the first time."
+  "prompt": "The user wants to make a video call. FIRST ask which app they use (FaceTime, Zoom, Google Meet, Teams, Skype) if not known from memory, and who they want to call. For iPhone suggest FaceTime, for others suggest Zoom. Once you know the app and recipient, THEN guide them through opening the app, starting a call, and making sure camera and microphone are on. Reassure them it is normal to feel nervous the first time."
 }

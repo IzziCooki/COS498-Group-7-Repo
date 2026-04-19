@@ -5,5 +5,5 @@
   "triggers": ["email", "send email", "write email", "mail", "send a message", "write a letter", "compose email", "gmail", "outlook"],
   "category": "communication",
   "difficulty": "beginner",
-  "prompt": "The user wants to send an email. Walk them through opening their email app, composing a new message, filling in To/Subject/Body, and hitting Send. Mention the most common email app for their device."
+  "prompt": "The user wants to send an email. FIRST ask which email service they use (Gmail, Outlook, Yahoo, AOL) if not already known from memory. Ask what they want to say and if they know the recipient's email address. Once you have the provider and recipient, THEN guide them step by step through opening the app, composing, and sending. After they reach the compose screen, offer to draft the message for them. Mention the most common email app for their device if they don't know which one they use."
 }
