@@ -78,7 +78,31 @@ const SERVER="${wsUrl}";
 const BLOCKED=[/rm\\\\s+-rf\\\\s+\\\\//, /mkfs/, /dd.*of=\\\\/dev/, /shutdown/, /reboot/, /format/];
 function run(c,t){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{return{output:execSync(c,{encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"]}).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
 function info(){return{platform:process.platform,hostname:os.hostname(),username:os.userInfo().username,cpu:os.cpus()[0]&&os.cpus()[0].model||"Unknown",cpu_cores:os.cpus().length,total_ram_gb:(os.totalmem()/1073741824).toFixed(1),free_ram_gb:(os.freemem()/1073741824).toFixed(1)}}
-function connect(){var ws=new WebSocket(SERVER);ws.on("open",function(){ws.send(JSON.stringify({type:"agent_register",systemInfo:info()}))});ws.on("message",function(d){var m;try{m=JSON.parse(d)}catch(e){return}if(m.type==="agent_registered"){console.log("");console.log("  Your code: "+m.pairingCode);console.log("");console.log("  Type this code in PC Pal and click Connect.");console.log("  Keep this window open!");console.log("")}else if(m.type==="agent_paired"){console.log("  Connected to PC Pal!")}else if(m.type==="agent_command"){var r=run(m.command,m.timeout);ws.send(JSON.stringify({type:"agent_command_result",requestId:m.requestId,command:m.command,output:r.output,error:r.error}))}else if(m.type==="agent_ping"){ws.send(JSON.stringify({type:"agent_pong"}))}});ws.on("close",function(){console.log("  Reconnecting...");setTimeout(connect,5e3)});ws.on("error",function(){console.log("  Waiting for PC Pal...");setTimeout(connect,5e3)});process.on("SIGINT",function(){ws.close();process.exit(0)})}
+var attempts=0;
+function connect(){
+  attempts++;
+  var url=SERVER;
+  if(attempts>3&&url.startsWith("ws://")){url=url.replace("ws://","wss://");console.log("  Trying secure connection...")}
+  var ws=new WebSocket(url,{headers:{"User-Agent":"PCPalAgent/1.0"}});
+  ws.on("open",function(){attempts=0;ws.send(JSON.stringify({type:"agent_register",systemInfo:info()}))});
+  ws.on("message",function(d){var m;try{m=JSON.parse(d)}catch(e){return}
+    if(m.type==="agent_registered"){console.log("");console.log("  Your code: "+m.pairingCode);console.log("");console.log("  Type this code in PC Pal and click Connect.");console.log("  Keep this window open!");console.log("")}
+    else if(m.type==="agent_paired"){console.log("  Connected to PC Pal! You can minimize this window.")}
+    else if(m.type==="agent_command"){var r=run(m.command,m.timeout);ws.send(JSON.stringify({type:"agent_command_result",requestId:m.requestId,command:m.command,output:r.output,error:r.error}))}
+    else if(m.type==="agent_ping"){ws.send(JSON.stringify({type:"agent_pong"}))}
+  });
+  ws.on("close",function(){
+    var delay=Math.min(attempts*2,30);
+    console.log("  Reconnecting in "+delay+"s...");
+    setTimeout(connect,delay*1000)
+  });
+  ws.on("error",function(e){
+    if(attempts<=1){console.log("  Connecting to PC Pal at "+url+"...")}
+    else if(attempts===4){console.log("  Still trying... make sure PC Pal is running.")}
+    else if(attempts>10){console.log("  Cannot reach PC Pal. Check that the website is up and try again.");process.exit(1)}
+  });
+  process.on("SIGINT",function(){ws.close();process.exit(0)})
+}
 connect();
 AGENTEOF
 

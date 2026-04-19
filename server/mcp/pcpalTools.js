@@ -26,6 +26,7 @@ function getSessionId() { return _activeSessionId; }
 const systemDiagnostics = require('../core/systemDiagnostics');
 const clientInfoStore = require('../core/clientInfoStore');
 const youtubeSearch = require('../core/youtubeSearch');
+const UserMemory = require('../models/UserMemory');
 const skillProgression = require('../core/skillProgression');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
@@ -413,6 +414,41 @@ const findYoutubeVideos = tool(
   }
 );
 
+// Memory Tools
+
+const saveMemory = tool(
+  'save_memory',
+  "Save an observation about the user for future sessions. Use this to remember their preferences, things they struggle with, breakthroughs they've had, personal context they share, or patterns you notice. These memories persist across sessions and help you personalize future interactions. Be specific and concise.",
+  {
+    type: z.enum(['preference', 'struggle', 'breakthrough', 'context', 'pattern']).describe(
+      'preference: how they like to learn. struggle: what confuses them. breakthrough: skills mastered. context: personal details they share. pattern: behavioral patterns you notice.'
+    ),
+    content: z.string().describe('The observation — one specific sentence, e.g. "Gets confused by right-click vs left-click" or "Grandson Tom lives in Portland"'),
+    relevance: z.number().optional().describe('1-10 how important this is for future interactions (default 5)'),
+  },
+  async (args) => {
+    const memory = UserMemory.create({
+      user_id: getUserId(),
+      type: args.type,
+      content: args.content,
+      source: 'agent_observation',
+      relevance: args.relevance ?? 5,
+    });
+    return textResult(`Memory saved: [${args.type}] ${args.content}`);
+  }
+);
+
+const recallMemories = tool(
+  'recall_memories',
+  "Retrieve what you know about the user from past sessions. Use this at the start of a conversation or when context from previous interactions would help. Returns preferences, struggles, breakthroughs, personal context, and patterns.",
+  {},
+  async () => {
+    const summary = UserMemory.buildMemorySummary(getUserId());
+    if (!summary) return textResult('No memories saved for this user yet.');
+    return textResult(summary);
+  }
+);
+
 // Diagnostic Findings Artifact Tool
 
 const createFindings = tool(
@@ -496,6 +532,9 @@ function createPcPalMcpServer() {
       askBuddyForHelp,
       // Media
       findYoutubeVideos,
+      // Memory
+      saveMemory,
+      recallMemories,
       // Artifacts
       createGuide,
       createFindings,
