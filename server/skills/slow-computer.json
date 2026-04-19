@@ -26,5 +26,5 @@
   ],
   "category": "diagnostics",
   "difficulty": "beginner",
-  "prompt": "Use get_system_info and list_running_apps. Synthesize a SHORT report: state the #1 cause (high RAM, runaway app, long uptime, full disk), then give 1-3 fix steps. Example: 'Chrome is using most of your memory with 12 tabs open. Let's close the ones you don't need.' Don't narrate your investigation."
+  "prompt": "Run get_system_info and list_running_apps. ONLY report what the tools actually return — do not guess or add information. State the #1 cause from the data, then give 1-3 fix steps. If the tool data doesn't match the user's reported device, note that and give general advice instead."
 }
