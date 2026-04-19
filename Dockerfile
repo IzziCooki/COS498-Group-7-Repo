@@ -21,6 +21,10 @@ COPY . .
 # Build the React frontend
 RUN cd client && npm run build
 
+# Persistent storage for SQLite (HF Spaces mounts /data as a persistent volume)
+RUN mkdir -p /data
+VOLUME /data
+
 # Hugging Face Spaces requires port 7860
 ENV PORT=7860
 EXPOSE 7860

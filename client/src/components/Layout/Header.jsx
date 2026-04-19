@@ -13,6 +13,9 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
   const [editComfort, setEditComfort] = useState(1);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [showMemories, setShowMemories] = useState(false);
+  const [memories, setMemories] = useState([]);
+  const [loadingMemories, setLoadingMemories] = useState(false);
 
   const openEdit = () => {
     if (!user) return;
@@ -140,9 +143,45 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
+              <button className="profile-edit__memories-btn" onClick={() => {
+                setLoadingMemories(true);
+                fetch(`/api/users/${user.id}/memories`)
+                  .then(r => r.json())
+                  .then(data => { setMemories(data); setShowMemories(true); })
+                  .catch(() => setMemories([]))
+                  .finally(() => setLoadingMemories(false));
+              }} disabled={loadingMemories}>
+                {loadingMemories ? 'Loading...' : 'View Memories'}
+              </button>
               <button type="button" className="profile-edit__cancel" onClick={() => setEditing(false)}>
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMemories && (
+        <div className="profile-edit-overlay" onClick={() => setShowMemories(false)}>
+          <div className="memories-modal" onClick={e => e.stopPropagation()}>
+            <div className="memories-modal__header">
+              <h2 className="memories-modal__title">Agent Memories</h2>
+              <button className="memories-modal__close" onClick={() => setShowMemories(false)}>Close</button>
+            </div>
+            <div className="memories-modal__body">
+              {memories.length === 0 ? (
+                <p className="memories-modal__empty">No memories saved yet. The agent will remember things about you as you chat!</p>
+              ) : (
+                memories.map((m) => (
+                  <div key={m.id} className={`memories-modal__item memories-modal__item--${m.type}`}>
+                    <div className="memories-modal__item-header">
+                      <span className="memories-modal__type">{m.type}</span>
+                      <span className="memories-modal__date">{new Date(m.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="memories-modal__content">{m.content}</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

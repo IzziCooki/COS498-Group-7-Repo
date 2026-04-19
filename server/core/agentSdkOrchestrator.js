@@ -12,6 +12,7 @@
 const { query } = require('@anthropic-ai/claude-agent-sdk');
 const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
+const UserMemory = require('../models/UserMemory');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
 const userProfileManager = require('./userProfileManager');
@@ -37,7 +38,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -57,6 +58,7 @@ You have real diagnostic tools. Use them to give specific advice, not guesses.
 User: ${profileString}
 Comfort: ${comfortGuidelines}
 Phase: ${phaseNote}
+${memorySummary ? `\n## What you know about this person (from past sessions)\n${memorySummary}\n\nUse this naturally — reference past breakthroughs, avoid known struggles, connect to their goals. Don't announce that you "remember" — just show it through your advice.` : ''}
 
 ## How to respond
 
@@ -64,6 +66,17 @@ Phase: ${phaseNote}
 
 For a new topic: one friendly sentence + your answer + one encouraging line.
 For a follow-up ("ok", "done", "next"): one sentence, no greeting.
+
+## IMPORTANT: Save memories every conversation
+
+You MUST call save_memory at least once per conversation to record something useful about this person. Look for:
+- What they're trying to do and why (context)
+- What confuses them or what they ask about repeatedly (struggle)
+- What device/setup they have (context)
+- How they prefer to learn — do they like videos, step-by-step, or just quick answers? (preference)
+- When they succeed at something new (breakthrough)
+
+Do this BEFORE your final text response, not after. One save_memory call per turn is enough — pick the most important observation.
 
 ## Artifacts — use these instead of writing steps in text
 
@@ -90,6 +103,10 @@ The pattern: diagnose → create_findings → create_guide with fix steps → br
 - save_note_for_user — call after teaching something important
 - save_user_goal — call when user shares why they're learning
 - adjust_vocabulary_level — call if user seems confused or confident
+
+**Memory (MUST use — see rules above):**
+- save_memory — call every turn with an observation about this person
+- recall_memories — retrieve past observations if needed mid-conversation
 
 ## Never do these
 - Say "simply", "just", "as I mentioned", "I'd be happy to help"
@@ -135,7 +152,10 @@ async function processMessage(text, userId) {
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const conversationLength = dbMessages.filter(m => m.role === 'user').length;
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength);
+
+    // Load persistent memories for this user
+    const memorySummary = UserMemory.buildMemorySummary(userId);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary);
 
     const historyContext = dbMessages
       .map(msg => `${msg.role === 'assistant' ? 'PC Pal' : 'User'}: ${msg.body}`)

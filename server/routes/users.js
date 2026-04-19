@@ -80,4 +80,16 @@ router.put('/:id/onboard', (req, res) => {
   }
 });
 
+// GET /api/users/:id/memories — get user's stored memories
+router.get('/:id/memories', (req, res) => {
+  try {
+    const UserMemory = require('../models/UserMemory');
+    const memories = UserMemory.findByUserId(req.params.id);
+    res.json(memories);
+  } catch (err) {
+    console.error('[users] GET /:id/memories error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve memories.' });
+  }
+});
+
 module.exports = router;
