@@ -68,7 +68,7 @@ function VideoCall({ userId, buddyName, onClose }) {
 
     ws.addEventListener('message', handler);
     return () => ws.removeEventListener('message', handler);
-  }, [wsRef, cleanup]);
+  }, [wsRef, cleanup]); // eslint-disable-line react-hooks/exhaustive-deps -- startCall is stable, defined below
 
   const startCall = async (initiator, incomingSignal) => {
     try {
