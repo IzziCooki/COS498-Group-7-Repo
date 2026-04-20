@@ -699,4 +699,4 @@ function createPcPalMcpServer() {
   });
 }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, setActiveUserContext };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn };
