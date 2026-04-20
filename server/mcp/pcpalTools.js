@@ -26,7 +26,10 @@ function getSessionId() { return _activeSessionId; }
 const systemDiagnostics = require('../core/systemDiagnostics');
 const clientInfoStore = require('../core/clientInfoStore');
 const youtubeSearch = require('../core/youtubeSearch');
+const screenshotAnnotator = require('../core/screenshotAnnotator');
 const UserMemory = require('../models/UserMemory');
+const Anthropic = require('@anthropic-ai/sdk');
+const { anthropicApiKey } = require('../config');
 const skillProgression = require('../core/skillProgression');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
@@ -50,6 +53,18 @@ function textResult(text) {
 // The orchestrator reads and clears these after each query()
 let _lastGuide = null;
 let _lastFindings = null;
+let _lastScreenshot = null;
+
+// Reference to the requestScreenshot function from index.js (set at runtime)
+let _requestScreenshotFn = null;
+
+function setRequestScreenshotFn(fn) { _requestScreenshotFn = fn; }
+
+function getAndClearLastScreenshot() {
+  const s = _lastScreenshot;
+  _lastScreenshot = null;
+  return s;
+}
 
 function getAndClearLastGuide() {
   const g = _lastGuide;

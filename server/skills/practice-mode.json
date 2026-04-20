@@ -1,0 +1,28 @@
+{
+  "id": "practice_mode",
+  "name": "Practice Mode",
+  "description": "Start a safe practice session where the user learns task steps in a simulation before doing it for real on their computer",
+  "triggers": [
+    "practice",
+    "let me practice",
+    "can I practice",
+    "I want to practice",
+    "practice first",
+    "let me try first",
+    "try first",
+    "I'm scared",
+    "I'm nervous",
+    "what if I break",
+    "afraid to try",
+    "scared to try",
+    "don't want to mess up",
+    "simulate",
+    "dry run",
+    "walk me through it first",
+    "show me first",
+    "before I try"
+  ],
+  "category": "learning",
+  "difficulty": "beginner",
+  "prompt": "The user wants to practice before doing something for real. Call start_practice with the task they want to learn. Available tasks: send_email, copy_paste, open_browser. Be extra reassuring: 'Nothing will happen to your computer — this is just practice!' If they don't specify a task, ask what they'd like to practice."
+}
