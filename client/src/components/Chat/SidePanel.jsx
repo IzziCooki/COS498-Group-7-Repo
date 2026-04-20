@@ -3,6 +3,7 @@ import './SidePanel.css';
 import CommandGuide from './CommandGuide';
 import DiagnosticFindings from './DiagnosticFindings';
 import YouTubeEmbed from './YouTubeEmbed';
+import PracticeMode from './PracticeMode';
 
 function ResourcesContent({ resources }) {
   const { summary, videos, links } = resources;
