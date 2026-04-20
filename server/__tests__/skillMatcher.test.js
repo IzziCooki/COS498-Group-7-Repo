@@ -168,7 +168,7 @@ describe('skillMatcher', () => {
       const diagSkills = skills.filter(s => s.category === 'diagnostics');
       for (const skill of diagSkills) {
         const prompt = buildSkillPrompt(skill);
-        const hasDiagTool = /get_system_info|check_network|list_running_apps|check_disk_health|check_installed_software|get_battery_status|read_error_log/.test(prompt);
+        const hasDiagTool = /get_system_info|check_network|list_running_apps|check_disk_health|check_installed_software|get_battery_status|read_error_log|take_screenshot/.test(prompt);
         expect(hasDiagTool).toBe(true);
       }
     });

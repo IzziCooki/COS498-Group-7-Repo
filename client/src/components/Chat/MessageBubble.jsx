@@ -53,7 +53,7 @@ function artifactLabel(msg) {
  * If inlineMode is true, the full artifact renders in the chat.
  */
 function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClickArtifact }) {
-  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, practice, buddyTerminal } = message;
+  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, practice, buddyTerminal, screenshot } = message;
   const isUser = role === 'user';
   const hasArtifact = !isUser && (guide || resources || findings || videos || practice);
   const label = hasArtifact ? artifactLabel(message) : null;
@@ -113,6 +113,14 @@ function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClic
                 {buddyTerminal.output || '(no output)'}
               </pre>
             )}
+          </div>
+        )}
+
+        {/* Annotated user screenshot (from take_screenshot tool) */}
+        {screenshot && (
+          <div className="bubble__screenshot-annotated">
+            <img src={screenshot.imageUrl} alt={screenshot.description || 'Your screen'} className="bubble__screenshot-img" />
+            {screenshot.description && <p className="bubble__screenshot-caption">{screenshot.description}</p>}
           </div>
         )}
 

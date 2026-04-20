@@ -238,6 +238,14 @@ app.locals.sendCommandToAgent = sendCommandToAgent;
 app.locals.requestScreenshot = requestScreenshot;
 app.locals.hasRelayAgent = hasRelayAgent;
 
+// Inject requestScreenshot into MCP tools for the take_screenshot tool
+try {
+  const { setRequestScreenshotFn } = require('./mcp/pcpalTools');
+  setRequestScreenshotFn(requestScreenshot);
+} catch (err) {
+  console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
+}
+
 wss.on('connection', (ws) => {
   let userId = null;
   let agentCode = null; // set if this connection is a relay agent
@@ -601,6 +609,11 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
             guide: result.guide || null,
             findings: result.findings || null,
             practice: result.practice || null,
+            screenshot: result.screenshot ? {
+              imageUrl: `data:image/png;base64,${result.screenshot.imageBase64}`,
+              description: result.screenshot.description,
+              found: result.screenshot.found,
+            } : null,
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
           }));

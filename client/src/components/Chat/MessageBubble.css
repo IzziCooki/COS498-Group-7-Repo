@@ -126,6 +126,31 @@
   color: #1a3a8a;
 }
 
+/* User screen screenshot (from take_screenshot) */
+.bubble__screenshot-annotated {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #FF3333;
+  box-shadow: 0 4px 12px rgba(255, 51, 51, 0.15);
+}
+
+.bubble__screenshot-annotated .bubble__screenshot-img {
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+}
+
+.bubble__screenshot-annotated .bubble__screenshot-caption {
+  font-size: 14px;
+  color: #475569;
+  padding: 8px 12px;
+  margin: 0;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
+
 /* Annotated device screenshots */
 .bubble__screenshots {
   display: flex;
