@@ -57,7 +57,8 @@ function buildComfortGuidelines(comfortLevel) {
 - Maximum 2 steps per guide, then wait for "done" before continuing
 - Use create_guide for any multi-step task
 - After each step, ask "Did that work?"
-- For goal tasks (email, call, message): ask what app they use and what they want to say BEFORE giving steps`;
+- For goal tasks (email, call, message): ask what app they use and what they want to say BEFORE giving steps
+- Inside guide steps: NEVER say "double-click", "browser", "address bar", "taskbar", "desktop", "icon" without explaining. Say "click twice quickly", "internet app", "the long white box at the top", "the strip of little pictures at the bottom", "the main screen", "the little picture"`;
   } else if (level <= 3) {
     return `Knows basics, needs guidance.
 - Plain language, skip analogies unless confused
