@@ -91,11 +91,15 @@ function enforceReadability(text) {
 
     if (parts.length <= 1) return sentence; // no breaks found or nothing split
 
-    // Capitalize first letter of each new segment after punctuating previous one
+    // Capitalize first letter of each new segment after punctuating previous one.
+    // Strip trailing commas/semicolons/whitespace from each part before joining
+    // to prevent artifacts like "left side,. Or do you see..." when a segment
+    // ends with a comma that collides with the '. ' joiner.
     const joined = parts.map((part, i) => {
-      if (i === 0) return part;
+      const cleaned = part.replace(/[,;]\s*$/, '').trim();
+      if (i === 0) return cleaned;
       // Capitalize first word
-      return part.charAt(0).toUpperCase() + part.slice(1);
+      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     }).join('. ');
 
     // Ensure the joined string ends with a period if it doesn't already have terminal punctuation
