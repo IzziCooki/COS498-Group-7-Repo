@@ -600,6 +600,7 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
             videos: result.videos || null,
             guide: result.guide || null,
             findings: result.findings || null,
+            practice: result.practice || null,
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
           }));
