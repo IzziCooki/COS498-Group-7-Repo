@@ -3,6 +3,7 @@ const { anthropicApiKey } = require('../config');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
+const vocabularyProgression = require('./vocabularyProgression');
 const userProfileManager = require('./userProfileManager');
 const taskClassifier = require('./taskClassifier');
 const SkillEvent = require('../models/SkillEvent');
@@ -923,6 +924,9 @@ async function processMessage(text, userId) {
       return mockResponder.respond(text, userId, session.id);
     }
 
+    // Check if the user is asking about a jargon term (resets progression)
+    vocabularyProgression.checkForTermQuestions(text, userId);
+
     // Step 3: Get/create session
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
@@ -1028,7 +1032,7 @@ async function processMessage(text, userId) {
 
     // Step 8: Filter response
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyFilter.filterResponse(finalTextResponse, vocabLevel);
+    let filteredResponse = vocabularyProgression.filterWithProgression(finalTextResponse, vocabLevel, userId);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
     if (!filteredResponse) {

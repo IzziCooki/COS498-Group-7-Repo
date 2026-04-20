@@ -7,6 +7,7 @@ import Header from './components/Layout/Header';
 import ChatWindow from './components/Chat/ChatWindow';
 import ConversationSidebar from './components/Chat/ConversationSidebar';
 import BuddyPanel from './components/Collaboration/BuddyPanel';
+import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 
 /**
  * App — root component for PC Pal.
@@ -19,6 +20,7 @@ function App() {
   const buddyData = useBuddy(user?.id);
   const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentView, setCurrentView] = useState('chat'); // 'chat' | 'dashboard'
   const [buddySessionTarget, setBuddySessionTarget] = useState(null);
   const [buddySessionActive, setBuddySessionActive] = useState(false);
   // null = viewing live/active conversation, string = viewing a past conversation
@@ -99,29 +101,39 @@ function App() {
         onBuddyClick={() => setBuddyPanelOpen(true)}
         buddyBadge={buddyBadge}
         onUpdateProfile={updateProfile}
+        onDashboardClick={() => setCurrentView(prev => prev === 'dashboard' ? 'chat' : 'dashboard')}
+        showingDashboard={currentView === 'dashboard'}
       />
-      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
-        <ConversationSidebar
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          viewingConversationId={viewingConversationId}
-          onSelectConversation={handleSelectConversation}
-          onNewChat={handleNewChat}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+      {currentView === 'dashboard' ? (
+        <FamilyDashboard
+          buddyPairs={buddyData.buddyPair ? [buddyData.buddyPair] : []}
+          currentUserId={user?.id}
+          onBack={() => setCurrentView('chat')}
         />
-        {user && (
-          <ChatWindow
-            userId={user.id}
-            hasBuddy={buddyData.hasBuddy}
+      ) : (
+        <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+          <ConversationSidebar
+            conversations={conversations}
+            activeConversationId={activeConversationId}
             viewingConversationId={viewingConversationId}
-            onConversationChange={handleConversationChange}
-            startNewChatRef={chatWindowRef}
-            buddySessionTarget={buddySessionTarget}
-            onBuddySessionChange={setBuddySessionActive}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
           />
-        )}
-      </div>
+          {user && (
+            <ChatWindow
+              userId={user.id}
+              hasBuddy={buddyData.hasBuddy}
+              viewingConversationId={viewingConversationId}
+              onConversationChange={handleConversationChange}
+              startNewChatRef={chatWindowRef}
+              buddySessionTarget={buddySessionTarget}
+              onBuddySessionChange={setBuddySessionActive}
+            />
+          )}
+        </div>
+      )}
 
       <BuddyPanel
         isOpen={buddyPanelOpen}

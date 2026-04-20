@@ -3,26 +3,65 @@ import './PracticeMode.css';
 import practiceRegistry from './practiceRegistry';
 
 /**
+ * Normalize steps from either built-in registry or custom AI-generated format
+ * into a common shape for rendering.
+ */
+function getSteps(practice, osType) {
+  const os = osType || 'Windows';
+
+  // Custom AI-generated practice
+  if (practice.taskId === 'custom' && practice.customSteps) {
+    return {
+      title: practice.customTitle || 'Practice Session',
+      steps: practice.customSteps.map(s => ({
+        instruction: s.instruction,
+        whereToLook: s.whereToLook,
+        whatItLooksLike: s.whatItLooksLike,
+        deviceInstructions: s.deviceInstructions,
+        afterThis: s.afterThis,
+        confusedAlt: s.confusedAlt || null,
+      })),
+    };
+  }
+
+  // Built-in registry
+  const content = practiceRegistry[practice.taskId];
+  if (!content) return null;
+
+  return {
+    title: content.title,
+    steps: content.steps.map(s => ({
+      instruction: s.instruction,
+      whereToLook: s.whereToLook,
+      whatItLooksLike: s.whatItLooksLike,
+      deviceInstructions: s.variants?.[os] || s.variants?.Windows || '',
+      afterThis: s.afterThis,
+      confusedAlt: s.confusedAlt || null,
+    })),
+  };
+}
+
+/**
  * PracticeMode — guided simulation for learning tasks safely.
- * Shows device-specific steps with "I understand" / "Explain differently" buttons.
- * No commands are executed — this is purely educational.
+ * Supports both built-in tasks (from practiceRegistry) and custom
+ * AI-generated practice steps.
  */
 function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showAlt, setShowAlt] = useState({});
   const [completed, setCompleted] = useState(false);
+  const [clickedWrong, setClickedWrong] = useState(false);
 
   if (!practice) return null;
 
-  const content = practiceRegistry[practice.taskId];
-  if (!content) return null;
+  const data = getSteps(practice, osType);
+  if (!data) return null;
 
-  const steps = content.steps;
+  const { title, steps } = data;
   const step = steps[currentStep];
-  const os = osType || 'Windows';
-  const deviceInstructions = step?.variants?.[os] || step?.variants?.Windows || '';
 
   const handleNext = () => {
+    setClickedWrong(false);
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
       setShowAlt({});
@@ -35,20 +74,21 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setShowAlt({});
+      setClickedWrong(false);
     }
   };
 
   const handleExplainDifferently = () => {
     setShowAlt({ ...showAlt, [currentStep]: true });
     if (onSendMessage) {
-      onSendMessage(`I'm confused about step ${currentStep + 1} in the practice — "${step.instruction}". Can you explain it differently?`);
+      onSendMessage(`I'm confused about step ${currentStep + 1} — "${step.instruction}". Can you explain differently?`);
     }
   };
 
   const handleTryForReal = () => {
     if (onComplete) onComplete(practice.taskId, 'real');
     if (onSendMessage) {
-      onSendMessage(`I finished practicing ${content.title}. I'm ready to try it for real now!`);
+      onSendMessage(`I finished practicing ${title}. I'm ready to try it for real now!`);
     }
   };
 
@@ -56,6 +96,7 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
     setCurrentStep(0);
     setCompleted(false);
     setShowAlt({});
+    setClickedWrong(false);
   };
 
   if (completed) {
@@ -64,7 +105,7 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
         <div className="practice__complete">
           <div className="practice__complete-header">Practice Complete!</div>
           <p className="practice__complete-text">
-            You practiced all {steps.length} steps for <strong>{content.title}</strong>.
+            You practiced all {steps.length} steps for <strong>{title}</strong>.
           </p>
           <div className="practice__checklist">
             {steps.map((s, i) => (
@@ -94,7 +135,10 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
       </div>
 
       <div className="practice__progress">
-        <span className="practice__progress-label">Step {currentStep + 1} of {steps.length}</span>
+        <div className="practice__progress-top">
+          <span className="practice__progress-title">{title}</span>
+          <span className="practice__progress-label">Step {currentStep + 1} of {steps.length}</span>
+        </div>
         <div className="practice__progress-bar">
           <div
             className="practice__progress-fill"
@@ -116,7 +160,7 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
           <strong>What it looks like:</strong> {step.whatItLooksLike}
         </div>
         <div className="practice__device">
-          <strong>On your {os}:</strong> {deviceInstructions}
+          <strong>On your device:</strong> {step.deviceInstructions}
         </div>
         <div className="practice__after">
           <strong>After this step:</strong> {step.afterThis}
@@ -125,7 +169,13 @@ function PracticeMode({ practice, osType, onComplete, onSendMessage }) {
 
       {showAlt[currentStep] && step.confusedAlt && (
         <div className="practice__alt">
-          <strong>Let me explain differently:</strong> {step.confusedAlt}
+          <strong>Another way to think about it:</strong> {step.confusedAlt}
+        </div>
+      )}
+
+      {clickedWrong && (
+        <div className="practice__wrong">
+          Not quite — read the description above and try to picture where it is on your screen.
         </div>
       )}
 

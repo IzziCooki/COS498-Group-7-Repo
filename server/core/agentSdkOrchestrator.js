@@ -23,6 +23,7 @@ const { anthropicApiKey } = require('../config');
 const youtubeSearch = require('./youtubeSearch');
 const { buildComfortGuidelines } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
+const vocabularyProgression = require('./vocabularyProgression');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -128,6 +129,9 @@ async function processMessage(text, userId) {
 
     const activeModel = resolved.model;
 
+    // Check if the user is asking about a jargon term (resets progression)
+    vocabularyProgression.checkForTermQuestions(text, userId);
+
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
     conversationState.addMessage(sessionId, 'user', text);
@@ -232,7 +236,7 @@ async function processMessage(text, userId) {
     if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
+    let filteredResponse = vocabularyProgression.filterWithProgression(finalResponse, vocabLevel, userId);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
     if (!filteredResponse) {

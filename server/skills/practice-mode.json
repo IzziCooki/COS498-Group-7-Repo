@@ -24,5 +24,5 @@
   ],
   "category": "learning",
   "difficulty": "beginner",
-  "prompt": "The user wants to practice before doing something for real. Call start_practice with the task they want to learn. Available tasks: send_email, copy_paste, open_browser. Be extra reassuring: 'Nothing will happen to your computer — this is just practice!' If they don't specify a task, ask what they'd like to practice."
+  "prompt": "The user wants to practice before doing something for real. Call start_practice.\n\nFor send_email, copy_paste, or open_browser: use the task_id directly.\n\nFor ANY other task (Zoom, settings, photos, etc.): set task_id='custom', provide custom_title and generate 3-5 custom_steps. Each step needs: instruction, whereToLook (spatial: top-left, bottom-right), whatItLooksLike (visual: icon shape, button text), deviceInstructions (specific to their device), afterThis (what screen looks like after), confusedAlt (everyday analogy).\n\nBe reassuring: 'Nothing will happen to your computer — this is just practice!'"
 }
