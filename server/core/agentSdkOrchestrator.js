@@ -266,6 +266,7 @@ async function processMessage(text, userId) {
       videos: videos && videos.length > 0 ? videos : null,
       guide: guide || null,
       findings: findings || null,
+      practice: practice || null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);
