@@ -21,6 +21,8 @@
 
 const { execSync } = require('child_process');
 const os = require('os');
+const fs = require('fs');
+const path = require('path');
 const { BLOCKED_PATTERNS } = require('../server/core/sharedConstants');
 
 // Configuration
@@ -66,6 +68,27 @@ function getSystemSummary() {
     total_ram_gb: (os.totalmem() / (1024 ** 3)).toFixed(1),
     free_ram_gb: (os.freemem() / (1024 ** 3)).toFixed(1),
   };
+}
+
+// Screenshot capture
+
+function takeScreenshot() {
+  const tmpFile = path.join(os.tmpdir(), 'pcpal-screenshot.png');
+  try {
+    if (process.platform === 'darwin') {
+      execSync(`screencapture -x "${tmpFile}"`, { timeout: 10000 });
+    } else if (process.platform === 'win32') {
+      execSync(`powershell -Command "Add-Type -AssemblyName System.Windows.Forms; $b = New-Object System.Drawing.Bitmap([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width, [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height); $g = [System.Drawing.Graphics]::FromImage($b); $g.CopyFromScreen(0,0,0,0,$b.Size); $b.Save('${tmpFile.replace(/'/g, "''")}'); $g.Dispose(); $b.Dispose()"`, { timeout: 15000 });
+    } else {
+      try { execSync(`gnome-screenshot -f "${tmpFile}"`, { timeout: 10000 }); }
+      catch { execSync(`scrot "${tmpFile}"`, { timeout: 10000 }); }
+    }
+    const imageBuffer = fs.readFileSync(tmpFile);
+    try { fs.unlinkSync(tmpFile); } catch {}
+    return { imageBase64: imageBuffer.toString('base64'), error: false };
+  } catch (err) {
+    return { imageBase64: null, error: true, message: err.message };
+  }
 }
 
 // WebSocket connection
@@ -137,6 +160,15 @@ function connect() {
         error: result.error,
       }));
       console.log(`  ← Done (${result.error ? 'error' : 'ok'})`);
+    } else if (msg.type === 'agent_screenshot') {
+      console.log('  → Taking screenshot...');
+      const screenshotResult = takeScreenshot();
+      ws.send(JSON.stringify({
+        type: 'agent_screenshot_result',
+        requestId: msg.requestId,
+        ...screenshotResult,
+      }));
+      console.log(`  ← Screenshot ${screenshotResult.error ? 'failed' : 'sent'} (${screenshotResult.imageBase64 ? Math.round(screenshotResult.imageBase64.length / 1024) + 'KB' : 'none'})`);
     } else if (msg.type === 'agent_ping') {
       ws.send(JSON.stringify({ type: 'agent_pong' }));
     }

@@ -10,7 +10,7 @@
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, setActiveUserContext } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const UserMemory = require('../models/UserMemory');
 const conversationState = require('./conversationState');

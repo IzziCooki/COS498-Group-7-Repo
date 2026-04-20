@@ -205,12 +205,37 @@ function sendCommandToAgent(userId, command, timeout = 20000, cwd) {
   });
 }
 
+/**
+ * Request a screenshot from the paired relay agent.
+ * Returns { imageBase64, error } or null if no agent is paired.
+ */
+function requestScreenshot(userId, timeout = 15000) {
+  const agent = pairedAgents.get(userId);
+  if (!agent || agent.ws.readyState !== 1) return null;
+
+  const requestId = 'ss_' + (++commandIdCounter);
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingCommands.delete(requestId);
+      resolve({ imageBase64: null, error: true, message: 'Screenshot timed out.' });
+    }, timeout);
+
+    pendingCommands.set(requestId, { resolve, timer });
+
+    agent.ws.send(JSON.stringify({
+      type: 'agent_screenshot',
+      requestId,
+    }));
+  });
+}
+
 function hasRelayAgent(userId) {
   const agent = pairedAgents.get(userId);
   return agent && agent.ws.readyState === 1;
 }
 
 app.locals.sendCommandToAgent = sendCommandToAgent;
+app.locals.requestScreenshot = requestScreenshot;
 app.locals.hasRelayAgent = hasRelayAgent;
 
 wss.on('connection', (ws) => {
@@ -731,6 +756,14 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           clearTimeout(pending.timer);
           pendingCommands.delete(msg.requestId);
           pending.resolve({ output: msg.output, error: msg.error });
+        }
+
+      } else if (msg.type === 'agent_screenshot_result') {
+        const pending = pendingCommands.get(msg.requestId);
+        if (pending) {
+          clearTimeout(pending.timer);
+          pendingCommands.delete(msg.requestId);
+          pending.resolve({ imageBase64: msg.imageBase64, error: msg.error, message: msg.message });
         }
 
       } else if (msg.type === 'agent_pong') {
