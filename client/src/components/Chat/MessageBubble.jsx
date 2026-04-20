@@ -52,7 +52,7 @@ function artifactLabel(msg) {
  * If inlineMode is true, the full artifact renders in the chat.
  */
 function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClickArtifact }) {
-  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
+  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, buddyTerminal } = message;
   const isUser = role === 'user';
   const hasArtifact = !isUser && (guide || resources || findings || videos);
   const label = hasArtifact ? artifactLabel(message) : null;
@@ -96,6 +96,23 @@ function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClic
             <span className="bubble__artifact-tag-label">{label}</span>
             <span className="bubble__artifact-tag-hint">Click to view</span>
           </button>
+        )}
+
+        {/* Buddy terminal command result (inline always) */}
+        {buddyTerminal && (
+          <div className="bubble__buddy-terminal">
+            <div className="bubble__buddy-terminal-header">
+              {buddyTerminal.buddyName} ran a command
+            </div>
+            <div className="bubble__buddy-terminal-cmd">$ {buddyTerminal.command}</div>
+            {buddyTerminal.running ? (
+              <div className="bubble__buddy-terminal-running">Running...</div>
+            ) : (
+              <pre className={`bubble__buddy-terminal-output ${buddyTerminal.error ? 'bubble__buddy-terminal-output--err' : ''}`}>
+                {buddyTerminal.output || '(no output)'}
+              </pre>
+            )}
+          </div>
         )}
 
         {/* Annotated device screenshots (always inline) */}

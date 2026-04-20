@@ -30,6 +30,7 @@ function runMigrations() {
     'ALTER TABLE users ADD COLUMN collaboration_opt_in INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN goal_summary TEXT',
     'ALTER TABLE users ADD COLUMN invite_code TEXT',
+    'ALTER TABLE users ADD COLUMN model_preference TEXT',
   ];
   for (const sql of migrations) {
     try {
