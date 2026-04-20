@@ -224,12 +224,10 @@ async function processMessage(text, userId) {
     // Check if artifacts were created during the tool loop
     const guide = getAndClearLastGuide();
     const findings = getAndClearLastFindings();
-    if (guide) {
-      console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
-    }
-    if (findings) {
-      console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
-    }
+    const practice = getAndClearLastPractice();
+    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
+    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
+    if (practice) console.log(`[agentSdkOrchestrator] Practice session: ${practice.taskId}`);
 
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
