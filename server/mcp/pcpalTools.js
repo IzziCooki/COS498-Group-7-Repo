@@ -483,6 +483,32 @@ const recallMemories = tool(
   }
 );
 
+// Practice Mode Tool
+
+let _lastPractice = null;
+
+function getAndClearLastPractice() {
+  const p = _lastPractice;
+  _lastPractice = null;
+  return p;
+}
+
+const PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
+
+const startPractice = tool(
+  'start_practice',
+  "Start a practice session where the user learns a task step-by-step in a safe simulation. Nothing happens to their computer. Available tasks: send_email, copy_paste, open_browser. Use when the user says 'practice', 'let me try first', 'I'm scared to try', or seems nervous about a task.",
+  {
+    task_id: z.enum(PRACTICE_TASKS).describe('Which task to practice'),
+  },
+  async (args) => {
+    const practice = { taskId: args.task_id };
+    _lastPractice = practice;
+    console.log(`[MCP] Practice started: ${args.task_id}`);
+    return textResult(`Practice session for "${args.task_id}" started. The user will see a step-by-step practice guide in the side panel. Be extra reassuring in your text response — nothing will happen to their computer!`);
+  }
+);
+
 // Diagnostic Findings Artifact Tool
 
 const createFindings = tool(
@@ -569,6 +595,8 @@ function createPcPalMcpServer() {
       // Memory
       saveMemory,
       recallMemories,
+      // Practice
+      startPractice,
       // Artifacts
       createGuide,
       createFindings,
@@ -576,4 +604,4 @@ function createPcPalMcpServer() {
   });
 }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, setActiveUserContext };
