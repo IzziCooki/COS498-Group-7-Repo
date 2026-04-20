@@ -265,6 +265,7 @@ wss.on('connection', (ws) => {
         }
         // Client sends userId to associate the connection
         userId = msg.userId;
+        ws._pcpalUserId = userId;
         chatClients.set(userId, ws);
         // Store browser-collected system info if provided
         if (msg.browserSystemInfo && typeof msg.browserSystemInfo === 'object') {
@@ -566,6 +567,24 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
             error: result.error,
             cwd: currentCwd,
           }));
+        }
+
+      } else if (msg.type === 'video_signal' || msg.type === 'video_end') {
+        // Relay WebRTC signaling between buddies for video calls
+        if (!userId) return;
+        const BuddyPair = require('./models/BuddyPair');
+        try {
+          const pairs = BuddyPair.findByUserId(userId);
+          if (pairs.length > 0) {
+            const pair = pairs[0];
+            const buddyUserId = pair.learner_id === userId ? pair.helper_id : pair.learner_id;
+            const buddyWs = chatClients.get(buddyUserId);
+            if (buddyWs && buddyWs.readyState === 1) {
+              buddyWs.send(JSON.stringify({ type: msg.type, signal: msg.signal }));
+            }
+          }
+        } catch (err) {
+          console.error('[ws] Video relay error:', err.message);
         }
 
       } else if (msg.type === 'chat') {

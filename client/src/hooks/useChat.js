@@ -587,5 +587,6 @@ export function useChat(userId) {
     joinBuddySession,
     leaveBuddySession,
     sendBuddyCommand,
+    wsRef,
   };
 }
