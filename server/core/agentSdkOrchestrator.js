@@ -225,9 +225,11 @@ async function processMessage(text, userId) {
     const guide = getAndClearLastGuide();
     const findings = getAndClearLastFindings();
     const practice = getAndClearLastPractice();
+    const screenshot = getAndClearLastScreenshot();
     if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
     if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
     if (practice) console.log(`[agentSdkOrchestrator] Practice session: ${practice.taskId}`);
+    if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
@@ -267,6 +269,7 @@ async function processMessage(text, userId) {
       guide: guide || null,
       findings: findings || null,
       practice: practice || null,
+      screenshot: screenshot || null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);
