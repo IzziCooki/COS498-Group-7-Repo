@@ -49,6 +49,7 @@ function ResourcesContent({ resources }) {
 
 /** Get a display title for an artifact */
 function spArtifactTitle(artifact) {
+  if (artifact.practice) return 'Practice Mode';
   if (artifact.guide) return artifact.guide.title || 'Guide';
   if (artifact.resources) return artifact.resources.topic ? `Resources: ${artifact.resources.topic}` : 'Resources';
   if (artifact.findings) return artifact.findings.title || 'Diagnostic Details';
@@ -63,7 +64,7 @@ function spArtifactTitle(artifact) {
  * Reuses CommandGuide, DiagnosticFindings, and YouTubeEmbed with embedded=true
  * to suppress their individual collapse/dismiss chrome.
  */
-function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMoveToInline, onRunCommand, commandResults }) {
+function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMoveToInline, onRunCommand, commandResults, osType, onSendMessage }) {
   if (!artifact) return null;
 
   const total = artifacts ? artifacts.length : 1;
@@ -87,6 +88,7 @@ function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMo
 
       <div className="side-panel__content">
         {/* Render ALL parts of this artifact — findings first, then guide, then videos/resources */}
+        {artifact.practice && <PracticeMode practice={artifact.practice} osType={osType} onSendMessage={onSendMessage} />}
         {artifact.findings && <DiagnosticFindings findings={artifact.findings} embedded />}
         {artifact.guide && <CommandGuide guide={artifact.guide} onRunCommand={onRunCommand} commandResults={commandResults || {}} embedded />}
         {artifact.videos && <YouTubeEmbed videos={artifact.videos} embedded />}
