@@ -37,6 +37,7 @@ function renderInline(text) {
 
 /** Get a short label for an artifact type */
 function artifactLabel(msg) {
+  if (msg.practice) return 'Practice Mode';
   if (msg.guide) return msg.guide.title || 'Guide';
   if (msg.resources) return msg.resources.topic ? `Resources: ${msg.resources.topic}` : 'Resources';
   if (msg.findings) return msg.findings.title || 'Diagnostic Details';
@@ -52,9 +53,9 @@ function artifactLabel(msg) {
  * If inlineMode is true, the full artifact renders in the chat.
  */
 function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClickArtifact }) {
-  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, buddyTerminal } = message;
+  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, practice, buddyTerminal } = message;
   const isUser = role === 'user';
-  const hasArtifact = !isUser && (guide || resources || findings || videos);
+  const hasArtifact = !isUser && (guide || resources || findings || videos || practice);
   const label = hasArtifact ? artifactLabel(message) : null;
 
   const formattedTime = timestamp

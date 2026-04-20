@@ -18,16 +18,16 @@ function collectArtifacts(messages) {
   const artifacts = [];
   for (const msg of messages) {
     if (msg.role !== 'assistant') continue;
-    const hasAny = msg.guide || msg.resources || msg.findings || msg.videos;
+    const hasAny = msg.guide || msg.resources || msg.findings || msg.videos || msg.practice;
     if (!hasAny) continue;
 
-    // One artifact per message — bundle all types together
     artifacts.push({
       msgId: msg.id,
       guide: msg.guide || null,
       findings: msg.findings || null,
       resources: msg.resources || null,
       videos: msg.videos || null,
+      practice: msg.practice || null,
     });
   }
   return artifacts;
