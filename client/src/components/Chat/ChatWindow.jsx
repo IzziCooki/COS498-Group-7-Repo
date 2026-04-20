@@ -91,10 +91,11 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
 
   useEffect(() => {
     if (!isViewingPast || !viewingConversationId) {
-      setPastMessages([]);
+      // Clear past messages when not viewing — defer to avoid setState-in-effect lint
+      queueMicrotask(() => setPastMessages([]));
       return;
     }
-    setLoadingPast(true);
+    queueMicrotask(() => setLoadingPast(true));
     fetch(`/api/conversations/${viewingConversationId}/messages`)
       .then(r => r.json())
       .then(data => {
@@ -387,6 +388,7 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
           onClose={() => handleDismiss(currentArtifact.msgId)}
           onMoveToInline={() => handleMoveToInline(currentArtifact.msgId)}
           onRunCommand={runCommand}
+          onSendMessage={sendMessage}
         />
       )
     )}

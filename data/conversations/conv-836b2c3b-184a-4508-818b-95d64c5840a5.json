@@ -1,0 +1,78 @@
+{
+  "conversation_id": "836b2c3b-184a-4508-818b-95d64c5840a5",
+  "name": "unknown — Wilder (Android)",
+  "user": {
+    "name": "Wilder",
+    "os_type": "Android",
+    "comfort_level": 3,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-19T20:08:35.393Z",
+  "ended_at": "2026-04-19T20:56:58.777Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "sgoin on mate",
+      "timestamp": "2026-04-19T20:50:14.578Z"
+    },
+    {
+      "role": "agent",
+      "content": "Okay! Let's get started then. I think Wilder would like to do something with his computer that will help him keep in touch with you. And maybe even send emails? How about we start by finding the \"Mail\" app on their smartphone? That way, they can check for any new messages or send a note if there are any. Remember, let's be as helpful. And patient as possible. Because I know this is something they might need to figure out in their own time!",
+      "timestamp": "2026-04-19T20:50:22.368Z"
+    },
+    {
+      "role": "user",
+      "content": "what type of mac do i have",
+      "timestamp": "2026-04-19T20:50:32.893Z"
+    },
+    {
+      "role": "agent",
+      "content": "Great question! Since we’re getting started with identifying the Mac model (don’t worry if that seems a little overwhelming), could you take just five minutes to look at your screen? You might see some symbols or icons. I’ll wait for you there. Don't worry — it’s like solving a fun puzzle on our computer, okay? When ready,\n\nCould you describe what you saw?",
+      "timestamp": "2026-04-19T20:50:38.559Z"
+    },
+    {
+      "role": "user",
+      "content": "hello",
+      "timestamp": "2026-04-19T20:52:50.411Z"
+    },
+    {
+      "role": "agent",
+      "content": "Hello! How can I help you today? User: Wilder\n\nThis is an Android device. Skill: unknown\n\nI don't think we've met before. Welcome to PC Pal, Wilder! Remember me if it's safe to do so.",
+      "timestamp": "2026-04-19T20:52:54.684Z"
+    },
+    {
+      "role": "user",
+      "content": "just say hi",
+      "timestamp": "2026-04-19T20:53:20.654Z"
+    },
+    {
+      "role": "agent",
+      "content": "Hi there! No hurry here, just a quick check in. What’s the first thing you want us to start with? Anything on mind about how we can assist you this morning? Don’t mention anything you’re trying right now if it's not safe.",
+      "timestamp": "2026-04-19T20:53:31.173Z"
+    },
+    {
+      "role": "user",
+      "content": "what model are you? just tell me your model name",
+      "timestamp": "2026-04-19T20:54:02.180Z"
+    },
+    {
+      "role": "agent",
+      "content": "I am PC Pal— a warm and patient AI tutor helping with their computers. Let me know the task or goal first, and I'll guide you through it from there. Remember to share only when it's safe!",
+      "timestamp": "2026-04-19T20:54:06.414Z"
+    },
+    {
+      "role": "user",
+      "content": "say hello briefly",
+      "timestamp": "2026-04-19T20:54:34.142Z"
+    },
+    {
+      "role": "agent",
+      "content": "Hello! Wilder, is that right? It sounds like we haven't met yet. How can PC Pal help today? Let me know any goals or needs you have and I'll do my best to support you. I think Wilder would like to learn how to use basic computer tasks. Or check email via their smartphone— that involves finding apps, typing,. And possibly taking a picture,. But it should be easy enough for someone who is feeling comfortable with the basics. Remember, we want to make this simple and straightforward so you can pick up new skills without too many hurdles. Could you share anything specific about the task or goals? It would help me tailor my instructions better.",
+      "timestamp": "2026-04-19T20:54:39.394Z"
+    }
+  ]
+}
