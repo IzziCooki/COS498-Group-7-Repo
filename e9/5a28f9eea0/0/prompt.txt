@@ -243,3 +243,7 @@ yes this is ok my sons name is Fred
 Perfect! I'll update the message with Fred's name. Here's how to send that loving email to Fred through Yahoo Mail:
 
 The guide above shows the first steps. Try those first two, then let me know when you're done. And I'll show you the next steps to log in. And compose your message.
+
+---
+
+yes lets make this change now
