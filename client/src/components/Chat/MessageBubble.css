@@ -268,3 +268,49 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── Buddy terminal inline ─── */
+.bubble__buddy-terminal {
+  margin-top: 10px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.bubble__buddy-terminal-header {
+  padding: 8px 12px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border-bottom: 1px solid #334155;
+}
+
+.bubble__buddy-terminal-cmd {
+  padding: 8px 12px 4px;
+  color: #a5f3fc;
+}
+
+.bubble__buddy-terminal-running {
+  padding: 4px 12px 8px;
+  color: #facc15;
+  font-style: italic;
+}
+
+.bubble__buddy-terminal-output {
+  padding: 4px 12px 10px;
+  margin: 0;
+  color: #d1d5db;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: inherit;
+  font-size: inherit;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.bubble__buddy-terminal-output--err {
+  color: #fca5a5;
+}

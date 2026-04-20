@@ -20,6 +20,13 @@ export function useChat(userId) {
   const [conversationId, setConversationId] = useState(null);
   const [feedbackPrompt, setFeedbackPrompt] = useState(null);
   const [agentConnected, setAgentConnected] = useState(false);
+  // Standalone terminal history (user's own terminal panel)
+  const [terminalHistory, setTerminalHistory] = useState([]);
+  const [terminalCwd, setTerminalCwd] = useState(null);
+  // Buddy session state — set when THIS user is observing a learner's session
+  const [buddySession, setBuddySession] = useState(null);
+  // Set when a buddy is observing OUR session (we are the learner)
+  const [buddyObserving, setBuddyObserving] = useState(null);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -163,6 +170,16 @@ export function useChat(userId) {
           setAgentConnected(!!data.connected);
           break;
 
+        case 'new_chat_ack':
+          // Server created a fresh session after closing the previous one
+          setMessages([]);
+          setActiveSequence(null);
+          setFeedbackPrompt(null);
+          if (data.conversationId) {
+            setConversationId(data.conversationId);
+          }
+          break;
+
         case 'chat_ended':
           // User clicked "End chat". Server confirmed the session is closed;
           // show the feedback modal.
@@ -183,6 +200,75 @@ export function useChat(userId) {
               safetyAlert: null,
             },
           ]);
+          break;
+
+        case 'terminal_result':
+          setTerminalHistory(prev => prev.map(entry =>
+            entry.requestId === data.requestId
+              ? { ...entry, output: data.output, error: data.error, running: false }
+              : entry
+          ));
+          if (data.cwd) setTerminalCwd(data.cwd);
+          break;
+
+        // ─── Buddy session messages ───
+        case 'buddy_join_ack':
+          setBuddySession({
+            learnerId: data.learnerId,
+            learnerName: data.learnerName,
+            messages: (data.messages || []).map((m, i) => ({ ...m, id: 'bh_' + i })),
+            terminalHistory: [],
+          });
+          break;
+
+        case 'buddy_chat_forward':
+          setBuddySession(prev => prev ? {
+            ...prev,
+            messages: [...prev.messages, { id: 'bf_' + Date.now(), role: data.role, text: data.text, timestamp: data.timestamp }],
+          } : prev);
+          break;
+
+        case 'buddy_command_result':
+          setBuddySession(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              cwd: data.cwd || prev.cwd,
+              terminalHistory: prev.terminalHistory.map(entry =>
+                entry.requestId === data.requestId
+                  ? { ...entry, output: data.output, error: data.error, running: false }
+                  : entry
+              ),
+            };
+          });
+          break;
+
+        case 'buddy_joined':
+          setBuddyObserving({ buddyName: data.buddyName });
+          break;
+
+        case 'buddy_left':
+          setBuddyObserving(null);
+          break;
+
+        case 'buddy_terminal_start':
+          // Learner sees buddy starting a command
+          setMessages(prev => [...prev, {
+            id: 'bt_' + data.requestId,
+            role: 'assistant',
+            text: `${data.buddyName} is running a diagnostic command...`,
+            timestamp: new Date().toISOString(),
+            buddyTerminal: { requestId: data.requestId, command: data.command, output: '', error: false, running: true, buddyName: data.buddyName },
+          }]);
+          break;
+
+        case 'buddy_terminal_result':
+          // Update the pending terminal message with the result
+          setMessages(prev => prev.map(m =>
+            m.buddyTerminal && m.buddyTerminal.requestId === data.requestId
+              ? { ...m, text: `${data.buddyName} ran: ${data.command}`, buddyTerminal: { ...m.buddyTerminal, output: data.output, error: data.error, running: false } }
+              : m
+          ));
           break;
 
         default:
@@ -344,6 +430,16 @@ export function useChat(userId) {
   }, []);
 
   /**
+   * Start a fresh conversation. Closes the current session server-side
+   * and creates a new one. The server replies with `new_chat_ack`.
+   */
+  const startNewChat = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'new_chat' }));
+    }
+  }, []);
+
+  /**
    * Trigger the end-of-chat flow. Tells the server to close the session;
    * the server replies with `chat_ended` and the hook opens the modal.
    */
@@ -422,6 +518,46 @@ export function useChat(userId) {
     resetChatLocally();
   }, [feedbackPrompt, userId, resetChatLocally]);
 
+  const terminalCmdIdRef = useRef(0);
+  const sendTerminalCommand = useCallback((command) => {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+    terminalCmdIdRef.current += 1;
+    const requestId = 'tcmd_' + terminalCmdIdRef.current + '_' + Date.now();
+    setTerminalHistory(prev => [...prev, { requestId, command: trimmed, output: '', error: false, running: true }]);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'terminal_command', command: trimmed, requestId }));
+    }
+  }, []);
+
+  const joinBuddySession = useCallback((learnerId) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'buddy_join', learnerId }));
+    }
+  }, []);
+
+  const leaveBuddySession = useCallback((learnerId) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && learnerId) {
+      wsRef.current.send(JSON.stringify({ type: 'buddy_leave', learnerId }));
+    }
+    setBuddySession(null);
+  }, []);
+
+  const buddyCommandIdRef = useRef(0);
+  const sendBuddyCommand = useCallback((learnerId, command) => {
+    const trimmed = command.trim();
+    if (!trimmed || !learnerId) return;
+    buddyCommandIdRef.current += 1;
+    const requestId = 'bcmd_' + buddyCommandIdRef.current + '_' + Date.now();
+    setBuddySession(prev => prev ? {
+      ...prev,
+      terminalHistory: [...prev.terminalHistory, { requestId, command: trimmed, output: '', error: false, running: true }],
+    } : prev);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'buddy_command', learnerId, command: trimmed, requestId }));
+    }
+  }, []);
+
   return {
     messages,
     sendMessage,
@@ -437,8 +573,17 @@ export function useChat(userId) {
     dismissWelcomeBack,
     conversationId,
     feedbackPrompt,
+    startNewChat,
     endChat,
     submitFeedback,
     skipFeedback,
+    terminalHistory,
+    terminalCwd,
+    sendTerminalCommand,
+    buddySession,
+    buddyObserving,
+    joinBuddySession,
+    leaveBuddySession,
+    sendBuddyCommand,
   };
 }

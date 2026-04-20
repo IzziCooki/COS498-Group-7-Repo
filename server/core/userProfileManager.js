@@ -41,7 +41,7 @@ const userProfileManager = {
    * @returns {object} updated user record
    */
   updateProfile(id, fields) {
-    const allowed = ['name', 'os_type', 'vocabulary_level', 'comfort_level', 'accessibility_needs', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code'];
+    const allowed = ['name', 'os_type', 'vocabulary_level', 'comfort_level', 'accessibility_needs', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code', 'model_preference'];
     const filtered = {};
     for (const key of allowed) {
       if (fields[key] !== undefined) {

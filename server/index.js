@@ -1,4 +1,5 @@
 const http = require('http');
+const os = require('os');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
@@ -18,6 +19,8 @@ try {
 const skillProgression = require('./core/skillProgression');
 const clientInfoStore = require('./core/clientInfoStore');
 const conversationState = require('./core/conversationState');
+const BuddyPair = require('./models/BuddyPair');
+const User = require('./models/User');
 const HelpRequest = require('./models/HelpRequest');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
@@ -34,6 +37,18 @@ app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PC Pal server running' });
+});
+
+// List available AI models (Claude + Ollama)
+app.get('/api/models', async (req, res) => {
+  try {
+    const { listAvailableModels } = require('./core/modelProvider');
+    const models = await listAvailableModels();
+    res.json(models);
+  } catch (err) {
+    console.error('[server] Error listing models:', err.message);
+    res.status(500).json({ error: 'Failed to list models.' });
+  }
 });
 
 // Serve the connect script that curl can pipe to bash
@@ -76,7 +91,7 @@ cat > "$DIR/agent.js" << AGENTEOF
 const os=require("os"),{execSync}=require("child_process"),WebSocket=require("ws");
 const SERVER="${wsUrl}";
 const BLOCKED=[/rm\\\\s+-rf\\\\s+\\\\//, /mkfs/, /dd.*of=\\\\/dev/, /shutdown/, /reboot/, /format/];
-function run(c,t){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{return{output:execSync(c,{encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"]}).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
+function run(c,t,d){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{var o={encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"]};if(d)o.cwd=d;return{output:execSync(c,o).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
 function info(){return{platform:process.platform,hostname:os.hostname(),username:os.userInfo().username,cpu:os.cpus()[0]&&os.cpus()[0].model||"Unknown",cpu_cores:os.cpus().length,total_ram_gb:(os.totalmem()/1073741824).toFixed(1),free_ram_gb:(os.freemem()/1073741824).toFixed(1)}}
 var attempts=0;
 function connect(){
@@ -88,7 +103,7 @@ function connect(){
   ws.on("message",function(d){var m;try{m=JSON.parse(d)}catch(e){return}
     if(m.type==="agent_registered"){console.log("");console.log("  Your code: "+m.pairingCode);console.log("");console.log("  Type this code in PC Pal and click Connect.");console.log("  Keep this window open!");console.log("")}
     else if(m.type==="agent_paired"){console.log("  Connected to PC Pal! You can minimize this window.")}
-    else if(m.type==="agent_command"){var r=run(m.command,m.timeout);ws.send(JSON.stringify({type:"agent_command_result",requestId:m.requestId,command:m.command,output:r.output,error:r.error}))}
+    else if(m.type==="agent_command"){var r=run(m.command,m.timeout,m.cwd);ws.send(JSON.stringify({type:"agent_command_result",requestId:m.requestId,command:m.command,output:r.output,error:r.error}))}
     else if(m.type==="agent_ping"){ws.send(JSON.stringify({type:"agent_pong"}))}
   });
   ws.on("close",function(){
@@ -154,6 +169,9 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 256 * 1024 })
 const pendingAgents = new Map();   // code → { ws, systemInfo }
 const pairedAgents = new Map();    // userId → { ws, systemInfo, code }
 const pendingCommands = new Map(); // requestId → { resolve, timer }
+const chatClients = new Map();     // userId → ws
+const buddyObservers = new Map();  // learnerId → Set<{ buddyId, buddyName, ws }>
+const terminalCwds = new Map();    // key → cwd (stateful terminal working directory)
 let commandIdCounter = 0;
 
 function generatePairingCode() {
@@ -168,7 +186,7 @@ function generatePairingCode() {
  * Send a command to a paired relay agent and wait for the result.
  * Returns { output, error } or null if no agent is paired.
  */
-function sendCommandToAgent(userId, command, timeout = 20000) {
+function sendCommandToAgent(userId, command, timeout = 20000, cwd) {
   const agent = pairedAgents.get(userId);
   if (!agent || agent.ws.readyState !== 1) return null;
 
@@ -181,12 +199,9 @@ function sendCommandToAgent(userId, command, timeout = 20000) {
 
     pendingCommands.set(requestId, { resolve, timer });
 
-    agent.ws.send(JSON.stringify({
-      type: 'agent_command',
-      requestId,
-      command,
-      timeout,
-    }));
+    const msg = { type: 'agent_command', requestId, command, timeout };
+    if (cwd) msg.cwd = cwd;
+    agent.ws.send(JSON.stringify(msg));
   });
 }
 
@@ -217,6 +232,7 @@ wss.on('connection', (ws) => {
         }
         // Client sends userId to associate the connection
         userId = msg.userId;
+        chatClients.set(userId, ws);
         // Store browser-collected system info if provided
         if (msg.browserSystemInfo && typeof msg.browserSystemInfo === 'object') {
           clientInfoStore.set(userId, msg.browserSystemInfo);
@@ -277,6 +293,32 @@ wss.on('connection', (ws) => {
             ws.send(JSON.stringify({ type: 'error', message: 'Unable to end the chat.' }));
           }
         }
+      } else if (msg.type === 'new_chat') {
+        // Start a fresh conversation. Close the current active session (if any)
+        // and create a new one.
+        if (!userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not initialized. Send init message first.' }));
+          }
+          return;
+        }
+        try {
+          const Conversation = require('./models/Conversation');
+          const active = Conversation.findActive(userId);
+          for (const conv of active) {
+            conversationState.closeSession(conv.id);
+          }
+          const session = conversationState.getOrCreateSession(userId);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'new_chat_ack', conversationId: session.id }));
+          }
+        } catch (err) {
+          console.error('[ws] Error starting new chat:', err.message);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Unable to start a new chat.' }));
+          }
+        }
+
       } else if (msg.type === 'pair_agent') {
         // User is entering a pairing code to connect their computer
         const code = (msg.code || '').toUpperCase().trim();
@@ -446,6 +488,53 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           error: isBlocked,
         }));
 
+      } else if (msg.type === 'terminal_command') {
+        // User running a command from the standalone terminal panel
+        if (!userId || !msg.command || !msg.requestId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'terminal_result', requestId: msg.requestId || '', command: msg.command || '', output: 'Invalid request.', error: true, cwd: terminalCwds.get(userId) || os.homedir() }));
+          }
+          return;
+        }
+        const systemDiagnostics = require('./core/systemDiagnostics');
+        const cmd = msg.command.trim();
+        const cwdKey = userId;
+        const currentCwd = terminalCwds.get(cwdKey) || os.homedir();
+        console.log(`[ws] User ${userId} terminal command: "${cmd}" (cwd: ${currentCwd})`);
+
+        // Handle cd as a special stateful command
+        const cdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
+        if (cdMatch) {
+          const target = (cdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
+          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, currentCwd);
+          terminalCwds.set(cwdKey, newCwd);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'terminal_result', requestId: msg.requestId, command: cmd,
+              output: cdErr || newCwd, error: !!cdErr, cwd: newCwd,
+            }));
+          }
+          return;
+        }
+
+        let result;
+        if (hasRelayAgent(userId)) {
+          result = await sendCommandToAgent(userId, cmd, 20000, currentCwd);
+        } else {
+          const output = systemDiagnostics.runSafeCommand(cmd, currentCwd);
+          result = { output, error: output.includes('BLOCKED') };
+        }
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'terminal_result',
+            requestId: msg.requestId,
+            command: cmd,
+            output: result.output,
+            error: result.error,
+            cwd: currentCwd,
+          }));
+        }
+
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
         if (!userId) {
@@ -466,6 +555,15 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           ws.send(JSON.stringify({ type: 'typing' }));
         }
 
+        // Forward user message to buddy observers
+        const observers = buddyObservers.get(userId);
+        if (observers) {
+          const fwd = JSON.stringify({ type: 'buddy_chat_forward', role: 'user', text: msg.text, timestamp: new Date().toISOString() });
+          for (const obs of observers) {
+            if (obs.ws.readyState === 1) obs.ws.send(fwd);
+          }
+        }
+
         const result = await agentOrchestrator.processMessage(msg.text, userId);
 
         if (ws.readyState === ws.OPEN) {
@@ -481,6 +579,134 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
             conversationId: result.conversationId || null,
           }));
         }
+
+        // Forward assistant response to buddy observers
+        if (observers) {
+          const fwd = JSON.stringify({ type: 'buddy_chat_forward', role: 'assistant', text: result.response, timestamp: new Date().toISOString() });
+          for (const obs of observers) {
+            if (obs.ws.readyState === 1) obs.ws.send(fwd);
+          }
+        }
+      // ─── Buddy session messages ───
+      } else if (msg.type === 'buddy_join') {
+        // Buddy (helper) wants to observe a learner's session
+        if (!userId || !msg.learnerId) {
+          if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: 'error', message: 'Invalid buddy join request.' }));
+          return;
+        }
+        const pairs = BuddyPair.findByUserId(userId);
+        const pair = pairs.find(p => p.status === 'active' &&
+          ((p.helper_id === userId && p.learner_id === msg.learnerId) ||
+           (p.learner_id === userId && p.helper_id === msg.learnerId)));
+        if (!pair) {
+          if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: 'error', message: 'No active buddy pair found.' }));
+          return;
+        }
+        // Determine names
+        const buddyName = (userId === pair.helper_id ? pair.helper_name : pair.learner_name) || 'Buddy';
+        const learnerName = (msg.learnerId === pair.learner_id ? pair.learner_name : pair.helper_name) || 'Learner';
+
+        // Get learner's conversation history
+        let historyMessages = [];
+        try {
+          const session = conversationState.getOrCreateSession(msg.learnerId);
+          const dbMsgs = conversationState.getSessionMessages(session.id, 50);
+          historyMessages = dbMsgs.map(m => ({ role: m.role, text: m.body, timestamp: m.created_at }));
+        } catch (e) {
+          console.error('[ws] Error fetching learner history for buddy:', e.message);
+        }
+
+        // Track the observer
+        if (!buddyObservers.has(msg.learnerId)) buddyObservers.set(msg.learnerId, new Set());
+        buddyObservers.get(msg.learnerId).add({ buddyId: userId, buddyName, ws });
+
+        // Send ack to buddy with history
+        ws.send(JSON.stringify({ type: 'buddy_join_ack', learnerId: msg.learnerId, learnerName, messages: historyMessages }));
+
+        // Notify learner
+        const learnerWs = chatClients.get(msg.learnerId);
+        if (learnerWs && learnerWs.readyState === 1) {
+          learnerWs.send(JSON.stringify({ type: 'buddy_joined', buddyName }));
+        }
+        console.log(`[buddy] ${buddyName} (${userId}) joined ${learnerName}'s session`);
+
+      } else if (msg.type === 'buddy_leave') {
+        if (!userId || !msg.learnerId) return;
+        const observers = buddyObservers.get(msg.learnerId);
+        if (observers) {
+          for (const obs of observers) {
+            if (obs.ws === ws) {
+              observers.delete(obs);
+              break;
+            }
+          }
+          if (observers.size === 0) buddyObservers.delete(msg.learnerId);
+        }
+        const learnerWs = chatClients.get(msg.learnerId);
+        if (learnerWs && learnerWs.readyState === 1) {
+          learnerWs.send(JSON.stringify({ type: 'buddy_left' }));
+        }
+        console.log(`[buddy] User ${userId} left ${msg.learnerId}'s session`);
+
+      } else if (msg.type === 'buddy_command') {
+        // Buddy runs a diagnostic command on the learner's machine
+        if (!userId || !msg.learnerId || !msg.command || !msg.requestId) {
+          if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: 'error', message: 'Invalid buddy command.' }));
+          return;
+        }
+        // Validate buddy pair
+        const pairs = BuddyPair.findByUserId(userId);
+        const pair = pairs.find(p => p.status === 'active' &&
+          (p.helper_id === userId || p.learner_id === userId) &&
+          (p.helper_id === msg.learnerId || p.learner_id === msg.learnerId));
+        if (!pair) {
+          if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: msg.command, output: 'Not authorized.', error: true }));
+          return;
+        }
+        const buddyName = (userId === pair.helper_id ? pair.helper_name : pair.learner_name) || 'Buddy';
+        const cmd = msg.command.trim();
+        const buddyCwdKey = 'buddy_' + msg.learnerId + '_' + userId;
+        const buddyCwd = terminalCwds.get(buddyCwdKey) || os.homedir();
+        console.log(`[buddy] ${buddyName} running command on ${msg.learnerId}: "${cmd}" (cwd: ${buddyCwd})`);
+
+        // Handle cd as a special stateful command
+        const buddyCdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
+        if (buddyCdMatch) {
+          const systemDiagnostics = require('./core/systemDiagnostics');
+          const target = (buddyCdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
+          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, buddyCwd);
+          terminalCwds.set(buddyCwdKey, newCwd);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: cdErr || newCwd, error: !!cdErr, cwd: newCwd }));
+          }
+          return;
+        }
+
+        // Notify learner that a command is starting
+        const learnerWs = chatClients.get(msg.learnerId);
+        if (learnerWs && learnerWs.readyState === 1) {
+          learnerWs.send(JSON.stringify({ type: 'buddy_terminal_start', requestId: msg.requestId, command: cmd, buddyName }));
+        }
+
+        // Execute through same sandbox pipeline
+        let result;
+        if (hasRelayAgent(msg.learnerId)) {
+          result = await sendCommandToAgent(msg.learnerId, cmd, 20000, buddyCwd);
+        } else {
+          const systemDiagnostics = require('./core/systemDiagnostics');
+          const output = systemDiagnostics.runSafeCommand(cmd, buddyCwd);
+          result = { output, error: output.includes('BLOCKED') };
+        }
+
+        // Send result to buddy
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: result.output, error: result.error, cwd: buddyCwd }));
+        }
+        // Send result to learner
+        if (learnerWs && learnerWs.readyState === 1) {
+          learnerWs.send(JSON.stringify({ type: 'buddy_terminal_result', requestId: msg.requestId, command: cmd, output: result.output, error: result.error, buddyName }));
+        }
+
       // Relay agent messages — same /ws path, distinguished by message type
       } else if (msg.type === 'agent_register') {
         agentCode = generatePairingCode();
@@ -520,7 +746,24 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
 
   ws.on('close', () => {
     console.log(`[ws] Connection closed for userId=${userId} agentCode=${agentCode}`);
-    if (userId) clientInfoStore.remove(userId);
+    if (userId) {
+      clientInfoStore.remove(userId);
+      chatClients.delete(userId);
+      // Clean up buddy observations this user was doing
+      for (const [learnerId, observers] of buddyObservers.entries()) {
+        for (const obs of observers) {
+          if (obs.ws === ws) {
+            observers.delete(obs);
+            const learnerWs = chatClients.get(learnerId);
+            if (learnerWs && learnerWs.readyState === 1) {
+              learnerWs.send(JSON.stringify({ type: 'buddy_left' }));
+            }
+            break;
+          }
+        }
+        if (observers.size === 0) buddyObservers.delete(learnerId);
+      }
+    }
     if (agentPingInterval) clearInterval(agentPingInterval);
     // Clean up relay agent state
     if (agentCode) {

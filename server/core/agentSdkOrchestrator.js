@@ -22,8 +22,7 @@ const qualityTracker = require('./conversationQualityTracker');
 const { anthropicApiKey } = require('../config');
 const youtubeSearch = require('./youtubeSearch');
 const { buildComfortGuidelines } = require('./sharedConstants');
-
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -114,11 +113,20 @@ async function processMessage(text, userId) {
 
     const user = userProfileManager.getOrCreateUser(userId);
 
+    // Resolve model from user preference — Ollama models go through the fallback orchestrator
+    const resolved = resolveModel(user.model_preference);
+    if (resolved.provider === 'ollama') {
+      const fallback = require('./agentOrchestrator');
+      return fallback.processMessage(text, userId);
+    }
+
     if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
       const mockResponder = require('./mockResponder');
       const session = conversationState.getOrCreateSession(userId);
       return mockResponder.respond(text, userId, session.id);
     }
+
+    const activeModel = resolved.model;
 
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
@@ -167,7 +175,7 @@ async function processMessage(text, userId) {
         prompt: fullPrompt,
         options: {
           systemPrompt: systemPrompt,
-          model: CLAUDE_MODEL,
+          model: activeModel,
           maxTurns: 10,
           allowedTools: [], // No built-in tools by default — use MCP tools
           mcpServers: mcpServer ? { 'pcpal-tools': mcpServer } : {},
