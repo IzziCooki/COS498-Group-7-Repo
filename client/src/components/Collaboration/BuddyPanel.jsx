@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './BuddyPanel.css';
+import VideoCall from './VideoCall';
 
 /**
  * BuddyPanel — slide-in panel for managing buddy/collaboration features.
@@ -20,6 +21,7 @@ function BuddyPanel({ isOpen, onClose, buddyData, currentUserId, onJoinSession, 
 
   const [codeInput, setCodeInput] = useState('');
   const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
 
   if (!isOpen) return null;
 
@@ -73,6 +75,22 @@ function BuddyPanel({ isOpen, onClose, buddyData, currentUserId, onJoinSession, 
                   <p className="buddy-panel__buddy-status">Connected</p>
                 </div>
               </div>
+
+              {/* Video call button */}
+              <button
+                className="btn-primary buddy-panel__action-btn buddy-panel__video-btn"
+                onClick={() => setShowVideoCall(!showVideoCall)}
+              >
+                {showVideoCall ? 'Close Video Call' : 'Video Call'}
+              </button>
+
+              {showVideoCall && (
+                <VideoCall
+                  userId={currentUserId}
+                  buddyName={buddyName}
+                  onClose={() => setShowVideoCall(false)}
+                />
+              )}
 
               {/* Join/Leave session — available for either role */}
               {currentUserId && onJoinSession && (
