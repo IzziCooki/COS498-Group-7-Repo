@@ -95,6 +95,29 @@
   gap: 16px;
 }
 
+.app-header__dash-btn {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--color-white);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-full);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.app-header__dash-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.app-header__dash-btn--active {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
 .app-header__buddy-btn {
   position: relative;
   min-width: 48px;

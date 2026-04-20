@@ -43,4 +43,15 @@ function runMigrations() {
 
 runMigrations();
 
+// Standalone tables — CREATE TABLE IF NOT EXISTS is inherently idempotent.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_vocabulary (
+    user_id TEXT NOT NULL,
+    term TEXT NOT NULL,
+    encounter_count INTEGER DEFAULT 0,
+    last_seen_at TEXT,
+    PRIMARY KEY (user_id, term)
+  )
+`);
+
 module.exports = db;

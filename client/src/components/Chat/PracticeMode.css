@@ -17,12 +17,33 @@
   padding: 14px 16px 8px;
 }
 
+.practice__progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.practice__progress-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
 .practice__progress-label {
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
-  display: block;
-  margin-bottom: 6px;
+  color: #64748b;
+}
+
+.practice__wrong {
+  margin: 0 16px 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-left: 3px solid #ef4444;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #991b1b;
 }
 
 .practice__progress-bar {

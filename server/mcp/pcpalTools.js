@@ -586,19 +586,38 @@ function getAndClearLastPractice() {
   return p;
 }
 
-const PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
+const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
 
 const startPractice = tool(
   'start_practice',
-  "Start a practice session where the user learns a task step-by-step in a safe simulation. Nothing happens to their computer. Available tasks: send_email, copy_paste, open_browser. Use when the user says 'practice', 'let me try first', 'I'm scared to try', or seems nervous about a task.",
+  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser. For ANY other task, set task_id to 'custom' and provide custom_steps — the agent generates practice steps for whatever the user wants to learn. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous.",
   {
-    task_id: z.enum(PRACTICE_TASKS).describe('Which task to practice'),
+    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser) or 'custom' for agent-generated practice"),
+    custom_title: z.string().optional().describe("Title for custom practice (required when task_id is 'custom')"),
+    custom_steps: z.array(z.object({
+      instruction: z.string().describe('What this step does'),
+      whereToLook: z.string().describe('Where on screen to look'),
+      whatItLooksLike: z.string().describe('Visual description of the target'),
+      deviceInstructions: z.string().describe('Device-specific instructions'),
+      afterThis: z.string().describe('What the screen looks like after this step'),
+      confusedAlt: z.string().optional().describe('Alternative explanation using an analogy'),
+    })).optional().describe("Steps for custom practice (required when task_id is 'custom')"),
   },
   async (args) => {
-    const practice = { taskId: args.task_id };
+    let practice;
+    if (args.task_id === 'custom' && args.custom_steps) {
+      practice = {
+        taskId: 'custom',
+        customTitle: args.custom_title || 'Practice Session',
+        customSteps: args.custom_steps,
+      };
+      console.log(`[MCP] Custom practice started: "${args.custom_title}" (${args.custom_steps.length} steps)`);
+    } else {
+      practice = { taskId: args.task_id };
+      console.log(`[MCP] Practice started: ${args.task_id}`);
+    }
     _lastPractice = practice;
-    console.log(`[MCP] Practice started: ${args.task_id}`);
-    return textResult(`Practice session for "${args.task_id}" started. The user will see a step-by-step practice guide in the side panel. Be extra reassuring in your text response — nothing will happen to their computer!`);
+    return textResult(`Practice session started. The user will see a step-by-step practice guide in the side panel. Be extra reassuring — nothing will happen to their computer!`);
   }
 );
 
