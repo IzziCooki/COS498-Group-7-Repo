@@ -1,0 +1,59 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "7071e07fa405",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "server/assets/ui-references/browser/chrome-address-bar.png",
+    "server/assets/ui-references/browser/chrome-icon.png",
+    "server/assets/ui-references/browser/edge-icon.png",
+    "server/assets/ui-references/browser/firefox-icon.png",
+    "server/assets/ui-references/browser/safari-icon.png",
+    "server/assets/ui-references/email/email-send-button.png",
+    "server/assets/ui-references/email/email-subject-field.png",
+    "server/assets/ui-references/email/email-to-field.png",
+    "server/assets/ui-references/email/gmail-compose-button.png",
+    "server/assets/ui-references/email/outlook-app-icon.png",
+    "server/assets/ui-references/email/paperclip-attach-icon.png",
+    "server/assets/ui-references/email/yahoo-compose-button.png",
+    "server/assets/ui-references/messaging/imessage-new-message.png",
+    "server/assets/ui-references/messaging/sms-send-arrow.png",
+    "server/assets/ui-references/messaging/whatsapp-app-icon.png",
+    "server/assets/ui-references/system-mac/mac-apple-menu.png",
+    "server/assets/ui-references/system-mac/mac-dock.png",
+    "server/assets/ui-references/system-mac/mac-finder-icon.png",
+    "server/assets/ui-references/system-mac/mac-spotlight.png",
+    "server/assets/ui-references/system-mac/mac-wifi-menubar.png",
+    "server/assets/ui-references/system-windows/windows-file-explorer.png",
+    "server/assets/ui-references/system-windows/windows-search-bar.png",
+    "server/assets/ui-references/system-windows/windows-settings-gear.png",
+    "server/assets/ui-references/system-windows/windows-start-button.png",
+    "server/assets/ui-references/system-windows/windows-taskbar.png",
+    "server/assets/ui-references/system-windows/windows-wifi-icon.png",
+    "server/assets/ui-references/video-call/end-call-red-button.png",
+    "server/assets/ui-references/video-call/facetime-call-button.png",
+    "server/assets/ui-references/video-call/mute-microphone-icon.png",
+    "server/assets/ui-references/video-call/teams-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-download-button.png",
+    "server/assets/ui-references/video-call/zoom-homepage.png",
+    "server/assets/ui-references/video-call/zoom-join-meeting.png",
+    "server/core/uiReferenceLibrary.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/70/71e07fa405/0/metadata.json",
+      "transcript": "/70/71e07fa405/0/full.jsonl",
+      "content_hash": "/70/71e07fa405/0/content_hash.txt",
+      "prompt": "/70/71e07fa405/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 649,
+    "cache_creation_tokens": 2364048,
+    "cache_read_tokens": 101996584,
+    "output_tokens": 209055,
+    "api_call_count": 371
+  }
+}
