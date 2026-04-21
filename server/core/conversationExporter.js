@@ -118,4 +118,20 @@ function exportAll() {
   return exported;
 }
 
-module.exports = { exportConversation, exportAll };
+function exportAllForUser(userId) {
+  const rows = require('../db/database')
+    .prepare("SELECT id FROM conversations WHERE user_id = ? AND status IN ('completed', 'closed', 'abandoned')")
+    .all(userId);
+
+  const exported = [];
+  for (const row of rows) {
+    const filepath = path.join(OUTPUT_DIR, `conv-${row.id}.json`);
+    if (!fs.existsSync(filepath)) {
+      const result = exportConversation(row.id);
+      if (result) exported.push(result);
+    }
+  }
+  return exported;
+}
+
+module.exports = { exportConversation, exportAll, exportAllForUser };

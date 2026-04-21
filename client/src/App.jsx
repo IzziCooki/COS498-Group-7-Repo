@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useUser } from './hooks/useUser';
+import { useAuth } from './hooks/useAuth';
 import { useBuddy } from './hooks/useBuddy';
 import { useConversations } from './hooks/useConversations';
 import OnboardingFlow from './components/Onboarding/OnboardingFlow';
+import AuthScreen from './components/Auth/AuthScreen';
 import Header from './components/Layout/Header';
 import ChatWindow from './components/Chat/ChatWindow';
 import ConversationSidebar from './components/Chat/ConversationSidebar';
@@ -16,7 +18,8 @@ import FamilyDashboard from './components/Dashboard/FamilyDashboard';
  * Once onboarded, shows the Header + Sidebar + ChatWindow + BuddyPanel.
  */
 function App() {
-  const { user, isOnboarded, isLoading, createUser, completeOnboarding, updateProfile } = useUser();
+  const { user, isOnboarded, isLoading, createUser, completeOnboarding, updateProfile, applyUser } = useUser();
+  const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
   const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -69,12 +72,26 @@ function App() {
     );
   }
 
-  // Not yet onboarded — show the wizard
+  // No session at all — show the auth gate. "Continue without account"
+  // creates an anonymous user (session cookie only, conversations won't
+  // persist), and register/login populate the user directly.
+  if (!user) {
+    return (
+      <AuthScreen
+        onAuthenticated={applyUser}
+        onContinueAnonymous={() => createUser({})}
+      />
+    );
+  }
+
+  // User exists but hasn't finished the profile wizard — show onboarding.
+  // Anonymous users go through it too so the agent has device/comfort context.
   if (!isOnboarded) {
     return (
       <OnboardingFlow
         createUser={createUser}
         completeOnboarding={completeOnboarding}
+        existingUser={user}
       />
     );
   }
@@ -103,6 +120,7 @@ function App() {
         onUpdateProfile={updateProfile}
         onDashboardClick={() => setCurrentView(prev => prev === 'dashboard' ? 'chat' : 'dashboard')}
         showingDashboard={currentView === 'dashboard'}
+        onSignOut={logout}
       />
       {currentView === 'dashboard' ? (
         <FamilyDashboard

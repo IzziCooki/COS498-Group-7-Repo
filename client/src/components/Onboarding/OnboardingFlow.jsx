@@ -28,7 +28,7 @@ const COMFORT_LABELS = {
  * Step 5: Buddy opt-in
  * Submit: calls createUser, then completeOnboarding
  */
-function OnboardingFlow({ createUser, completeOnboarding }) {
+function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [osType, setOsType] = useState('');
@@ -52,13 +52,34 @@ function OnboardingFlow({ createUser, completeOnboarding }) {
     setIsSubmitting(true);
     setError(null);
     try {
-      const newUser = await createUser({
-        name: name.trim(),
-        os_type: osType,
-        comfort_level: comfortLevel,
-        goal_summary: goalText.trim() || null,
-        collaboration_opt_in: wantsBuddy ? 1 : 0,
-      });
+      // If the user already exists (authenticated via AuthScreen, or anon
+      // session already issued), update in place. Otherwise create a new
+      // anonymous user.
+      let newUser;
+      if (existingUser && existingUser.id) {
+        const res = await fetch(`/api/users/${existingUser.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: name.trim(),
+            os_type: osType,
+            comfort_level: comfortLevel,
+            goal_summary: goalText.trim() || null,
+            collaboration_opt_in: wantsBuddy ? 1 : 0,
+          }),
+        });
+        if (!res.ok) throw new Error('Profile update failed.');
+        newUser = await res.json();
+      } else {
+        newUser = await createUser({
+          name: name.trim(),
+          os_type: osType,
+          comfort_level: comfortLevel,
+          goal_summary: goalText.trim() || null,
+          collaboration_opt_in: wantsBuddy ? 1 : 0,
+        });
+      }
 
       // If user wants a buddy, generate invite code
       if (wantsBuddy) {

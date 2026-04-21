@@ -31,6 +31,10 @@ function runMigrations() {
     'ALTER TABLE users ADD COLUMN goal_summary TEXT',
     'ALTER TABLE users ADD COLUMN invite_code TEXT',
     'ALTER TABLE users ADD COLUMN model_preference TEXT',
+    'ALTER TABLE users ADD COLUMN email TEXT',
+    'ALTER TABLE users ADD COLUMN password_hash TEXT',
+    'ALTER TABLE users ADD COLUMN is_anonymous INTEGER DEFAULT 1',
+    'ALTER TABLE users ADD COLUMN training_opt_in INTEGER DEFAULT 0',
   ];
   for (const sql of migrations) {
     try {
@@ -42,6 +46,16 @@ function runMigrations() {
 }
 
 runMigrations();
+
+// Indexes that depend on migration-added columns must run after the ALTERs.
+try {
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique
+      ON users(lower(email)) WHERE email IS NOT NULL
+  `);
+} catch (e) {
+  console.warn('[database] Could not create users_email_unique index:', e.message);
+}
 
 // Standalone tables — CREATE TABLE IF NOT EXISTS is inherently idempotent.
 db.exec(`
