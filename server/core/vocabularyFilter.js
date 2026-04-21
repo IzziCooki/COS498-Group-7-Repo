@@ -69,7 +69,12 @@ function filterResponse(text, vocabLevel) {
  * @param {string} text
  * @returns {string}
  */
-const MIN_WORDS_PER_SEGMENT = 4;
+// Each segment from a conjunction split must be at least this many words.
+// Raising this from 4 to 6 prevents short-clause splits like
+// "it's reliable. And fairly easy to use." — where the tail is grammatically
+// valid but reads as an awkward sentence fragment. 6 keeps genuine clauses
+// (which are typically 6+ words) while folding short tails back in.
+const MIN_WORDS_PER_SEGMENT = 6;
 
 function enforceReadability(text) {
   if (!text) return text;
