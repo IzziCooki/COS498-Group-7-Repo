@@ -535,34 +535,48 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           }
           return;
         }
-        const systemDiagnostics = require('./core/systemDiagnostics');
+        // Terminal commands must target the user's own paired computer via the
+        // relay agent. Without a paired agent, there is no user machine to
+        // target — refuse rather than falling back to the server host.
+        if (!hasRelayAgent(userId)) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'terminal_result',
+              requestId: msg.requestId,
+              command: msg.command,
+              output: 'No computer connected. Please pair your computer using the Connect button before running terminal commands.',
+              error: true,
+              cwd: terminalCwds.get(userId) || os.homedir(),
+            }));
+          }
+          return;
+        }
         const cmd = msg.command.trim();
         const cwdKey = userId;
         const currentCwd = terminalCwds.get(cwdKey) || os.homedir();
         console.log(`[ws] User ${userId} terminal command: "${cmd}" (cwd: ${currentCwd})`);
 
-        // Handle cd as a special stateful command
+        // Handle cd as a special stateful command. We don't validate the path
+        // against the server's filesystem — the target lives on the user's
+        // paired machine, so stat'ing server paths would both leak server
+        // directory existence and give the wrong answer. Trust the user's
+        // input; if the directory is bogus, the next command run via the
+        // relay agent will surface the error.
         const cdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
         if (cdMatch) {
           const target = (cdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
-          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, currentCwd);
+          const newCwd = target === '~' ? '~' : target;
           terminalCwds.set(cwdKey, newCwd);
           if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({
               type: 'terminal_result', requestId: msg.requestId, command: cmd,
-              output: cdErr || newCwd, error: !!cdErr, cwd: newCwd,
+              output: newCwd, error: false, cwd: newCwd,
             }));
           }
           return;
         }
 
-        let result;
-        if (hasRelayAgent(userId)) {
-          result = await sendCommandToAgent(userId, cmd, 20000, currentCwd);
-        } else {
-          const output = systemDiagnostics.runSafeCommand(cmd, currentCwd);
-          result = { output, error: output.includes('BLOCKED') };
-        }
+        const result = await sendCommandToAgent(userId, cmd, 20000, currentCwd);
         if (ws.readyState === ws.OPEN) {
           ws.send(JSON.stringify({
             type: 'terminal_result',
@@ -732,15 +746,35 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         const buddyCwd = terminalCwds.get(buddyCwdKey) || os.homedir();
         console.log(`[buddy] ${buddyName} running command on ${msg.learnerId}: "${cmd}" (cwd: ${buddyCwd})`);
 
-        // Handle cd as a special stateful command
+        // The buddy is operating on the learner's machine — require the
+        // learner to have a paired relay agent. Falling back to the server
+        // host would execute the buddy's commands on the PC Pal server
+        // itself, which is a severe security issue.
+        if (!hasRelayAgent(msg.learnerId)) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'buddy_command_result',
+              requestId: msg.requestId,
+              command: cmd,
+              output: "The learner's computer is not connected. They need to pair their computer before you can run commands.",
+              error: true,
+              cwd: buddyCwd,
+            }));
+          }
+          return;
+        }
+
+        // Handle cd as a special stateful command. Trust the user's path —
+        // validating against the server's filesystem would leak server
+        // directory existence and give the wrong answer for the learner's
+        // machine anyway.
         const buddyCdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
         if (buddyCdMatch) {
-          const systemDiagnostics = require('./core/systemDiagnostics');
           const target = (buddyCdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
-          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, buddyCwd);
+          const newCwd = target === '~' ? '~' : target;
           terminalCwds.set(buddyCwdKey, newCwd);
           if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: cdErr || newCwd, error: !!cdErr, cwd: newCwd }));
+            ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: newCwd, error: false, cwd: newCwd }));
           }
           return;
         }
@@ -751,15 +785,7 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           learnerWs.send(JSON.stringify({ type: 'buddy_terminal_start', requestId: msg.requestId, command: cmd, buddyName }));
         }
 
-        // Execute through same sandbox pipeline
-        let result;
-        if (hasRelayAgent(msg.learnerId)) {
-          result = await sendCommandToAgent(msg.learnerId, cmd, 20000, buddyCwd);
-        } else {
-          const systemDiagnostics = require('./core/systemDiagnostics');
-          const output = systemDiagnostics.runSafeCommand(cmd, buddyCwd);
-          result = { output, error: output.includes('BLOCKED') };
-        }
+        const result = await sendCommandToAgent(msg.learnerId, cmd, 20000, buddyCwd);
 
         // Send result to buddy
         if (ws.readyState === ws.OPEN) {
