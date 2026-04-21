@@ -204,13 +204,18 @@ CREATE TABLE IF NOT EXISTS user_memories (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- End-of-chat user feedback (star rating + optional comment)
+-- End-of-chat user feedback (star rating + optional comment). The
+-- ai_suggestion column is populated asynchronously by feedbackAnalyzer
+-- after the feedback is saved, so the admin page can surface a
+-- Claude-generated "what to do differently next time" note.
 CREATE TABLE IF NOT EXISTS conversation_feedback (
   id TEXT PRIMARY KEY,
   conversation_id TEXT NOT NULL UNIQUE,
   user_id TEXT NOT NULL,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment TEXT,
+  ai_suggestion TEXT,
+  ai_suggestion_generated_at TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (conversation_id) REFERENCES conversations(id),
   FOREIGN KEY (user_id) REFERENCES users(id)

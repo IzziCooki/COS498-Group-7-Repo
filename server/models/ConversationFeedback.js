@@ -42,6 +42,22 @@ const ConversationFeedback = {
   },
 
   /**
+   * Store a Claude-generated suggestion on a feedback row. Called by
+   * feedbackAnalyzer once the model responds (may be seconds after the
+   * row was created — the admin view picks it up on next refresh).
+   */
+  setAiSuggestion(id, suggestion) {
+    if (typeof suggestion !== 'string' || !suggestion.trim()) return null;
+    const now = new Date().toISOString();
+    db.prepare(`
+      UPDATE conversation_feedback
+      SET ai_suggestion = ?, ai_suggestion_generated_at = ?
+      WHERE id = ?
+    `).run(suggestion.trim(), now, id);
+    return this.findById(id);
+  },
+
+  /**
    * Aggregate stats across all feedback rows.
    * @returns {{ count: number, average_rating: number|null, distribution: { [rating: string]: number } }}
    */

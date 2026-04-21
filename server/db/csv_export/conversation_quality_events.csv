@@ -1,0 +1,9 @@
+id,conversation_id,user_id,event_type,detail,turn_number,created_at
+bfc0c3c0-7a08-4422-85b7-13dfa761240c,f3959ac5-9fa8-4d45-b746-3052bc292e1d,0d2c60e4-63a1-4818-bc67-cdc0a2bcd4b7,response_too_long,"{""word_count"":235}",1,2026-04-16 14:12:07
+6e2287c0-0846-4c7b-8894-744dd6b8f64e,86819d7c-b6dc-4910-8437-78e094794b1b,54ae231d-7806-41cc-b23b-d408c0188b2a,response_too_long,"{""word_count"":165}",1,2026-04-16 14:12:17
+e257dd04-81c6-4e47-ba53-7bc35ce28a96,86819d7c-b6dc-4910-8437-78e094794b1b,54ae231d-7806-41cc-b23b-d408c0188b2a,step_overload,"{""step_count"":4}",1,2026-04-16 14:12:17
+ee7a0ed8-b5f4-4dd0-8f3f-2d43cf5811ec,0fec1dee-c0cc-43c8-aa0e-12551b30acfb,39dcef88-b901-4ebe-9697-6ba520367f44,confusion_signal,"{""message_snippet"":""Huh"",""consecutive_count"":1,""total_count"":1}",1,2026-04-16 19:53:25
+fac742eb-bcd2-408a-9b27-f75b89af2d3a,0fec1dee-c0cc-43c8-aa0e-12551b30acfb,39dcef88-b901-4ebe-9697-6ba520367f44,confusion_signal,"{""message_snippet"":""Okay great. I'm trying to work on understanding python environments. Like im confused that I've rece"",""consecutive_count"":2,""total_count"":2}",2,2026-04-16 20:01:21
+59e17400-4ede-4bf8-bd27-8f756e07b8b0,af662731-456b-4b1c-aa2b-b89af42ee98e,49b01253-960e-46e9-afbb-2891a863767a,step_overload,"{""step_count"":5}",4,2026-04-16 20:04:19
+2a25fc8a-5455-40b7-9d97-e651c85aac16,af662731-456b-4b1c-aa2b-b89af42ee98e,49b01253-960e-46e9-afbb-2891a863767a,confusion_signal,"{""message_snippet"":""What do you mean by right click?"",""consecutive_count"":1,""total_count"":1}",8,2026-04-16 20:08:54
+1b79b980-bda7-4c2b-af7b-55010a3c6b63,af662731-456b-4b1c-aa2b-b89af42ee98e,49b01253-960e-46e9-afbb-2891a863767a,device_mismatch,"{""os_type"":""Mac"",""wrong_verbs"":[""tap"",""tap"",""tap""]}",8,2026-04-16 20:08:54
