@@ -1,0 +1,15 @@
+id,session_id,actor,kind,payload,created_at
+1,72385cad-b145-4513-9369-1ce63736b414,helper,consent_requested,"{""helperName"":""Dean""}",2026-04-15 18:45:55
+2,72385cad-b145-4513-9369-1ce63736b414,learner,consent_granted,,2026-04-15 18:46:00
+3,72385cad-b145-4513-9369-1ce63736b414,helper,snapshot_refreshed,,2026-04-15 18:46:14
+4,72385cad-b145-4513-9369-1ce63736b414,helper,message,"{""text"":""Hello""}",2026-04-15 18:46:19
+5,72385cad-b145-4513-9369-1ce63736b414,helper,session_ended,,2026-04-15 18:46:39
+6,b7f080f7-1696-45c6-8d17-3c36d51057b7,helper,consent_requested,"{""helperName"":""Dean""}",2026-04-15 18:48:26
+7,b7f080f7-1696-45c6-8d17-3c36d51057b7,learner,consent_granted,,2026-04-15 18:48:40
+8,b7f080f7-1696-45c6-8d17-3c36d51057b7,helper,message,"{""text"":""what wifi conenctions are avaiable?""}",2026-04-15 18:48:58
+9,b7f080f7-1696-45c6-8d17-3c36d51057b7,learner,transcript,"{""role"":""user"",""text"":""what wifi conenctions are avaiable?"",""timestamp"":""2026-04-15T18:49:05.483Z""}",2026-04-15 18:49:05
+10,b7f080f7-1696-45c6-8d17-3c36d51057b7,helper,session_ended,,2026-04-15 18:49:19
+11,acdbf519-6192-4466-9dd1-ffb9a96b5503,helper,consent_requested,"{""helperName"":""Hauserjj""}",2026-04-16 14:14:22
+12,acdbf519-6192-4466-9dd1-ffb9a96b5503,learner,consent_granted,,2026-04-16 14:14:29
+13,acdbf519-6192-4466-9dd1-ffb9a96b5503,helper,message,"{""text"":""Hello""}",2026-04-16 14:15:09
+14,acdbf519-6192-4466-9dd1-ffb9a96b5503,helper,session_ended,,2026-04-16 14:15:31

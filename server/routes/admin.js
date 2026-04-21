@@ -34,6 +34,8 @@ router.get('/feedback', (req, res) => {
         f.id,
         f.rating,
         f.comment,
+        f.ai_suggestion,
+        f.ai_suggestion_generated_at,
         f.created_at,
         f.conversation_id,
         f.user_id,
@@ -78,6 +80,35 @@ router.get('/feedback', (req, res) => {
   } catch (err) {
     console.error('[admin] GET /feedback error:', err.message);
     res.status(500).json({ error: 'Failed to load feedback.' });
+  }
+});
+
+/**
+ * POST /api/admin/feedback/:id/regenerate-suggestion
+ *
+ * Re-run the feedback analyzer on a specific feedback row. Useful for
+ * feedback submitted before the analyzer existed, or to get a second
+ * pass. Blocks until Claude responds (unlike the fire-and-forget path
+ * on the user-facing submit) so the admin sees the result immediately.
+ */
+router.post('/feedback/:id/regenerate-suggestion', async (req, res) => {
+  try {
+    const feedbackAnalyzer = require('../core/feedbackAnalyzer');
+    const ConversationFeedback = require('../models/ConversationFeedback');
+    const existing = ConversationFeedback.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Feedback not found.' });
+    const suggestion = await feedbackAnalyzer.analyze(req.params.id);
+    if (suggestion === null) {
+      return res.status(200).json({
+        ok: true,
+        suggestion: null,
+        message: 'Analyzer skipped (no API key, MOCK_MODE, or model chose to skip).',
+      });
+    }
+    res.json({ ok: true, suggestion });
+  } catch (err) {
+    console.error('[admin] regenerate-suggestion error:', err.message);
+    res.status(500).json({ error: 'Failed to regenerate suggestion.' });
   }
 });
 

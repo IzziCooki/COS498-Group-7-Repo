@@ -4,6 +4,7 @@ const qualityTracker = require('../core/conversationQualityTracker');
 const ConversationFeedback = require('../models/ConversationFeedback');
 const Conversation = require('../models/Conversation');
 const conversationState = require('../core/conversationState');
+const feedbackAnalyzer = require('../core/feedbackAnalyzer');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 // GET /api/quality/stats — aggregate quality stats for team monitoring.
@@ -57,8 +58,9 @@ router.post('/feedback', requireAuth, (req, res) => {
     return res.status(404).json({ error: 'Conversation not found.' });
   }
 
+  let feedbackRow;
   try {
-    ConversationFeedback.create({
+    feedbackRow = ConversationFeedback.create({
       conversation_id: conversationId,
       user_id: userId,
       rating: ratingNum,
@@ -73,12 +75,21 @@ router.post('/feedback', requireAuth, (req, res) => {
   }
 
   // Close the session if still active so the lifecycle is consistent.
+  // Must happen BEFORE feedbackAnalyzer runs so the conversation is
+  // closed and the transcript is stable when Claude reads it.
   if (conversation.status === 'active') {
     try {
       conversationState.closeSession(conversationId);
     } catch (err) {
       console.error('[quality] closeSession after feedback failed:', err.message);
     }
+  }
+
+  // Fire-and-forget: Claude reads the transcript + rating + comment and
+  // writes a short "do this differently next time" suggestion back onto
+  // the row. The admin feedback page surfaces it on next refresh.
+  if (feedbackRow && feedbackRow.id) {
+    feedbackAnalyzer.analyzeAsync(feedbackRow.id);
   }
 
   res.json({ ok: true });

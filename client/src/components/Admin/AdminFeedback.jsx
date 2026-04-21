@@ -18,6 +18,7 @@ function AdminFeedback({ onClose }) {
   const [ratingFilter, setRatingFilter] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [transcripts, setTranscripts] = useState({}); // conversationId -> messages[]
+  const [regenerating, setRegenerating] = useState(null); // feedbackId being regenerated
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +60,26 @@ function AdminFeedback({ onClose }) {
           setTranscripts(prev => ({ ...prev, [row.conversation_id]: msgs }));
         }
       } catch (_) { /* ignore */ }
+    }
+  }
+
+  async function regenerateSuggestion(e, feedbackId) {
+    e.stopPropagation();
+    setRegenerating(feedbackId);
+    try {
+      const res = await fetch(`/api/admin/feedback/${feedbackId}/regenerate-suggestion`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+      // Reload to reflect the new suggestion (and any others that
+      // quietly finished while we were looking).
+      await load();
+    } catch (err) {
+      setError(`Could not regenerate suggestion: ${err.message}`);
+    } finally {
+      setRegenerating(null);
     }
   }
 
@@ -160,11 +181,43 @@ function AdminFeedback({ onClose }) {
                         {row.email || (row.is_anonymous ? <em>Guest</em> : <em>No email</em>)}
                       </div>
                     </td>
-                    <td className="admin-feedback__comment">{row.comment || <em>No comment</em>}</td>
+                    <td className="admin-feedback__comment">
+                      {row.comment || <em>No comment</em>}
+                      {row.ai_suggestion && (
+                        <span className="admin-feedback__chip" title="AI suggestion available">AI</span>
+                      )}
+                    </td>
                   </tr>
                   {expandedId === row.id && (
                     <tr className="admin-feedback__transcript-row">
                       <td colSpan={4}>
+                        <div className="admin-feedback__suggestion">
+                          <div className="admin-feedback__suggestion-head">
+                            <strong>AI suggestion for next time</strong>
+                            <button
+                              type="button"
+                              className="admin-feedback__regen"
+                              onClick={(e) => regenerateSuggestion(e, row.id)}
+                              disabled={regenerating === row.id}
+                            >
+                              {regenerating === row.id
+                                ? 'Thinking…'
+                                : row.ai_suggestion ? 'Regenerate' : 'Generate'}
+                            </button>
+                          </div>
+                          {row.ai_suggestion ? (
+                            <p className="admin-feedback__suggestion-body">{row.ai_suggestion}</p>
+                          ) : (
+                            <p className="admin-feedback__suggestion-placeholder">
+                              <em>Not yet generated. New feedback analyzes automatically within a few seconds — refresh to pick it up.</em>
+                            </p>
+                          )}
+                          {row.ai_suggestion_generated_at && (
+                            <small className="admin-feedback__suggestion-meta">
+                              Generated {formatDate(row.ai_suggestion_generated_at)}
+                            </small>
+                          )}
+                        </div>
                         <div className="admin-feedback__transcript">
                           <strong>Conversation transcript</strong>
                           {transcripts[row.conversation_id]

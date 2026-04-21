@@ -1,0 +1,5 @@
+id,user_id,goal_text,related_skills,created_at
+dcb01507-8ba3-44da-bc61-47691c68d32c,da9d601f-17db-4fdf-b628-6de046a724b9,wants to send an email to his son,"[""send_email""]",2026-04-16 18:55:17
+363be96c-7d40-4a0d-8da7-79da679e6724,39dcef88-b901-4ebe-9697-6ba520367f44,I love coding on my computer!,"[""performance_optimization"",""development_environment"",""troubleshooting_software""]",2026-04-16 19:53:00
+25723bfd-fad1-4111-b23c-5e7d72e2e8c5,15c62a0c-2484-4568-b416-53064dd5f29b,Help my father with his HP laptop remotely when I'm away from home,"[""remote_support"",""troubleshooting""]",2026-04-16 20:03:26
+84b46714-a4c6-4eca-9c25-30e7395e4bea,15c62a0c-2484-4568-b416-53064dd5f29b,Help my father with his HP laptop remotely when I'm away from home,"[""remote_assistance"",""remote_desktop_setup""]",2026-04-16 20:05:49

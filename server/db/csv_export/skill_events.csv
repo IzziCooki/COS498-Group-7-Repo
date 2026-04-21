@@ -1,0 +1,18 @@
+id,user_id,skill_name,status,practiced_at
+5789e6f4-fb6f-4e1c-8210-184215ef1b7d,70906040-89eb-4fe2-9a24-147d5a84acda,connecting to wifi network,started,2026-04-15T15:07:34.570Z
+31a64af6-e0c0-4463-9316-49dbaa6094aa,70906040-89eb-4fe2-9a24-147d5a84acda,Connect to WiFi,started,2026-04-15T15:07:47.874Z
+1aeac57b-4912-4c71-9ac2-965771a6b396,70906040-89eb-4fe2-9a24-147d5a84acda,Connect to WiFi,started,2026-04-15T15:08:15.899Z
+3fbbff81-1dd3-4688-b801-3583eea7fe36,70906040-89eb-4fe2-9a24-147d5a84acda,Connect to WiFi,completed,2026-04-15T15:11:24.108Z
+5ecfe91b-80b0-4a92-8f41-6901b9987ecd,cd51d10f-da0b-42e1-b785-0fe403d06e75,Connect to Wi-Fi on iPhone,started,2026-04-15T15:16:50.326Z
+77973b94-2629-415a-8211-a96c430c0c6e,31c83ae2-551d-499a-8d94-dc48b215ef14,Connect to Wi-Fi,started,2026-04-15T15:28:56.727Z
+a8dc39e4-9380-459f-bbe5-d911773ee753,bdc5501c-874b-40f6-82ab-f86971099bc6,Connect to Wi-Fi,started,2026-04-16T14:30:42.196Z
+f9793a32-f1d2-4ca2-b947-45f2976dd76a,865693a1-f795-4f95-88e4-b7825973c743,Connect to Wi-Fi,started,2026-04-16T14:42:41.632Z
+a4e3284a-4a74-448d-ad64-3507e8d42a52,c0a99cdb-7096-4ccc-a652-74a5eb1bb390,Connect iPhone to Internet,started,2026-04-16T17:08:48.388Z
+4ca357f1-a3a3-472d-8388-2e392a840abf,c0a99cdb-7096-4ccc-a652-74a5eb1bb390,Share photos from iPhone,started,2026-04-16T17:42:30.829Z
+bda6bbab-2392-4ca5-8cbb-96b20351e05f,da9d601f-17db-4fdf-b628-6de046a724b9,Send an Email,started,2026-04-16T18:55:09.161Z
+13eb249f-0f6d-4e3e-beaa-d1d6f98b637d,27ef52e4-728f-4a92-b5c1-dbf68d94d795,Update Your Device,started,2026-04-16T20:01:48.163Z
+8efbc753-f933-423e-b5c9-8f8b965d1f75,49b01253-960e-46e9-afbb-2891a863767a,Wikipedia research for history,started,2026-04-16T20:03:05.587Z
+d36107ff-0191-4025-98e9-de267b7355c7,15c62a0c-2484-4568-b416-53064dd5f29b,Remote Computer Support,started,2026-04-16T20:03:28.667Z
+66ac6451-1374-42f9-b6aa-14794ec44860,15c62a0c-2484-4568-b416-53064dd5f29b,Remote assistance setup,started,2026-04-16T20:05:52.522Z
+cc48b526-cabf-4e2d-81e4-6fdee5d0b9d1,15c62a0c-2484-4568-b416-53064dd5f29b,Closing apps on Mac,started,2026-04-16T20:07:37.326Z
+84a86efe-5d27-4c5b-b17d-46aafc18a680,27ef52e4-728f-4a92-b5c1-dbf68d94d795,restart Mac to fix update downloads,started,2026-04-16T20:16:06.874Z
