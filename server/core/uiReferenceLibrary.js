@@ -54,6 +54,12 @@ const LIBRARY = {
     category: 'email',
     skills: ['send-email'],
   },
+  'paperclip-attach-icon': {
+    file: 'email/paperclip-attach-icon.png',
+    alt: 'Paperclip icon in the email toolbar — click to attach a file to your message',
+    category: 'email',
+    skills: ['send-email', 'attach-file'],
+  },
 
   // --- Video call (6) ---
   'zoom-join-meeting': {
@@ -92,6 +98,18 @@ const LIBRARY = {
     category: 'video-call',
     skills: ['video-call'],
   },
+  'end-call-red-button': {
+    file: 'video-call/end-call-red-button.png',
+    alt: 'Red circle button with a phone icon at the bottom of a video call — tap to end the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-app-icon': {
+    file: 'video-call/teams-app-icon.png',
+    alt: 'Microsoft Teams app icon — purple with a white "T"',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
 
   // --- Messaging (2) ---
   'imessage-new-message': {
@@ -103,6 +121,12 @@ const LIBRARY = {
   'sms-send-arrow': {
     file: 'messaging/sms-send-arrow.png',
     alt: 'Upward-pointing blue arrow next to the message box — tap to send',
+    category: 'messaging',
+    skills: ['text-message'],
+  },
+  'whatsapp-app-icon': {
+    file: 'messaging/whatsapp-app-icon.png',
+    alt: 'WhatsApp app icon — green circle with a white phone and speech bubble',
     category: 'messaging',
     skills: ['text-message'],
   },
@@ -176,6 +200,18 @@ const LIBRARY = {
     category: 'system-windows',
     skills: ['settings'],
   },
+  'windows-file-explorer': {
+    file: 'system-windows/windows-file-explorer.png',
+    alt: 'File Explorer app icon — yellow folder, used to browse files and folders',
+    category: 'system-windows',
+    skills: ['*'],
+  },
+  'windows-search-bar': {
+    file: 'system-windows/windows-search-bar.png',
+    alt: 'Search box next to the Start button at the bottom of the screen — type here to find apps or files',
+    category: 'system-windows',
+    skills: ['*'],
+  },
 
   // --- Mac system (3) ---
   'mac-apple-menu': {
@@ -195,6 +231,18 @@ const LIBRARY = {
     alt: 'Wi-Fi icon in the upper-right menu bar on Mac',
     category: 'system-mac',
     skills: ['wifi', 'network-fix'],
+  },
+  'mac-finder-icon': {
+    file: 'system-mac/mac-finder-icon.png',
+    alt: 'Finder app icon in the Dock — blue and white smiling face. Used to browse files and folders on Mac.',
+    category: 'system-mac',
+    skills: ['*'],
+  },
+  'mac-spotlight': {
+    file: 'system-mac/mac-spotlight.png',
+    alt: 'Spotlight search icon — magnifying glass in the upper-right corner of the Mac screen',
+    category: 'system-mac',
+    skills: ['*'],
   },
 };
 
