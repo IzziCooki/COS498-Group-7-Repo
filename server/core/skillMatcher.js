@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const uiReferenceLibrary = require('./uiReferenceLibrary');
 
 const SKILLS_DIR = path.join(__dirname, '..', 'skills');
 
@@ -107,4 +108,25 @@ function getAllSkills() {
   return skills;
 }
 
-module.exports = { matchSkill, buildSkillPrompt, getSkillsSummary, getAllSkills };
+/**
+ * Build a prompt fragment listing UI reference image IDs relevant to this skill.
+ * Returns empty string when no references apply, so the system prompt stays lean
+ * for skills that don't benefit from images.
+ *
+ * @param {string} skillId - the matched skill's id field (e.g. 'send-email')
+ * @returns {string}
+ */
+function buildSkillImagePrompt(skillId) {
+  if (!skillId) return '';
+  const ids = uiReferenceLibrary.getIdsForSkill(skillId);
+  if (ids.length === 0) return '';
+
+  const lines = ids.map(id => {
+    const img = uiReferenceLibrary.getById(id);
+    return `  - "${id}": ${img.alt}`;
+  }).join('\n');
+
+  return `\n\n## AVAILABLE UI REFERENCES (use as image_id in create_guide steps)\n${lines}\n\nWhen writing a guide step that mentions a button or icon listed above, add "image_id": "<exact-id>" to that step. Only use these exact IDs. If no ID matches the element you're describing, omit image_id — do not invent new IDs.`;
+}
+
+module.exports = { matchSkill, buildSkillPrompt, getSkillsSummary, getAllSkills, buildSkillImagePrompt };
