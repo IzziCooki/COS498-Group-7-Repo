@@ -518,7 +518,7 @@ const createGuide = tool(
       command: z.string().optional().describe('Terminal command to run (shown in a code block with Copy and Run buttons)'),
       note: z.string().optional().describe('Optional tip or warning for this step'),
       image_id: z.string().optional().describe(
-        'Optional UI reference image ID. ONLY use IDs listed in the AVAILABLE UI REFERENCES section of the system prompt — unknown IDs are silently dropped. Picking the right image dramatically helps elderly users identify buttons and icons.'
+        'UI reference image ID — REQUIRED whenever this step mentions a button, icon, or UI element that appears in the AVAILABLE UI REFERENCES section of the system prompt. Elderly users cannot visualize UI elements from text alone; pictures are the single most impactful way to help them. Use the EXACT id string from the system prompt (e.g. "chrome-icon", "yahoo-compose-button"). Unknown IDs are silently dropped.'
       ),
     })).describe('Ordered list of steps'),
   },
