@@ -11,9 +11,12 @@ describe('filterResponse', () => {
       expect(filterResponse('Open your browser.', 'basic')).toBe('Open your internet app.');
     });
 
-    test('replaces "download" with "save from the internet"', () => {
+    test('leaves "download" unchanged (well-known term, awkward substitution removed)', () => {
+      // "download" used to map to "save from the internet" which produced
+      // ungrammatical output like "save from the internet it". The substitution
+      // was removed because the word is well-known enough for elderly users.
       expect(filterResponse('Please download the file.', 'basic')).toBe(
-        'Please save from the internet the file.'
+        'Please download the file.'
       );
     });
 

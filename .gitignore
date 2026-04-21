@@ -24,3 +24,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .claude/worktrees/
+.claude/scheduled_tasks.lock
+.claude/settings.json
+.entire/
