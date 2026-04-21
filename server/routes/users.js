@@ -2,10 +2,14 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const userProfileManager = require('../core/userProfileManager');
 const User = require('../models/User');
+const Session = require('../models/Session');
+const { requireSelf, setSessionCookie } = require('../middleware/auth');
 
 const router = express.Router();
 
-// POST /api/users — create a new user
+// POST /api/users — create an anonymous user. A session cookie is issued so
+// the anonymous user can make authenticated requests; their data lives only
+// for the duration of the session and is never persisted as training data.
 router.post('/', (req, res) => {
   try {
     const { name, os_type, comfort_level, goal_summary, collaboration_opt_in } = req.body;
@@ -29,6 +33,9 @@ router.post('/', (req, res) => {
       user = User.findById(id);
     }
 
+    const { token } = Session.create(id);
+    setSessionCookie(res, req, token);
+
     res.status(201).json(user);
   } catch (err) {
     console.error('[users] POST / error:', err.message);
@@ -37,7 +44,7 @@ router.post('/', (req, res) => {
 });
 
 // GET /api/users/:id — get user by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', requireSelf('id'), (req, res) => {
   try {
     const user = User.findById(req.params.id);
     if (!user) {
@@ -51,7 +58,7 @@ router.get('/:id', (req, res) => {
 });
 
 // PUT /api/users/:id — update user profile
-router.put('/:id', (req, res) => {
+router.put('/:id', requireSelf('id'), (req, res) => {
   try {
     const existing = User.findById(req.params.id);
     if (!existing) {
@@ -66,7 +73,7 @@ router.put('/:id', (req, res) => {
 });
 
 // PUT /api/users/:id/onboard — mark user as onboarded
-router.put('/:id/onboard', (req, res) => {
+router.put('/:id/onboard', requireSelf('id'), (req, res) => {
   try {
     const existing = User.findById(req.params.id);
     if (!existing) {
@@ -81,7 +88,7 @@ router.put('/:id/onboard', (req, res) => {
 });
 
 // GET /api/users/:id/memories — get user's stored memories
-router.get('/:id/memories', (req, res) => {
+router.get('/:id/memories', requireSelf('id'), (req, res) => {
   try {
     const UserMemory = require('../models/UserMemory');
     const memories = UserMemory.findByUserId(req.params.id);
@@ -93,7 +100,7 @@ router.get('/:id/memories', (req, res) => {
 });
 
 // GET /api/users/:id/conversations — list conversations with preview
-router.get('/:id/conversations', (req, res) => {
+router.get('/:id/conversations', requireSelf('id'), (req, res) => {
   try {
     const Conversation = require('../models/Conversation');
     const db = require('../db/database');

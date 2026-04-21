@@ -171,7 +171,10 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
   const currentArtifact = activeArtifactIdx >= 0 && activeArtifactIdx < visibleArtifacts.length
     ? visibleArtifacts[activeArtifactIdx] : null;
   const showBuddyTerminal = !!buddySession;
-  const showLocalTerminal = terminalOpen && !showBuddyTerminal;
+  // Standalone terminal is only useful when the user's own computer is paired
+  // — otherwise there is nothing for commands to target. The server rejects
+  // unpaired terminal commands; we hide the panel here to match.
+  const showLocalTerminal = terminalOpen && agentConnected && !showBuddyTerminal;
   const showArtifactPanel = currentArtifact && !inlineMsgIds.has(currentArtifact.msgId);
   const showSidePanel = showBuddyTerminal || showLocalTerminal || showArtifactPanel;
   const showTerminal = showBuddyTerminal || showLocalTerminal;
@@ -249,9 +252,15 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
         {!isViewingPast && (
           <button
             type="button"
-            className={`chat-header__terminal-btn ${terminalOpen ? 'chat-header__terminal-btn--active' : ''}`}
+            className={`chat-header__terminal-btn ${terminalOpen && agentConnected ? 'chat-header__terminal-btn--active' : ''}`}
             onClick={() => setTerminalOpen(prev => !prev)}
-            aria-label={terminalOpen ? 'Close terminal' : 'Open terminal'}
+            aria-label={
+              !agentConnected
+                ? 'Connect your computer to use the terminal'
+                : terminalOpen ? 'Close terminal' : 'Open terminal'
+            }
+            title={!agentConnected ? 'Connect your computer to use the terminal' : undefined}
+            disabled={!agentConnected}
           >
             Terminal
           </button>

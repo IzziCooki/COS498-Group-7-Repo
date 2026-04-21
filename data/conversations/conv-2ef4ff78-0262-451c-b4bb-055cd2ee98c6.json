@@ -1,0 +1,60 @@
+{
+  "conversation_id": "2ef4ff78-0262-451c-b4bb-055cd2ee98c6",
+  "name": "learn_skill — Dean (Windows)",
+  "user": {
+    "name": "Dean",
+    "os_type": "Windows",
+    "comfort_level": 5,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [
+    "Open a Web Browser"
+  ],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-21T18:04:32.121Z",
+  "ended_at": "2026-04-21T18:18:17.403Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "How do I get wifi on my computer, visuals please",
+      "timestamp": "2026-04-21T18:12:24.438Z"
+    },
+    {
+      "role": "agent",
+      "content": "Good news! Your computer is already connected to the internet and working well. However, I created this visual guide so you can see exactly how to check your Wi-Fi (wireless internet) connection. And connect to different networks anytime you need to. This is perfect for when you want to connect to a different Wi-Fi (wireless internet) network (like at a coffee shop. Or friend's house) or if you ever need to reconnect at home.",
+      "timestamp": "2026-04-21T18:13:14.351Z"
+    },
+    {
+      "role": "user",
+      "content": "How to connect to wifi",
+      "timestamp": "2026-04-21T18:13:50.441Z"
+    },
+    {
+      "role": "agent",
+      "content": "To connect to Wi-Fi, follow these steps:\n\n**Step 1: Ensure your device is connected**\n\n* Make sure your device (computer/laptop/sp phone/tablet) is turned on and awake. * Check that you have a stable internet connection. **Step 2: Locate the Wi-Fi settings**\n\n* On Windows: Click on the network small picture on your screen (also called a icon) in the bottom bar (also called a taskbar) (usually located at the bottom right of the screen). This will open the network window. You can also search for \"Wi-Fi\" in the Start menu. * On Mac/MacBook: Click on the Wi-Fi small picture on your screen (also called a icon) in the top navigation bar. Or press Command + Space to open Spotlight Search. Type \"Wi-Fi\" and select it from the results. **Step 3: Select your Wi-Fi network**\n\n* In the network window, look for a list of available Wi-Fi networks (your own network will be listed). * Click on the name of your network (using mouse) and hold it until you see the \"Connect\" option. * Release the clickable portion of the network's small picture on your screen (also called a icon) to connect. If prompted enter our password: (Your WiFi Password)\n\n**Step 4: Authentication**\n\nIf you are prompted for a password, type it in to get connected.",
+      "timestamp": "2026-04-21T18:14:46.225Z"
+    },
+    {
+      "role": "user",
+      "content": "How to connect to wifi",
+      "timestamp": "2026-04-21T18:15:16.324Z"
+    },
+    {
+      "role": "agent",
+      "content": "Your computer is actually already connected to the internet right now, so you're all set at home! 🎉\n\nBut here's a visual step-by-step guide you can follow anytime you need to connect to a new Wi-Fi network — like at a coffee shop, library, or a friend's house. The password is almost always on a sticker on the internet box (internet box (also called a router)), so look there first!",
+      "timestamp": "2026-04-21T18:15:45.640Z"
+    },
+    {
+      "role": "user",
+      "content": "How to connect to google chrome",
+      "timestamp": "2026-04-21T18:16:11.937Z"
+    },
+    {
+      "role": "agent",
+      "content": "Google Chrome is the app you use to visit websites — it's the colorful circle on your screen. Here's a visual guide showing exactly where to find it and how to open it. Once it's open, you can type any website name at the top to go there! 🌐",
+      "timestamp": "2026-04-21T18:16:36.982Z"
+    }
+  ]
+}

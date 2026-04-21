@@ -1,16 +1,17 @@
 const express = require('express');
 const agentOrchestrator = require('../core/agentOrchestrator');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// POST /api/chat — REST fallback for WebSocket chat
-router.post('/', async (req, res) => {
+// POST /api/chat — REST fallback for WebSocket chat.
+// Requires a session cookie; the user id is taken from the session rather
+// than trusted from the request body so callers can't impersonate others.
+router.post('/', requireAuth, async (req, res) => {
   try {
-    const { userId, text } = req.body;
+    const { text } = req.body || {};
+    const userId = req.user.id;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required.' });
-    }
     if (!text) {
       return res.status(400).json({ error: 'text is required.' });
     }

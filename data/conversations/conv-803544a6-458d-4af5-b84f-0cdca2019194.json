@@ -1,0 +1,38 @@
+{
+  "conversation_id": "803544a6-458d-4af5-b84f-0cdca2019194",
+  "name": "general — Dean (Windows)",
+  "user": {
+    "name": "Dean",
+    "os_type": "Windows",
+    "comfort_level": 5,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-21T17:15:53.897Z",
+  "ended_at": "2026-04-21T18:04:30.843Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "how to connect to wifi",
+      "timestamp": "2026-04-21T18:03:02.577Z"
+    },
+    {
+      "role": "agent",
+      "content": "Good news! Your computer is already connected to wireless internet (also called a Wi-Fi) and working perfectly. The internet connection is strong and fast. Are you having trouble with something specific, like a website not loading? Or do you want to connect to a different wireless internet (also called a Wi-Fi) network instead?",
+      "timestamp": "2026-04-21T18:03:30.489Z"
+    },
+    {
+      "role": "user",
+      "content": "how to connect to wifi",
+      "timestamp": "2026-04-21T18:03:31.193Z"
+    },
+    {
+      "role": "agent",
+      "content": "Here's how to see and change your Wi-Fi (wireless internet) connection! Since you're already connected and everything is working great, you can use this guide anytime you want to connect to a different wireless network. Is there a specific network you're trying to connect to, or were you just wanting to learn how this works?",
+      "timestamp": "2026-04-21T18:04:18.752Z"
+    }
+  ]
+}
