@@ -1,0 +1,48 @@
+{
+  "conversation_id": "aa2e46c1-9b86-47f3-8d8e-bffd3cd82779",
+  "name": "general — Dean (Windows)",
+  "user": {
+    "name": "Dean",
+    "os_type": "Windows",
+    "comfort_level": 5,
+    "vocabulary_level": "basic"
+  },
+  "skills_activated": [],
+  "safety_events": [],
+  "status": "completed",
+  "started_at": "2026-04-21T17:11:50.372Z",
+  "ended_at": "2026-04-21T17:15:52.630Z",
+  "feedback": null,
+  "turns": [
+    {
+      "role": "user",
+      "content": "How to add bluetooth speaker to my computer",
+      "timestamp": "2026-04-21T17:13:06.793Z"
+    },
+    {
+      "role": "agent",
+      "content": "Let's focus on getting your Bluetooth speaker connected! Could you tell me what kind of speaker you have and whether you've connected Bluetooth devices to your computer before? Once I know those details, I'll walk you through the exact steps for your Windows computer.",
+      "timestamp": "2026-04-21T17:13:32.811Z"
+    },
+    {
+      "role": "user",
+      "content": "I have jbl clip3",
+      "timestamp": "2026-04-21T17:14:02.879Z"
+    },
+    {
+      "role": "agent",
+      "content": "Perfect! The JBL Clip 3 is a great little speaker. Have you ever connected a Bluetooth device to this computer before. Or would this be your first time pairing something wirelessly?",
+      "timestamp": "2026-04-21T17:14:21.084Z"
+    },
+    {
+      "role": "user",
+      "content": "never",
+      "timestamp": "2026-04-21T17:14:27.228Z"
+    },
+    {
+      "role": "agent",
+      "content": "No worries — everyone has a first time! Here's how to connect your JBL Clip 3 to your Windows computer. The speaker needs to be \"discoverable\" first, then your computer can find and connect to it. If you get stuck on any step, just let me know where you are and I'll help!",
+      "timestamp": "2026-04-21T17:15:02.225Z"
+    }
+  ]
+}

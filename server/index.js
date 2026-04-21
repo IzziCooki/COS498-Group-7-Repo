@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { WebSocketServer } = require('ws');
 const config = require('./config');
 require('./db/database');
@@ -27,11 +28,16 @@ const chatRouter = require('./routes/chat');
 const exportRouter = require('./routes/export');
 const buddyRouter = require('./routes/buddy');
 const qualityRouter = require('./routes/quality');
+const authRouter = require('./routes/auth');
+const adminRouter = require('./routes/admin');
+const { attachUser } = require('./middleware/auth');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ credentials: true, origin: (origin, cb) => cb(null, origin || true) }));
 app.use(express.json());
+app.use(cookieParser());
+app.use(attachUser);
 
 app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
 app.use('/ui-references', express.static(path.join(__dirname, 'assets', 'ui-references')));
@@ -147,6 +153,8 @@ app.get('/api/open-terminal', (req, res) => {
   }
 });
 
+app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
@@ -251,10 +259,19 @@ try {
   console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   let userId = null;
   let agentCode = null; // set if this connection is a relay agent
   let agentPingInterval = null;
+
+  // Parse the session cookie off the WebSocket upgrade request. The WS
+  // handshake carries the browser's cookies, so we can verify the user at
+  // connect time rather than trusting client-sent userIds.
+  const { getTokenFromCookieHeader } = require('./middleware/auth');
+  const Session = require('./models/Session');
+  const sessionToken = getTokenFromCookieHeader(req && req.headers && req.headers.cookie);
+  const sessionResult = sessionToken ? Session.lookup(sessionToken) : null;
+  const sessionUserId = sessionResult ? sessionResult.user.id : null;
 
   ws.on('message', async (data) => {
     try {
@@ -268,7 +285,17 @@ wss.on('connection', (ws) => {
           }
           return;
         }
-        // Client sends userId to associate the connection
+        // The claimed userId must match the session cookie. Chat clients
+        // without a valid session cookie are rejected outright — every
+        // client (anonymous or authenticated) gets a session via POST
+        // /api/users or /api/auth/login.
+        if (!sessionUserId || sessionUserId !== msg.userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated. Please sign in or continue as a guest.' }));
+          }
+          try { ws.close(4401, 'unauthenticated'); } catch (_) { /* noop */ }
+          return;
+        }
         userId = msg.userId;
         ws._pcpalUserId = userId;
         chatClients.set(userId, ws);
@@ -318,7 +345,7 @@ wss.on('connection', (ws) => {
           return;
         }
         try {
-          const active = require('./models/Conversation').findActive(userId);
+          const active = conversationState.findActiveSessionsForUser(userId);
           const conversationId = active.length > 0 ? active[0].id : null;
           if (conversationId) {
             conversationState.closeSession(conversationId);
@@ -342,8 +369,7 @@ wss.on('connection', (ws) => {
           return;
         }
         try {
-          const Conversation = require('./models/Conversation');
-          const active = Conversation.findActive(userId);
+          const active = conversationState.findActiveSessionsForUser(userId);
           for (const conv of active) {
             conversationState.closeSession(conv.id);
           }
@@ -535,34 +561,48 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           }
           return;
         }
-        const systemDiagnostics = require('./core/systemDiagnostics');
+        // Terminal commands must target the user's own paired computer via the
+        // relay agent. Without a paired agent, there is no user machine to
+        // target — refuse rather than falling back to the server host.
+        if (!hasRelayAgent(userId)) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'terminal_result',
+              requestId: msg.requestId,
+              command: msg.command,
+              output: 'No computer connected. Please pair your computer using the Connect button before running terminal commands.',
+              error: true,
+              cwd: terminalCwds.get(userId) || os.homedir(),
+            }));
+          }
+          return;
+        }
         const cmd = msg.command.trim();
         const cwdKey = userId;
         const currentCwd = terminalCwds.get(cwdKey) || os.homedir();
         console.log(`[ws] User ${userId} terminal command: "${cmd}" (cwd: ${currentCwd})`);
 
-        // Handle cd as a special stateful command
+        // Handle cd as a special stateful command. We don't validate the path
+        // against the server's filesystem — the target lives on the user's
+        // paired machine, so stat'ing server paths would both leak server
+        // directory existence and give the wrong answer. Trust the user's
+        // input; if the directory is bogus, the next command run via the
+        // relay agent will surface the error.
         const cdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
         if (cdMatch) {
           const target = (cdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
-          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, currentCwd);
+          const newCwd = target === '~' ? '~' : target;
           terminalCwds.set(cwdKey, newCwd);
           if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({
               type: 'terminal_result', requestId: msg.requestId, command: cmd,
-              output: cdErr || newCwd, error: !!cdErr, cwd: newCwd,
+              output: newCwd, error: false, cwd: newCwd,
             }));
           }
           return;
         }
 
-        let result;
-        if (hasRelayAgent(userId)) {
-          result = await sendCommandToAgent(userId, cmd, 20000, currentCwd);
-        } else {
-          const output = systemDiagnostics.runSafeCommand(cmd, currentCwd);
-          result = { output, error: output.includes('BLOCKED') };
-        }
+        const result = await sendCommandToAgent(userId, cmd, 20000, currentCwd);
         if (ws.readyState === ws.OPEN) {
           ws.send(JSON.stringify({
             type: 'terminal_result',
@@ -732,15 +772,35 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         const buddyCwd = terminalCwds.get(buddyCwdKey) || os.homedir();
         console.log(`[buddy] ${buddyName} running command on ${msg.learnerId}: "${cmd}" (cwd: ${buddyCwd})`);
 
-        // Handle cd as a special stateful command
+        // The buddy is operating on the learner's machine — require the
+        // learner to have a paired relay agent. Falling back to the server
+        // host would execute the buddy's commands on the PC Pal server
+        // itself, which is a severe security issue.
+        if (!hasRelayAgent(msg.learnerId)) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'buddy_command_result',
+              requestId: msg.requestId,
+              command: cmd,
+              output: "The learner's computer is not connected. They need to pair their computer before you can run commands.",
+              error: true,
+              cwd: buddyCwd,
+            }));
+          }
+          return;
+        }
+
+        // Handle cd as a special stateful command. Trust the user's path —
+        // validating against the server's filesystem would leak server
+        // directory existence and give the wrong answer for the learner's
+        // machine anyway.
         const buddyCdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
         if (buddyCdMatch) {
-          const systemDiagnostics = require('./core/systemDiagnostics');
           const target = (buddyCdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
-          const { cwd: newCwd, error: cdErr } = systemDiagnostics.resolveCD(target, buddyCwd);
+          const newCwd = target === '~' ? '~' : target;
           terminalCwds.set(buddyCwdKey, newCwd);
           if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: cdErr || newCwd, error: !!cdErr, cwd: newCwd }));
+            ws.send(JSON.stringify({ type: 'buddy_command_result', requestId: msg.requestId, command: cmd, output: newCwd, error: false, cwd: newCwd }));
           }
           return;
         }
@@ -751,15 +811,7 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           learnerWs.send(JSON.stringify({ type: 'buddy_terminal_start', requestId: msg.requestId, command: cmd, buddyName }));
         }
 
-        // Execute through same sandbox pipeline
-        let result;
-        if (hasRelayAgent(msg.learnerId)) {
-          result = await sendCommandToAgent(msg.learnerId, cmd, 20000, buddyCwd);
-        } else {
-          const systemDiagnostics = require('./core/systemDiagnostics');
-          const output = systemDiagnostics.runSafeCommand(cmd, buddyCwd);
-          result = { output, error: output.includes('BLOCKED') };
-        }
+        const result = await sendCommandToAgent(msg.learnerId, cmd, 20000, buddyCwd);
 
         // Send result to buddy
         if (ws.readyState === ws.OPEN) {
@@ -820,6 +872,8 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
     if (userId) {
       clientInfoStore.remove(userId);
       chatClients.delete(userId);
+      // Anonymous users' chat history is ephemeral — drop it when they leave.
+      try { conversationState.discardEphemeralForUser(userId); } catch (_) { /* noop */ }
       // Clean up buddy observations this user was doing
       for (const [learnerId, observers] of buddyObservers.entries()) {
         for (const obs of observers) {

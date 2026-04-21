@@ -6,9 +6,27 @@ CREATE TABLE IF NOT EXISTS users (
   accessibility_needs TEXT DEFAULT '[]',
   comfort_level INTEGER DEFAULT 1,
   onboarded INTEGER DEFAULT 0,
+  email TEXT,
+  password_hash TEXT,
+  is_anonymous INTEGER DEFAULT 1,
+  training_opt_in INTEGER DEFAULT 0,
+  is_admin INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Server-side session tokens. Kept server-side so we can revoke on logout.
+CREATE TABLE IF NOT EXISTS user_sessions (
+  token TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL,
+  last_seen_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS user_sessions_expires_at ON user_sessions(expires_at);
 
 CREATE TABLE IF NOT EXISTS conversations (
   id TEXT PRIMARY KEY,
@@ -186,13 +204,18 @@ CREATE TABLE IF NOT EXISTS user_memories (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- End-of-chat user feedback (star rating + optional comment)
+-- End-of-chat user feedback (star rating + optional comment). The
+-- ai_suggestion column is populated asynchronously by feedbackAnalyzer
+-- after the feedback is saved, so the admin page can surface a
+-- Claude-generated "what to do differently next time" note.
 CREATE TABLE IF NOT EXISTS conversation_feedback (
   id TEXT PRIMARY KEY,
   conversation_id TEXT NOT NULL UNIQUE,
   user_id TEXT NOT NULL,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment TEXT,
+  ai_suggestion TEXT,
+  ai_suggestion_generated_at TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY (conversation_id) REFERENCES conversations(id),
   FOREIGN KEY (user_id) REFERENCES users(id)

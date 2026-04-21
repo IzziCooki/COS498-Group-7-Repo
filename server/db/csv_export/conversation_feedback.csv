@@ -1,0 +1,4 @@
+id,conversation_id,user_id,rating,comment,created_at
+321d748e-33cf-4791-8a48-ecee583a2cd9,b719fbbc-5b8d-4975-aafc-992b9a31aa8b,df4bbede-f657-4efb-a674-d2bb48622402,3,Too many words in the reponse,2026-04-13 15:22:32
+e688aee9-9f4c-4fc7-951f-0acbf71231bf,c0e34f1c-db0d-4514-8f9f-6fbe137f6b40,ef5a57b2-9109-4eb8-8715-b33d2b17feec,2,too many words in the response,2026-04-13 15:35:17
+2309188b-9e18-46a8-96e4-91902526d7cb,c200c17a-d416-4bd8-8251-6c0e7eebe14b,70906040-89eb-4fe2-9a24-147d5a84acda,3,"You gave me the correct steps, but there should have been more visuals and fewer words. Too many words to explain something that was very simple to do.",2026-04-15 15:12:20

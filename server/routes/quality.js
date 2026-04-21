@@ -4,9 +4,12 @@ const qualityTracker = require('../core/conversationQualityTracker');
 const ConversationFeedback = require('../models/ConversationFeedback');
 const Conversation = require('../models/Conversation');
 const conversationState = require('../core/conversationState');
+const feedbackAnalyzer = require('../core/feedbackAnalyzer');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
-// GET /api/quality/stats — aggregate quality stats for team monitoring
-router.get('/stats', (req, res) => {
+// GET /api/quality/stats — aggregate quality stats for team monitoring.
+// Admin-only: these stats cover the whole platform, not just the caller.
+router.get('/stats', requireAdmin, (req, res) => {
   try {
     const stats = qualityTracker.getAggregateStats();
     const feedback = ConversationFeedback.getAggregateStats();
@@ -17,9 +20,14 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// GET /api/quality/conversation/:id — quality report for a single conversation
-router.get('/conversation/:id', (req, res) => {
+// GET /api/quality/conversation/:id — quality report for a single conversation.
+// Only the owner may read a conversation's quality report.
+router.get('/conversation/:id', requireAuth, (req, res) => {
   try {
+    const conv = Conversation.findById(req.params.id);
+    if (!conv || conv.user_id !== req.user.id) {
+      return res.status(404).json({ error: 'Conversation not found.' });
+    }
     const report = qualityTracker.getQualityReport(req.params.id);
     res.json(report);
   } catch (err) {
@@ -28,15 +36,14 @@ router.get('/conversation/:id', (req, res) => {
   }
 });
 
-// POST /api/quality/feedback — record end-of-chat user feedback
-router.post('/feedback', (req, res) => {
-  const { conversationId, userId, rating, comment } = req.body || {};
+// POST /api/quality/feedback — record end-of-chat user feedback.
+// Derives userId from the session, not the request body.
+router.post('/feedback', requireAuth, (req, res) => {
+  const { conversationId, rating, comment } = req.body || {};
+  const userId = req.user.id;
 
   if (!conversationId || typeof conversationId !== 'string') {
     return res.status(400).json({ error: 'conversationId is required.' });
-  }
-  if (!userId || typeof userId !== 'string') {
-    return res.status(400).json({ error: 'userId is required.' });
   }
   const ratingNum = Number(rating);
   if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
@@ -47,15 +54,13 @@ router.post('/feedback', (req, res) => {
   }
 
   const conversation = Conversation.findById(conversationId);
-  if (!conversation) {
+  if (!conversation || conversation.user_id !== userId) {
     return res.status(404).json({ error: 'Conversation not found.' });
   }
-  if (conversation.user_id !== userId) {
-    return res.status(403).json({ error: 'Conversation does not belong to this user.' });
-  }
 
+  let feedbackRow;
   try {
-    ConversationFeedback.create({
+    feedbackRow = ConversationFeedback.create({
       conversation_id: conversationId,
       user_id: userId,
       rating: ratingNum,
@@ -70,6 +75,8 @@ router.post('/feedback', (req, res) => {
   }
 
   // Close the session if still active so the lifecycle is consistent.
+  // Must happen BEFORE feedbackAnalyzer runs so the conversation is
+  // closed and the transcript is stable when Claude reads it.
   if (conversation.status === 'active') {
     try {
       conversationState.closeSession(conversationId);
@@ -78,27 +85,29 @@ router.post('/feedback', (req, res) => {
     }
   }
 
+  // Fire-and-forget: Claude reads the transcript + rating + comment and
+  // writes a short "do this differently next time" suggestion back onto
+  // the row. The admin feedback page surfaces it on next refresh.
+  if (feedbackRow && feedbackRow.id) {
+    feedbackAnalyzer.analyzeAsync(feedbackRow.id);
+  }
+
   res.json({ ok: true });
 });
 
 // POST /api/quality/feedback/skip — user dismissed the feedback prompt;
 // still close the session so the conversation lifecycle completes.
-router.post('/feedback/skip', (req, res) => {
-  const { conversationId, userId } = req.body || {};
+router.post('/feedback/skip', requireAuth, (req, res) => {
+  const { conversationId } = req.body || {};
+  const userId = req.user.id;
 
   if (!conversationId || typeof conversationId !== 'string') {
     return res.status(400).json({ error: 'conversationId is required.' });
   }
-  if (!userId || typeof userId !== 'string') {
-    return res.status(400).json({ error: 'userId is required.' });
-  }
 
   const conversation = Conversation.findById(conversationId);
-  if (!conversation) {
+  if (!conversation || conversation.user_id !== userId) {
     return res.status(404).json({ error: 'Conversation not found.' });
-  }
-  if (conversation.user_id !== userId) {
-    return res.status(403).json({ error: 'Conversation does not belong to this user.' });
   }
 
   if (conversation.status === 'active') {
