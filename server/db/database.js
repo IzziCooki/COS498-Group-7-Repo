@@ -35,6 +35,7 @@ function runMigrations() {
     'ALTER TABLE users ADD COLUMN password_hash TEXT',
     'ALTER TABLE users ADD COLUMN is_anonymous INTEGER DEFAULT 1',
     'ALTER TABLE users ADD COLUMN training_opt_in INTEGER DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0',
   ];
   for (const sql of migrations) {
     try {

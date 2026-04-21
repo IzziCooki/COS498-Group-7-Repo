@@ -47,6 +47,20 @@ function requireAuth(req, res, next) {
 }
 
 /**
+ * Require an authenticated admin user. Non-admin or unauthenticated
+ * callers get 403 (not 401) when they're logged in but lack permission.
+ */
+function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  if (!req.user.is_admin) {
+    return res.status(403).json({ error: 'Admin access required.' });
+  }
+  next();
+}
+
+/**
  * Require that the authenticated user matches the :id (or :userId) route
  * param. Blocks cross-user reads/writes on user-scoped endpoints.
  */
@@ -85,6 +99,7 @@ module.exports = {
   COOKIE_NAME,
   attachUser,
   requireAuth,
+  requireAdmin,
   requireSelf,
   setSessionCookie,
   clearSessionCookie,
