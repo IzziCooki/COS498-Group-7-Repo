@@ -16,14 +16,16 @@ const { BLOCKED_PATTERNS } = require('./sharedConstants');
 const COMMAND_TIMEOUT = 10000; // 10 seconds max per command
 
 /** Safely execute a command with timeout and size limits. */
-function safeExec(cmd, timeoutMs = COMMAND_TIMEOUT) {
+function safeExec(cmd, timeoutMs = COMMAND_TIMEOUT, cwd) {
   try {
-    const output = execSync(cmd, {
+    const opts = {
       timeout: timeoutMs,
       maxBuffer: 1024 * 512, // 512KB max output
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    };
+    if (cwd) opts.cwd = cwd;
+    const output = execSync(cmd, opts);
     return output.trim();
   } catch (err) {
     if (err.killed) return `Command timed out after ${timeoutMs}ms`;
@@ -238,7 +240,7 @@ const ALLOWED_COMMANDS = {
     /^tracert\s+-d\s+\S+$/i,
     /^tasklist(\s+\/FO\s+\w+)?$/i,
     /^wmic\s+(os|cpu|memorychip|diskdrive|nic)\s+get\s+\S+/i,
-    /^dir\s+"[^"]+"\s*$/i,
+    /^dir(\s+\/[sSbBwW])*(\s+"?[^;|&`$>]+"?)?\s*$/i,
     /^type\s+"[^"]+\.(txt|log|cfg|ini|json)"\s*$/i,
     /^netstat\s+-an$/i,
     /^route\s+print$/i,
@@ -259,7 +261,8 @@ const ALLOWED_COMMANDS = {
     /^top\s+-l\s+1/i,
     /^df\s+-h/i,
     /^du\s+-sh\s+/i,
-    /^ls\s+-la?\s+"?[^;|&]+"?\s*$/i,
+    /^ls(\s+-[lLaARhS1t]+)*(\s+"?[^;|&`$>]+"?)?\s*$/i,
+    /^find\s+"?[^;|&`$>]+"?(\s+-(maxdepth|name|iname|type|size|newer|mtime|perm|empty|path|not)\s+"?[^;|&`$>]+"?)*\s*$/i,
     /^cat\s+"?[^;|&]+\.(txt|log|cfg|ini|json|plist|conf)"?\s*$/i,
     /^defaults\s+read\s+/i,
     /^system_profiler\s+SP\w+$/i,
@@ -302,7 +305,8 @@ const ALLOWED_COMMANDS = {
     /^top\s+-bn1/i,
     /^df\s+-h/i,
     /^du\s+-sh\s+/i,
-    /^ls\s+-la?\s+"?[^;|&]+"?\s*$/i,
+    /^ls(\s+-[lLaARhS1t]+)*(\s+"?[^;|&`$>]+"?)?\s*$/i,
+    /^find\s+"?[^;|&`$>]+"?(\s+-(maxdepth|name|iname|type|size|newer|mtime|perm|empty|path|not)\s+"?[^;|&`$>]+"?)*\s*$/i,
     /^cat\s+"?[^;|&]+\.(txt|log|cfg|ini|json|conf|yaml|yml)"?\s*$/i,
     /^free\s+-[mgh]$/i,
     /^lsblk$/i,
@@ -317,7 +321,7 @@ const ALLOWED_COMMANDS = {
 
 // BLOCKED_PATTERNS imported from sharedConstants.js — single source of truth
 
-function runSafeCommand(command) {
+function runSafeCommand(command, cwd) {
   if (!command || typeof command !== 'string') {
     return 'Error: No command provided.';
   }
@@ -343,7 +347,35 @@ function runSafeCommand(command) {
       `Ask me what specific information you need and I'll use the right diagnostic tool.`;
   }
 
-  return safeExec(cmd);
+  return safeExec(cmd, COMMAND_TIMEOUT, cwd);
+}
+
+/**
+ * Handle a `cd` command — resolve the path relative to the current cwd,
+ * validate it exists and is a directory, and return the new absolute path.
+ * @param {string} target — the path argument from `cd <target>`
+ * @param {string} currentCwd — the current working directory
+ * @returns {{ cwd: string, error: string|null }}
+ */
+function resolveCD(target, currentCwd) {
+  const home = os.homedir();
+  let resolved;
+  if (!target || target === '~') {
+    resolved = home;
+  } else if (target.startsWith('~/')) {
+    resolved = path.resolve(home, target.slice(2));
+  } else {
+    resolved = path.resolve(currentCwd || home, target);
+  }
+  try {
+    const stat = fs.statSync(resolved);
+    if (!stat.isDirectory()) {
+      return { cwd: currentCwd || home, error: `cd: not a directory: ${target}` };
+    }
+    return { cwd: resolved, error: null };
+  } catch {
+    return { cwd: currentCwd || home, error: `cd: no such directory: ${target}` };
+  }
 }
 
 /** check_disk_health — disk usage, large files, temp file cleanup suggestions. */
@@ -435,6 +467,7 @@ module.exports = {
   listRunningApps,
   readErrorLog,
   runSafeCommand,
+  resolveCD,
   checkDiskHealth,
   checkInstalledSoftware,
   getBatteryStatus,

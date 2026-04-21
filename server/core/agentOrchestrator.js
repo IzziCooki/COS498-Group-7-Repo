@@ -3,6 +3,7 @@ const { anthropicApiKey } = require('../config');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
+const vocabularyProgression = require('./vocabularyProgression');
 const userProfileManager = require('./userProfileManager');
 const taskClassifier = require('./taskClassifier');
 const SkillEvent = require('../models/SkillEvent');
@@ -25,6 +26,8 @@ const clientInfoStore = require('./clientInfoStore');
 const skillMatcher = require('./skillMatcher');
 const youtubeSearch = require('./youtubeSearch');
 const { VALID_GUIDE_IDS, buildComfortGuidelines } = require('./sharedConstants');
+const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
+const ollamaClient = require('./ollamaClient');
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -34,8 +37,6 @@ const client = new Anthropic({ apiKey: anthropicApiKey });
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
-
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOOL_ROUNDS = 10;
 
 // VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
@@ -1005,12 +1006,16 @@ async function processMessage(text, userId) {
     // Step 2: Get user
     const user = userProfileManager.getOrCreateUser(userId);
 
-    // Mock mode: skip Claude API, use pre-written responses
-    if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
+    // Mock mode: skip AI API, use pre-written responses (unless an Ollama model is selected)
+    const userModelResolved = resolveModel(user.model_preference);
+    if (process.env.MOCK_MODE === 'true' || (!anthropicApiKey && userModelResolved.provider !== 'ollama')) {
       const mockResponder = require('./mockResponder');
       const session = conversationState.getOrCreateSession(userId);
       return mockResponder.respond(text, userId, session.id);
     }
+
+    // Check if the user is asking about a jargon term (resets progression)
+    vocabularyProgression.checkForTermQuestions(text, userId);
 
     // Step 3: Get/create session
     const session = conversationState.getOrCreateSession(userId);
@@ -1048,7 +1053,11 @@ async function processMessage(text, userId) {
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt);
 
-    // Step 7: Call Claude with tool-use loop
+    // Resolve model provider
+    const resolved = resolveModel(user.model_preference);
+    const activeModel = resolved.model;
+
+    // Step 7: Call AI model
     let safetyAlert = null;
     let guideId = null;
     let stepSequence = null;
@@ -1056,57 +1065,64 @@ async function processMessage(text, userId) {
     let finalTextResponse = '';
 
     try {
-      let response = await client.messages.create({
-        model: CLAUDE_MODEL,
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages,
-        tools,
-      });
-
-      let toolRounds = 0;
-      while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
-        toolRounds += 1;
-
-        // Process tool calls
-        const toolResults = [];
-        for (const block of response.content) {
-          if (block.type !== 'tool_use') continue;
-          const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep, endedConversationId: fcEnded } =
-            await handleFunctionCall(block.name, block.input, userId, sessionId);
-          if (alert) safetyAlert = alert;
-          if (fcGuideId) guideId = fcGuideId;
-          if (fcStep) stepSequence = fcStep;
-          if (fcEnded) endedConversationId = fcEnded;
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fcResult });
-        }
-
-        // Send tool results back to Claude
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults });
-
-        response = await client.messages.create({
-          model: CLAUDE_MODEL,
+      if (resolved.provider === 'ollama') {
+        // Ollama path — simple chat, no tool use
+        console.log(`[agentOrchestrator] Using Ollama model: ${activeModel}`);
+        finalTextResponse = await ollamaClient.chat(activeModel, systemPrompt, messages);
+      } else {
+        // Anthropic path — full tool-use loop
+        let response = await client.messages.create({
+          model: activeModel,
           max_tokens: 1024,
           system: systemPrompt,
           messages,
           tools,
         });
-      }
 
-      if (toolRounds >= MAX_TOOL_ROUNDS) {
-        console.error(`[agentOrchestrator] Tool loop hit max (${MAX_TOOL_ROUNDS}) for user ${userId}`);
-      }
+        let toolRounds = 0;
+        while (hasToolUse(response.content) && toolRounds < MAX_TOOL_ROUNDS) {
+          toolRounds += 1;
 
-      finalTextResponse = extractTextFromContent(response.content);
+          // Process tool calls
+          const toolResults = [];
+          for (const block of response.content) {
+            if (block.type !== 'tool_use') continue;
+            const { result: fcResult, safetyAlert: alert, guideId: fcGuideId, stepSequence: fcStep, endedConversationId: fcEnded } =
+              await handleFunctionCall(block.name, block.input, userId, sessionId);
+            if (alert) safetyAlert = alert;
+            if (fcGuideId) guideId = fcGuideId;
+            if (fcStep) stepSequence = fcStep;
+            if (fcEnded) endedConversationId = fcEnded;
+            toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fcResult });
+          }
+
+          // Send tool results back to Claude
+          messages.push({ role: 'assistant', content: response.content });
+          messages.push({ role: 'user', content: toolResults });
+
+          response = await client.messages.create({
+            model: activeModel,
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages,
+            tools,
+          });
+        }
+
+        if (toolRounds >= MAX_TOOL_ROUNDS) {
+          console.error(`[agentOrchestrator] Tool loop hit max (${MAX_TOOL_ROUNDS}) for user ${userId}`);
+        }
+
+        finalTextResponse = extractTextFromContent(response.content);
+      }
     } catch (err) {
-      console.error('[agentOrchestrator] Claude API error:', err.message);
+      console.error(`[agentOrchestrator] ${resolved.provider} API error:`, err.message);
       return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null };
     }
 
     // Step 8: Filter response
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyFilter.filterResponse(finalTextResponse, vocabLevel);
+    let filteredResponse = vocabularyProgression.filterWithProgression(finalTextResponse, vocabLevel, userId);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
     if (!filteredResponse) {

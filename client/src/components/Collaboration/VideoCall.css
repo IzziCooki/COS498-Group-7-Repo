@@ -1,0 +1,149 @@
+/* VideoCall — elderly-friendly video calling */
+
+.video-call {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0f172a;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.video-call__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #1e293b;
+}
+
+.video-call__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.video-call__close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #475569;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.video-call__close:hover { background: #64748b; }
+
+/* Video screens */
+.video-call__screens {
+  flex: 1;
+  position: relative;
+  min-height: 300px;
+}
+
+.video-call__remote {
+  width: 100%;
+  height: 100%;
+}
+
+.video-call__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-call__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 20px;
+  padding: 24px;
+  line-height: 1.5;
+}
+
+.video-call__placeholder--error {
+  color: #fca5a5;
+}
+
+/* Local video — small overlay in corner */
+.video-call__local {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 120px;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.video-call__video--local {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror so it feels natural */
+}
+
+/* Controls — big buttons for elderly users */
+.video-call__controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  background: #1e293b;
+}
+
+.video-call__call-btn {
+  padding: 16px 48px;
+  font-size: 22px;
+  font-weight: 700;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.video-call__call-btn:hover { background: #15803d; }
+
+.video-call__hangup-btn {
+  padding: 16px 36px;
+  font-size: 20px;
+  font-weight: 700;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.video-call__hangup-btn:hover { background: #b91c1c; }
+
+.video-call__ctrl-btn {
+  padding: 14px 24px;
+  font-size: 17px;
+  font-weight: 600;
+  background: #334155;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.video-call__ctrl-btn:hover { background: #475569; }
+
+.video-call__ctrl-btn--off {
+  background: #7c3aed;
+}
+
+.video-call__ctrl-btn--off:hover { background: #6d28d9; }

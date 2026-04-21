@@ -5,6 +5,13 @@ const BuddyPair = require('../models/BuddyPair');
 const ProgressShare = require('../models/ProgressShare');
 const HelpRequest = require('../models/HelpRequest');
 const User = require('../models/User');
+const SkillEvent = require('../models/SkillEvent');
+const SafetyEvent = require('../models/SafetyEvent');
+const ScamCheckEvent = require('../models/ScamCheckEvent');
+const Conversation = require('../models/Conversation');
+const Message = require('../models/Message');
+const ConversationFeedback = require('../models/ConversationFeedback');
+const skillProgression = require('../core/skillProgression');
 
 /**
  * Generate a short, readable invite code (6 alphanumeric chars, uppercase).
@@ -122,6 +129,100 @@ router.delete('/:pairId', (req, res) => {
 
   BuddyPair.update(req.params.pairId, { status: 'ended' });
   res.json({ success: true });
+});
+
+// GET /api/buddy/:pairId/dashboard — family dashboard data for a learner
+router.get('/:pairId/dashboard', (req, res) => {
+  const pair = BuddyPair.findById(req.params.pairId);
+  if (!pair || pair.status !== 'active') {
+    return res.status(404).json({ error: 'Buddy pair not found or inactive' });
+  }
+
+  // The learner is the person we're showing data about
+  const learnerId = pair.learner_id;
+  const learner = User.findById(learnerId);
+  if (!learner) return res.status(404).json({ error: 'Learner not found' });
+
+  // Skills
+  const skillEvents = SkillEvent.findByUserId(learnerId);
+  const skillStatus = skillProgression.getSkillStatus(learnerId);
+  const nextSkill = skillProgression.getNextSkill(learnerId);
+  const completedSkills = skillEvents.filter(e => e.status === 'completed');
+  const skillTimeline = skillEvents
+    .sort((a, b) => new Date(a.practiced_at) - new Date(b.practiced_at))
+    .map(e => ({ skill: e.skill_name, status: e.status, date: e.practiced_at }));
+
+  // Conversations
+  const allConversations = Conversation.findByUserId(learnerId);
+  const recentConversations = allConversations.slice(0, 10).map(conv => {
+    const msgs = Message.findByConversationId(conv.id, 3);
+    const preview = msgs.find(m => m.role === 'user')?.body?.substring(0, 120) || '';
+    const messageCount = Message.findByConversationId(conv.id).length;
+    let feedback = null;
+    try { feedback = ConversationFeedback.findByConversationId(conv.id); } catch { /* ok */ }
+    return {
+      id: conv.id, taskType: conv.task_type, status: conv.status,
+      startedAt: conv.started_at, endedAt: conv.ended_at,
+      messageCount, preview,
+      rating: feedback?.rating || null,
+    };
+  });
+
+  // Safety
+  const safetyEvents = SafetyEvent.findByUserId(learnerId);
+  let scamChecks = [];
+  try { scamChecks = ScamCheckEvent.findByUserId(learnerId); } catch { /* ok */ }
+
+  // Feedback stats
+  let feedbackStats = { count: 0, average_rating: null };
+  try { feedbackStats = ConversationFeedback.getAggregateStats(); } catch { /* ok */ }
+
+  // Progress shares
+  const progressShares = ProgressShare.findByBuddyPairId(req.params.pairId);
+
+  // Help requests
+  const helpRequests = HelpRequest.findOpenByBuddyPairId(req.params.pairId);
+
+  // Struggles — from user memories if available
+  let struggles = [];
+  try {
+    const UserMemory = require('../models/UserMemory');
+    const allMemories = UserMemory.findByUserId(learnerId);
+    struggles = allMemories
+      .filter(m => m.type === 'struggle' || m.type === 'pattern')
+      .slice(0, 10)
+      .map(m => ({ type: m.type, content: m.content, date: m.created_at }));
+  } catch { /* UserMemory may not exist */ }
+
+  res.json({
+    learner: {
+      name: learner.name, osType: learner.os_type,
+      comfortLevel: learner.comfort_level, goalSummary: learner.goal_summary,
+    },
+    skills: {
+      completed: completedSkills.map(e => ({ skill: e.skill_name, date: e.practiced_at })),
+      status: skillStatus,
+      next: nextSkill,
+      timeline: skillTimeline,
+      totalAvailable: Object.keys(skillProgression.SKILL_NAMES || {}).length || 12,
+    },
+    conversations: {
+      total: allConversations.length,
+      recent: recentConversations,
+    },
+    safety: {
+      events: safetyEvents.map(e => ({ type: e.event_type, trigger: e.trigger_text, date: e.created_at })),
+      scamChecks: scamChecks.map(s => ({
+        summary: s.situation_summary, riskLevel: s.risk_level,
+        redFlags: s.red_flags, action: s.recommended_action, date: s.created_at,
+      })),
+    },
+    feedback: feedbackStats,
+    progressShares: progressShares.slice(0, 20),
+    helpRequests,
+    struggles,
+    pairInfo: { helperName: pair.helper_name, learnerName: pair.learner_name },
+  });
 });
 
 module.exports = router;

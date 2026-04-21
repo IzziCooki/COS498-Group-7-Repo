@@ -32,7 +32,7 @@ const User = {
   },
 
   update(id, fields) {
-    const allowed = ['name', 'os_type', 'vocabulary_level', 'accessibility_needs', 'comfort_level', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code'];
+    const allowed = ['name', 'os_type', 'vocabulary_level', 'accessibility_needs', 'comfort_level', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code', 'model_preference'];
     const updates = [];
     const values = [];
 

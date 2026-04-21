@@ -1,0 +1,23 @@
+{
+  "id": "find_on_screen",
+  "name": "Find Something on Screen",
+  "description": "Help the user find a button, icon, or menu item by taking a screenshot of their screen and highlighting where it is",
+  "triggers": [
+    "can't find",
+    "where is",
+    "don't see it",
+    "I don't see",
+    "where do I click",
+    "which button",
+    "what does it look like",
+    "show me where",
+    "point to",
+    "can you see my screen",
+    "look at my screen",
+    "I'm looking for",
+    "where is the button"
+  ],
+  "category": "diagnostics",
+  "difficulty": "beginner",
+  "prompt": "The user can't find something on their screen. Use take_screenshot to capture their screen, find what they're looking for, and show them an annotated screenshot with the target highlighted. If the relay agent isn't connected, describe the location using spatial language (top-right, bottom-left, etc.) instead."
+}

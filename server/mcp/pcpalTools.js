@@ -27,7 +27,10 @@ function getSessionId() { return _activeSessionId; }
 const systemDiagnostics = require('../core/systemDiagnostics');
 const clientInfoStore = require('../core/clientInfoStore');
 const youtubeSearch = require('../core/youtubeSearch');
+const screenshotAnnotator = require('../core/screenshotAnnotator');
 const UserMemory = require('../models/UserMemory');
+const Anthropic = require('@anthropic-ai/sdk');
+const { anthropicApiKey } = require('../config');
 const skillProgression = require('../core/skillProgression');
 const SkillEvent = require('../models/SkillEvent');
 const SafetyEvent = require('../models/SafetyEvent');
@@ -51,6 +54,18 @@ function textResult(text) {
 // The orchestrator reads and clears these after each query()
 let _lastGuide = null;
 let _lastFindings = null;
+let _lastScreenshot = null;
+
+// Reference to the requestScreenshot function from index.js (set at runtime)
+let _requestScreenshotFn = null;
+
+function setRequestScreenshotFn(fn) { _requestScreenshotFn = fn; }
+
+function getAndClearLastScreenshot() {
+  const s = _lastScreenshot;
+  _lastScreenshot = null;
+  return s;
+}
 
 function getAndClearLastGuide() {
   const g = _lastGuide;
@@ -178,6 +193,84 @@ const getBatteryStatus = tool(
   async () => {
     if (!canRunLocalDiagnostics()) return textResult(noAccessMessage('battery check'));
     return textResult(systemDiagnostics.getBatteryStatus());
+  }
+);
+
+// Screenshot & Visual Pointing
+
+const takeScreenshot = tool(
+  'take_screenshot',
+  "Capture and analyze the user's screen to find a button, icon, or menu item they can't locate. Returns an annotated screenshot with the target highlighted. Only works when a relay agent is connected. Use this when the user says things like 'I can't find it', 'where is that button', 'I don't see it'.",
+  {
+    looking_for: z.string().describe("What the user is trying to find, e.g. 'Settings icon', 'Share button', 'Wi-Fi toggle'"),
+  },
+  async (args) => {
+    if (!_requestScreenshotFn) {
+      return textResult('Screenshot tool not available — server not configured.');
+    }
+
+    const userId = getUserId();
+
+    // Request screenshot from relay agent
+    const ssResult = await _requestScreenshotFn(userId);
+    if (!ssResult || ssResult.error || !ssResult.imageBase64) {
+      return textResult(
+        'Could not take a screenshot. Make sure your computer is connected via the Connect Computer button. ' +
+        (ssResult?.message || '')
+      );
+    }
+
+    // Use Claude vision to find what the user is looking for
+    let targets = [];
+    let description = '';
+    try {
+      if (anthropicApiKey) {
+        const client = new Anthropic({ apiKey: anthropicApiKey });
+        const visionResponse = await client.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: 'image/png', data: ssResult.imageBase64 } },
+              { type: 'text', text: `The user is looking for: "${args.looking_for}". Look at this screenshot of their actual screen.\n\nReturn ONLY valid JSON (no markdown):\n{"found": true/false, "targets": [{"x": pixel_x, "y": pixel_y, "label": "short label for what's here"}], "description": "one sentence describing where it is in plain language using spatial terms like top-right, bottom-left, etc."}` }
+            ]
+          }]
+        });
+        const jsonText = visionResponse.content[0]?.text || '';
+        const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        targets = parsed.targets || [];
+        description = parsed.description || '';
+      }
+    } catch (err) {
+      console.error('[MCP] Vision analysis failed:', err.message);
+      description = `I took a screenshot but couldn't analyze it automatically. Here's your screen — look for ${args.looking_for}.`;
+    }
+
+    // Annotate the screenshot if we have targets
+    let annotatedBase64 = ssResult.imageBase64;
+    if (targets.length > 0) {
+      try {
+        annotatedBase64 = await screenshotAnnotator.annotateScreenshot(ssResult.imageBase64, targets);
+      } catch (err) {
+        console.error('[MCP] Screenshot annotation failed:', err.message);
+      }
+    }
+
+    // Store the screenshot for the response
+    _lastScreenshot = {
+      imageBase64: annotatedBase64,
+      description: description || `Screenshot of user's screen while looking for: ${args.looking_for}`,
+      found: targets.length > 0,
+    };
+
+    console.log(`[MCP] Screenshot taken: ${targets.length} target(s) found for "${args.looking_for}"`);
+    return textResult(
+      targets.length > 0
+        ? `SCREENSHOT TAKEN: Found "${args.looking_for}". ${description}. The annotated screenshot is shown to the user.`
+        : `SCREENSHOT TAKEN: Could not find "${args.looking_for}" on screen. ${description}. The screenshot is shown to the user — describe where to look using the image.`
+    );
   }
 );
 
@@ -484,6 +577,51 @@ const recallMemories = tool(
   }
 );
 
+// Practice Mode Tool
+
+let _lastPractice = null;
+
+function getAndClearLastPractice() {
+  const p = _lastPractice;
+  _lastPractice = null;
+  return p;
+}
+
+const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
+
+const startPractice = tool(
+  'start_practice',
+  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser. For ANY other task, set task_id to 'custom' and provide custom_steps — the agent generates practice steps for whatever the user wants to learn. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous.",
+  {
+    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser) or 'custom' for agent-generated practice"),
+    custom_title: z.string().optional().describe("Title for custom practice (required when task_id is 'custom')"),
+    custom_steps: z.array(z.object({
+      instruction: z.string().describe('What this step does'),
+      whereToLook: z.string().describe('Where on screen to look'),
+      whatItLooksLike: z.string().describe('Visual description of the target'),
+      deviceInstructions: z.string().describe('Device-specific instructions'),
+      afterThis: z.string().describe('What the screen looks like after this step'),
+      confusedAlt: z.string().optional().describe('Alternative explanation using an analogy'),
+    })).optional().describe("Steps for custom practice (required when task_id is 'custom')"),
+  },
+  async (args) => {
+    let practice;
+    if (args.task_id === 'custom' && args.custom_steps) {
+      practice = {
+        taskId: 'custom',
+        customTitle: args.custom_title || 'Practice Session',
+        customSteps: args.custom_steps,
+      };
+      console.log(`[MCP] Custom practice started: "${args.custom_title}" (${args.custom_steps.length} steps)`);
+    } else {
+      practice = { taskId: args.task_id };
+      console.log(`[MCP] Practice started: ${args.task_id}`);
+    }
+    _lastPractice = practice;
+    return textResult(`Practice session started. The user will see a step-by-step practice guide in the side panel. Be extra reassuring — nothing will happen to their computer!`);
+  }
+);
+
 // Diagnostic Findings Artifact Tool
 
 const createFindings = tool(
@@ -595,11 +733,15 @@ function createPcPalMcpServer() {
       // Buddy
       shareProgressWithBuddy,
       askBuddyForHelp,
+      // Vision
+      takeScreenshot,
       // Media
       findYoutubeVideos,
       // Memory
       saveMemory,
       recallMemories,
+      // Practice
+      startPractice,
       // Artifacts
       createGuide,
       createFindings,
@@ -607,4 +749,4 @@ function createPcPalMcpServer() {
   });
 }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn };
