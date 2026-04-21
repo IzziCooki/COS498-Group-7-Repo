@@ -177,8 +177,14 @@ async function processMessage(text, userId) {
     ]);
 
     const skillMatch = skillMatcher.matchSkill(text);
-    const matchedSkillPrompt = skillMatch ? skillMatcher.buildSkillPrompt(skillMatch.skill) : null;
     const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
+    // Append UI reference image IDs relevant to the matched skill so the agent
+    // knows exactly which image_id values are valid in create_guide steps.
+    // Returns empty string when no images apply, keeping the prompt lean.
+    const skillImagePrompt = skillMatcher.buildSkillImagePrompt(matchedSkillId);
+    const matchedSkillPrompt = skillMatch
+      ? skillMatcher.buildSkillPrompt(skillMatch.skill) + skillImagePrompt
+      : null;
     if (skillMatch) {
       console.log(`[agentSdkOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score})`);
     }
