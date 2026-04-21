@@ -1,0 +1,27 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "ef32e97efb8f",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "server/__tests__/vocabularyFilter.test.js",
+    "server/assets/vocabulary/basicSubstitutions.json",
+    "server/core/vocabularyFilter.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ef/32e97efb8f/0/metadata.json",
+      "transcript": "/ef/32e97efb8f/0/full.jsonl",
+      "content_hash": "/ef/32e97efb8f/0/content_hash.txt",
+      "prompt": "/ef/32e97efb8f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 597,
+    "cache_creation_tokens": 1859774,
+    "cache_read_tokens": 88725660,
+    "output_tokens": 187357,
+    "api_call_count": 344
+  }
+}
