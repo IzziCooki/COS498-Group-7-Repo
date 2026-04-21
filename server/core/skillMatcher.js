@@ -117,7 +117,8 @@ function getAllSkills() {
  * @returns {string}
  */
 function buildSkillImagePrompt(skillId) {
-  if (!skillId) return '';
+  // Foundational wildcard images apply even when skillId is null, so we still
+  // build the prompt. Only bail if the registry returns nothing at all.
   const ids = uiReferenceLibrary.getIdsForSkill(skillId);
   if (ids.length === 0) return '';
 
@@ -126,7 +127,20 @@ function buildSkillImagePrompt(skillId) {
     return `  - "${id}": ${img.alt}`;
   }).join('\n');
 
-  return `\n\n## AVAILABLE UI REFERENCES (use as image_id in create_guide steps)\n${lines}\n\nWhen writing a guide step that mentions a button or icon listed above, add "image_id": "<exact-id>" to that step. Only use these exact IDs. If no ID matches the element you're describing, omit image_id — do not invent new IDs.`;
+  return `
+
+## AVAILABLE UI REFERENCES (pictures the user can see inside the guide)
+
+CRITICAL: Pictures help elderly users more than any amount of text description. For EVERY guide step that mentions an element listed below, you MUST include "image_id": "<exact-id>" so the user sees a picture of what you're describing. A step that says "click the colorful circle" WITHOUT image_id="chrome-icon" has failed the user — they cannot visualize what you're describing from words alone.
+
+Available images:
+${lines}
+
+Rules:
+- Include image_id on every guide step that describes one of the listed elements. If you say "open your internet app", add image_id="chrome-icon" (or edge-icon, firefox-icon, safari-icon — pick whichever the user uses).
+- Use the EXACT id string — no variations, no new ids.
+- If no id matches the element you're describing, omit image_id (never invent one — unknown IDs are silently dropped).
+- A single guide can and should use multiple image_ids across its steps.`;
 }
 
 module.exports = { matchSkill, buildSkillPrompt, getSkillsSummary, getAllSkills, buildSkillImagePrompt };
