@@ -1,0 +1,52 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "35dc5cd47fa9",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "client/src/components/Chat/CommandGuide.css",
+    "client/src/components/Chat/CommandGuide.jsx",
+    "server/assets/ui-references/browser/browser-back-button.png",
+    "server/assets/ui-references/browser/browser-bookmark-star.png",
+    "server/assets/ui-references/browser/chrome-address-bar.png",
+    "server/assets/ui-references/email/email-send-button.png",
+    "server/assets/ui-references/email/email-subject-field.png",
+    "server/assets/ui-references/email/email-to-field.png",
+    "server/assets/ui-references/email/gmail-compose-button.png",
+    "server/assets/ui-references/email/yahoo-compose-button.png",
+    "server/assets/ui-references/messaging/imessage-new-message.png",
+    "server/assets/ui-references/messaging/sms-send-arrow.png",
+    "server/assets/ui-references/system-mac/mac-apple-menu.png",
+    "server/assets/ui-references/system-mac/mac-dock.png",
+    "server/assets/ui-references/system-mac/mac-wifi-menubar.png",
+    "server/assets/ui-references/system-windows/windows-settings-gear.png",
+    "server/assets/ui-references/system-windows/windows-start-button.png",
+    "server/assets/ui-references/system-windows/windows-taskbar.png",
+    "server/assets/ui-references/system-windows/windows-wifi-icon.png",
+    "server/assets/ui-references/video-call/facetime-call-button.png",
+    "server/assets/ui-references/video-call/mute-microphone-icon.png",
+    "server/assets/ui-references/video-call/zoom-join-meeting.png",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/placeholderImageGenerator.js",
+    "server/core/skillMatcher.js",
+    "server/core/uiReferenceLibrary.js",
+    "server/index.js",
+    "server/mcp/pcpalTools.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/35/dc5cd47fa9/0/metadata.json",
+      "transcript": "/35/dc5cd47fa9/0/full.jsonl",
+      "content_hash": "/35/dc5cd47fa9/0/content_hash.txt",
+      "prompt": "/35/dc5cd47fa9/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 435,
+    "cache_creation_tokens": 1760487,
+    "cache_read_tokens": 50038652,
+    "output_tokens": 128712,
+    "api_call_count": 257
+  }
+}

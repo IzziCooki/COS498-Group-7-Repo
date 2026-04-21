@@ -1,0 +1,60 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "35dc5cd47fa9",
+  "session_id": "6fc09e9a-0498-45e3-a997-fcb93d1d3f32",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-21T00:37:47.8897095Z",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "client/src/components/Chat/CommandGuide.css",
+    "client/src/components/Chat/CommandGuide.jsx",
+    "server/assets/ui-references/browser/browser-back-button.png",
+    "server/assets/ui-references/browser/browser-bookmark-star.png",
+    "server/assets/ui-references/browser/chrome-address-bar.png",
+    "server/assets/ui-references/email/email-send-button.png",
+    "server/assets/ui-references/email/email-subject-field.png",
+    "server/assets/ui-references/email/email-to-field.png",
+    "server/assets/ui-references/email/gmail-compose-button.png",
+    "server/assets/ui-references/email/yahoo-compose-button.png",
+    "server/assets/ui-references/messaging/imessage-new-message.png",
+    "server/assets/ui-references/messaging/sms-send-arrow.png",
+    "server/assets/ui-references/system-mac/mac-apple-menu.png",
+    "server/assets/ui-references/system-mac/mac-dock.png",
+    "server/assets/ui-references/system-mac/mac-wifi-menubar.png",
+    "server/assets/ui-references/system-windows/windows-settings-gear.png",
+    "server/assets/ui-references/system-windows/windows-start-button.png",
+    "server/assets/ui-references/system-windows/windows-taskbar.png",
+    "server/assets/ui-references/system-windows/windows-wifi-icon.png",
+    "server/assets/ui-references/video-call/facetime-call-button.png",
+    "server/assets/ui-references/video-call/mute-microphone-icon.png",
+    "server/assets/ui-references/video-call/zoom-join-meeting.png",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/placeholderImageGenerator.js",
+    "server/core/skillMatcher.js",
+    "server/core/uiReferenceLibrary.js",
+    "server/index.js",
+    "server/mcp/pcpalTools.js"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "56aee6583d3d",
+  "token_usage": {
+    "input_tokens": 435,
+    "cache_creation_tokens": 1760487,
+    "cache_read_tokens": 50038652,
+    "output_tokens": 128712,
+    "api_call_count": 257
+  },
+  "session_metrics": {
+    "turn_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-21T00:37:45.85765Z",
+    "agent_lines": 322,
+    "human_added": 0,
+    "human_modified": 2003,
+    "human_removed": 0,
+    "total_committed": 2325,
+    "agent_percentage": 13.849462365591398
+  }
+}
