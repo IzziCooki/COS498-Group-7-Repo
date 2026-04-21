@@ -59,10 +59,23 @@ function filterResponse(text, vocabLevel) {
 
 /**
  * Split sentences longer than 20 words at natural break points before
- * conjunctions: "and", "but", "or", "so", "because".
+ * conjunctions: "and", "but", "or", "because". "so" is intentionally excluded
+ * because it is usually phrasal ("so happy", "so tired") — splitting at "so"
+ * produces awkward fragments like "she'll be. So happy".
+ *
+ * Each resulting segment must contain at least MIN_WORDS_PER_SEGMENT words.
+ * If a segment would be shorter, the break is skipped (keeping the phrase
+ * intact) or the short tail is merged back into the previous segment.
  * @param {string} text
  * @returns {string}
  */
+// Each segment from a conjunction split must be at least this many words.
+// Raising this from 4 to 6 prevents short-clause splits like
+// "it's reliable. And fairly easy to use." — where the tail is grammatically
+// valid but reads as an awkward sentence fragment. 6 keeps genuine clauses
+// (which are typically 6+ words) while folding short tails back in.
+const MIN_WORDS_PER_SEGMENT = 6;
+
 function enforceReadability(text) {
   if (!text) return text;
 
@@ -73,29 +86,49 @@ function enforceReadability(text) {
     const words = sentence.trim().split(/\s+/);
     if (words.length <= 20) return sentence;
 
-    // Split at conjunctions if sentence is too long
-    const breakPattern = /\s+(and|but|or|so|because)\s+/gi;
+    // Split at clause-boundary conjunctions only. "so" is excluded above.
+    const breakPattern = /\s+(and|but|or|because)\s+/gi;
     const parts = [];
     let lastIndex = 0;
     let match;
 
     while ((match = breakPattern.exec(sentence)) !== null) {
       const upToBreak = sentence.slice(lastIndex, match.index).trim();
-      if (upToBreak) parts.push(upToBreak);
-      // Start the next segment with the conjunction (skip the leading space)
-      lastIndex = match.index + 1;
+      // Only accept this break if the segment before it is long enough.
+      // This prevents awkward fragments like "she'll be. So happy..." when
+      // the conjunction is part of a short adjectival phrase.
+      const beforeWordCount = upToBreak.split(/\s+/).filter(Boolean).length;
+      if (upToBreak && beforeWordCount >= MIN_WORDS_PER_SEGMENT) {
+        parts.push(upToBreak);
+        // Start the next segment with the conjunction (skip the leading space)
+        lastIndex = match.index + 1;
+      }
     }
-    // Push the remaining text
+
+    // Handle the remaining text after the last accepted break
     const tail = sentence.slice(lastIndex).trim();
-    if (tail) parts.push(tail);
+    if (tail) {
+      const tailWordCount = tail.split(/\s+/).filter(Boolean).length;
+      if (tailWordCount >= MIN_WORDS_PER_SEGMENT || parts.length === 0) {
+        parts.push(tail);
+      } else {
+        // Merge a short tail back into the previous segment rather than
+        // creating a tiny fragment like ". And the grandchildren."
+        parts[parts.length - 1] += ' ' + tail;
+      }
+    }
 
     if (parts.length <= 1) return sentence; // no breaks found or nothing split
 
-    // Capitalize first letter of each new segment after punctuating previous one
+    // Capitalize first letter of each new segment after punctuating previous one.
+    // Strip trailing commas/semicolons/whitespace from each part before joining
+    // to prevent artifacts like "left side,. Or do you see..." when a segment
+    // ends with a comma that collides with the '. ' joiner.
     const joined = parts.map((part, i) => {
-      if (i === 0) return part;
+      const cleaned = part.replace(/[,;]\s*$/, '').trim();
+      if (i === 0) return cleaned;
       // Capitalize first word
-      return part.charAt(0).toUpperCase() + part.slice(1);
+      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     }).join('. ');
 
     // Ensure the joined string ends with a period if it doesn't already have terminal punctuation

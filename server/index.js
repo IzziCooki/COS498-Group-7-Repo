@@ -34,6 +34,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
+app.use('/ui-references', express.static(path.join(__dirname, 'assets', 'ui-references')));
+
+// Populate missing UI reference placeholders and validate the library at startup
+require('./core/placeholderImageGenerator').generateMissing();
+require('./core/uiReferenceLibrary').validateLibrary();
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PC Pal server running' });

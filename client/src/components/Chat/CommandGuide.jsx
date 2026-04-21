@@ -67,6 +67,26 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
                 <li key={i} className="cmd-guide__step">
                   <div className="cmd-guide__step-text">{step.text}</div>
 
+                  {step.image && step.image.url && (
+                    <figure className="cmd-guide__step-image">
+                      <img
+                        src={step.image.url}
+                        alt={step.image.alt || 'Reference image'}
+                        loading="lazy"
+                        onError={(e) => {
+                          // Graceful fallback: hide the figure if the file is
+                          // missing on disk. The step still renders text-only.
+                          e.currentTarget.parentElement.style.display = 'none';
+                        }}
+                      />
+                      {step.image.alt && (
+                        <figcaption className="cmd-guide__step-image-caption">
+                          {step.image.alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  )}
+
                   {step.command && (
                     <div className="cmd-guide__command-block">
                       <div className="cmd-guide__command-row">

@@ -5,5 +5,5 @@
   "triggers": ["text message", "text someone", "send text", "sms", "imessage", "message someone", "how to text"],
   "category": "communication",
   "difficulty": "beginner",
-  "prompt": "The user wants to send a text message. Walk them through opening the Messages app, starting a new conversation, typing the phone number or selecting a contact, writing the message, and tapping Send. Mention the difference between the green bubble (SMS) and blue bubble (iMessage) on iPhone if relevant."
+  "prompt": "The user wants to send a text message. FIRST ask who they want to message and whether they have the person's phone number. Once you know the recipient, THEN guide them through opening the Messages app, starting a new conversation, and sending. Offer to help compose the message if they want. Mention the difference between green (SMS) and blue (iMessage) bubbles on iPhone if relevant."
 }

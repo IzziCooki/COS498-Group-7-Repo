@@ -10,6 +10,7 @@ const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
 const { VALID_GUIDE_IDS } = require('../core/sharedConstants');
+const uiReferenceLibrary = require('../core/uiReferenceLibrary');
 
 // Active user context — set by the orchestrator before each query()
 // so tools can read user_id/session_id without the model passing them
@@ -654,16 +655,46 @@ const createGuide = tool(
       text: z.string().describe('What this step does in plain English'),
       command: z.string().optional().describe('Terminal command to run (shown in a code block with Copy and Run buttons)'),
       note: z.string().optional().describe('Optional tip or warning for this step'),
+      image_id: z.string().optional().describe(
+        'UI reference image ID — REQUIRED whenever this step mentions a button, icon, or UI element that appears in the AVAILABLE UI REFERENCES section of the system prompt. Elderly users cannot visualize UI elements from text alone; pictures are the single most impactful way to help them. Use the EXACT id string from the system prompt (e.g. "chrome-icon", "yahoo-compose-button"). Unknown IDs are silently dropped.'
+      ),
     })).describe('Ordered list of steps'),
   },
   async (args) => {
+    // Diagnostic: log the image_id the agent sent for each step BEFORE expansion.
+    // If this log shows no image_id values, the agent isn't calling the feature;
+    // if it shows image_ids but the expansion below drops them, the registry
+    // doesn't contain those IDs. Either way, this tells us where the problem is.
+    const imageIdsSeen = args.steps.map((s, i) => `step${i + 1}=${s.image_id || 'NONE'}`).join(', ');
+    console.log(`[MCP] create_guide called: "${args.title}" — image_ids: [${imageIdsSeen}]`);
+
+    // Expand any image_id references into full {id, url, alt} objects.
+    // Unknown IDs are dropped with a warning; the step still renders text.
+    const expandedSteps = args.steps.map(step => {
+      const out = {
+        text: step.text,
+        command: step.command,
+        note: step.note,
+      };
+      if (step.image_id) {
+        const img = uiReferenceLibrary.getById(step.image_id);
+        if (img) {
+          out.image = img;
+          console.log(`[MCP]   ✓ Resolved "${step.image_id}" → ${img.url}`);
+        } else {
+          console.warn(`[MCP]   ✗ Unknown image_id "${step.image_id}" — dropped from guide step.`);
+        }
+      }
+      return out;
+    });
     const guide = {
       title: args.title,
       description: args.description || null,
-      steps: args.steps,
+      steps: expandedSteps,
     };
     _lastGuide = guide;
-    console.log(`[MCP] Guide created: "${args.title}" (${args.steps.length} steps)`);
+    const imageCount = expandedSteps.filter(s => s.image).length;
+    console.log(`[MCP] Guide finalized: "${args.title}" (${args.steps.length} steps, ${imageCount} with images)`);
     return textResult(`Guide "${args.title}" has been created and will appear as an interactive card in the chat. Do NOT repeat the commands in your text — the user can see them in the guide card.`);
   }
 );

@@ -38,7 +38,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -57,6 +57,18 @@ User: ${profileString}
 Comfort: ${comfortGuidelines}
 Phase: ${phaseNote}
 ${memorySummary ? `\n## What you know about this person (from past sessions)\n${memorySummary}\n\nUse this naturally — don't announce you "remember."` : ''}
+
+## GOAL-FIRST CONVERSATION FLOW (follow this before all other rules)
+
+When the user states a goal (sending email, video call, writing a message, printing, etc.), follow this sequence strictly:
+
+1. **Acknowledge** their goal warmly. Make it feel achievable.
+2. **Gather context** BEFORE any navigation. Ask which app/service they use, what they want to say, who the recipient is. If memory already has this, skip to the next missing piece. Ask ONE question at a time.
+3. **Keep the goal visible** in every response. Thread it into steps: "To send that email to your son, look for the Compose button."
+4. **Offer to draft content** once you have enough info: "Want me to suggest what to write? You can change anything."
+5. **Save preferences** via save_memory (type: context) so you never ask the same question twice.
+
+A response that jumps to "open your browser" without knowing the user's email provider is WRONG. Context first, navigation second.
 
 ## GROUNDING RULES (most important)
 
@@ -85,9 +97,45 @@ Call save_memory BEFORE your text response with one observation:
 
 ## Artifacts
 
-- **create_guide** — multi-step tasks (text just introduces: "Here's how")
+- **create_guide** — multi-step tasks (text just introduces: "Here's how"). **Every step that describes a button, icon, or UI element listed in AVAILABLE UI REFERENCES below MUST include "image_id": "<exact-id>" so the user sees a picture alongside the text.**
 - **create_findings** — after diagnostics (text just states the takeaway)
 - **find_youtube_videos** — videos appear automatically, don't list in text
+${skillImagePrompt || ''}
+
+## SIMPLE LANGUAGE IN GUIDE STEPS (critical)
+
+Guide step text MUST use the same simple vocabulary as your chat text. No jargon inside guides.
+
+Replace technical words EVERY time they appear in a guide step:
+- "double-click" → "click twice quickly"
+- "right-click" → "press and hold the right mouse button"
+- "browser" → "internet app"
+- "desktop" → "the main screen"
+- "address bar" → "the long white box at the top where you type website names"
+- "taskbar" → "the strip of little pictures at the bottom of your screen"
+- "icon" → "little picture" (explain on first use)
+- "URL" → "web address"
+- "scroll" → "slide up or down"
+- "cursor" → "blinking line"
+- "window" → "box on your screen"
+- "tab" → "little label at the top of the box"
+- "log in" → "type your email and password to enter"
+
+If a technical word is unavoidable, explain it in the SAME step:
+GOOD: "Click twice quickly on the blue 'e' (this is your internet app)."
+BAD: "Double-click the browser icon."
+
+A guide step that uses "double-click" or "address bar" without explanation has FAILED. Rewrite it.
+
+## GUIDE USAGE RULES (critical)
+
+1. **Troubleshooting goes in a guide too.** If the user says "I can't find the X" or "it's not working", call create_guide with 2-3 steps. Do NOT put troubleshooting bullets in chat text. Every set of numbered/bulleted instructions belongs in a guide.
+
+2. **Each guide needs a UNIQUE, specific title.** Never reuse a title across different steps. "Send Your Email" used for composing AND for clicking send is CONFUSING. Make titles specific to the action: "Open Yahoo Mail" → "Sign In" → "Click Compose and Add Fred's Email" → "Write Subject and Message" → "Click Send".
+
+3. **After the user confirms finding something, tell them to USE it.** If the user says "I see it" / "I found it", your NEXT instruction must be to interact with that element, not "try those steps above". GOOD: "Perfect! Now click it once to start your email." BAD: "Try those first two steps above."
+
+4. **Reuse content you already drafted.** If you wrote a message earlier, REFERENCE IT explicitly when the user reaches the step to type it. Put the full drafted text in the guide step so they can see it and copy it exactly. Never ask them to scroll up or remember.
 
 ## Tools
 
@@ -141,20 +189,46 @@ async function processMessage(text, userId) {
       taskClassifier.classifyMessage(text, user),
     ]);
 
-    const skillMatch = skillMatcher.matchSkill(text);
-    const matchedSkillPrompt = skillMatch ? skillMatcher.buildSkillPrompt(skillMatch.skill) : null;
-    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
-    if (skillMatch) {
-      console.log(`[agentSdkOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score})`);
-    }
-
+    // Load conversation history first — we need it for sticky skill matching
+    // when the current message alone doesn't trigger a skill.
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const conversationLength = dbMessages.filter(m => m.role === 'user').length;
+
+    // Sticky skill matching: if the current message has no triggers (e.g.
+    // "yes its Fred", "done", "ok"), walk back through the last 5 user
+    // messages and reuse the most recent match. This keeps the agent equipped
+    // with skill-specific image IDs across a multi-turn conversation.
+    let skillMatch = skillMatcher.matchSkill(text);
+    let skillSource = 'current';
+    if (!skillMatch) {
+      const recentUserMessages = dbMessages.filter(m => m.role === 'user').slice(-5);
+      for (let i = recentUserMessages.length - 1; i >= 0; i--) {
+        const prev = skillMatcher.matchSkill(recentUserMessages[i].body);
+        if (prev) {
+          skillMatch = prev;
+          skillSource = 'sticky';
+          break;
+        }
+      }
+    }
+
+    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
+    // Build the UI reference image prompt. Returns wildcard ('*') images even
+    // when skillId is null so foundational images (taskbar, browser icons)
+    // are always in scope. Passed separately to buildSystemPrompt so it can
+    // be rendered as its own top-level section (not buried inside Active Skill).
+    const skillImagePrompt = skillMatcher.buildSkillImagePrompt(matchedSkillId);
+    const matchedSkillPrompt = skillMatch
+      ? skillMatcher.buildSkillPrompt(skillMatch.skill)
+      : null;
+    if (skillMatch) {
+      console.log(`[agentSdkOrchestrator] Skill ${skillSource === 'sticky' ? '(sticky) ' : ''}matched: "${skillMatch.skill.name}"${skillSource === 'current' ? ` (score: ${skillMatch.score})` : ''}`);
+    }
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
 
     // Load persistent memories for this user
     const memorySummary = UserMemory.buildMemorySummary(userId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt);
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
