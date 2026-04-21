@@ -6,12 +6,13 @@ import './Header.css';
  *
  * Shows the PC Pal title, user info (clickable to edit), and buddy button.
  */
-function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardClick, showingDashboard }) {
+function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardClick, showingDashboard, onSignOut }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editOs, setEditOs] = useState('');
   const [editComfort, setEditComfort] = useState(1);
   const [editModel, setEditModel] = useState('');
+  const [editTrainingOptIn, setEditTrainingOptIn] = useState(false);
   const [availableModels, setAvailableModels] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -34,6 +35,7 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardCl
     setEditOs(user.os_type || 'Windows');
     setEditComfort(user.comfort_level || 1);
     setEditModel(user.model_preference || '');
+    setEditTrainingOptIn(Boolean(user.training_opt_in));
     setSaveError('');
     setEditing(true);
   };
@@ -55,6 +57,7 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardCl
         os_type: editOs,
         comfort_level: editComfort,
         model_preference: editModel || null,
+        training_opt_in: editTrainingOptIn ? 1 : 0,
       });
       if (!result) {
         throw new Error('No profile was returned. Try reloading the page.');
@@ -105,11 +108,21 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardCl
         {user && (
           <button className="app-header__user" onClick={openEdit} title="Click to edit your profile">
             <span className="app-header__user-greeting">
-              Hi, <strong>{user.name}</strong>!
+              Hi, <strong>{user.name || (user.is_anonymous ? 'guest' : 'friend')}</strong>!
             </span>
             {user.os_type && (
               <span className="app-header__user-os">{user.os_type}</span>
             )}
+          </button>
+        )}
+        {onSignOut && user && !user.is_anonymous && (
+          <button
+            type="button"
+            className="app-header__signout"
+            onClick={onSignOut}
+            aria-label="Sign out"
+          >
+            Sign out
           </button>
         )}
       </div>
@@ -160,6 +173,21 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardCl
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
                 </select>
+              </label>
+            )}
+
+            {user && !user.is_anonymous && (
+              <label className="profile-edit__checkbox">
+                <input
+                  type="checkbox"
+                  checked={editTrainingOptIn}
+                  onChange={e => setEditTrainingOptIn(e.target.checked)}
+                />
+                <span>
+                  Share my conversations to help improve PC Pal.
+                  <br />
+                  <small>Your chats may be used as training examples. You can turn this off at any time.</small>
+                </span>
               </label>
             )}
 

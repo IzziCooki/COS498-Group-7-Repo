@@ -6,9 +6,26 @@ CREATE TABLE IF NOT EXISTS users (
   accessibility_needs TEXT DEFAULT '[]',
   comfort_level INTEGER DEFAULT 1,
   onboarded INTEGER DEFAULT 0,
+  email TEXT,
+  password_hash TEXT,
+  is_anonymous INTEGER DEFAULT 1,
+  training_opt_in INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Server-side session tokens. Kept server-side so we can revoke on logout.
+CREATE TABLE IF NOT EXISTS user_sessions (
+  token TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL,
+  last_seen_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS user_sessions_expires_at ON user_sessions(expires_at);
 
 CREATE TABLE IF NOT EXISTS conversations (
   id TEXT PRIMARY KEY,

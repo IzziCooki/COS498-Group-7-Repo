@@ -3,6 +3,7 @@ const os = require('os');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { WebSocketServer } = require('ws');
 const config = require('./config');
 require('./db/database');
@@ -27,11 +28,15 @@ const chatRouter = require('./routes/chat');
 const exportRouter = require('./routes/export');
 const buddyRouter = require('./routes/buddy');
 const qualityRouter = require('./routes/quality');
+const authRouter = require('./routes/auth');
+const { attachUser } = require('./middleware/auth');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ credentials: true, origin: (origin, cb) => cb(null, origin || true) }));
 app.use(express.json());
+app.use(cookieParser());
+app.use(attachUser);
 
 app.use('/images', express.static(path.join(__dirname, 'assets', 'annotated')));
 app.use('/ui-references', express.static(path.join(__dirname, 'assets', 'ui-references')));
@@ -147,6 +152,7 @@ app.get('/api/open-terminal', (req, res) => {
   }
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
@@ -251,10 +257,19 @@ try {
   console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   let userId = null;
   let agentCode = null; // set if this connection is a relay agent
   let agentPingInterval = null;
+
+  // Parse the session cookie off the WebSocket upgrade request. The WS
+  // handshake carries the browser's cookies, so we can verify the user at
+  // connect time rather than trusting client-sent userIds.
+  const { getTokenFromCookieHeader } = require('./middleware/auth');
+  const Session = require('./models/Session');
+  const sessionToken = getTokenFromCookieHeader(req && req.headers && req.headers.cookie);
+  const sessionResult = sessionToken ? Session.lookup(sessionToken) : null;
+  const sessionUserId = sessionResult ? sessionResult.user.id : null;
 
   ws.on('message', async (data) => {
     try {
@@ -268,7 +283,17 @@ wss.on('connection', (ws) => {
           }
           return;
         }
-        // Client sends userId to associate the connection
+        // The claimed userId must match the session cookie. Chat clients
+        // without a valid session cookie are rejected outright — every
+        // client (anonymous or authenticated) gets a session via POST
+        // /api/users or /api/auth/login.
+        if (!sessionUserId || sessionUserId !== msg.userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated. Please sign in or continue as a guest.' }));
+          }
+          try { ws.close(4401, 'unauthenticated'); } catch (_) { /* noop */ }
+          return;
+        }
         userId = msg.userId;
         ws._pcpalUserId = userId;
         chatClients.set(userId, ws);
@@ -318,7 +343,7 @@ wss.on('connection', (ws) => {
           return;
         }
         try {
-          const active = require('./models/Conversation').findActive(userId);
+          const active = conversationState.findActiveSessionsForUser(userId);
           const conversationId = active.length > 0 ? active[0].id : null;
           if (conversationId) {
             conversationState.closeSession(conversationId);
@@ -342,8 +367,7 @@ wss.on('connection', (ws) => {
           return;
         }
         try {
-          const Conversation = require('./models/Conversation');
-          const active = Conversation.findActive(userId);
+          const active = conversationState.findActiveSessionsForUser(userId);
           for (const conv of active) {
             conversationState.closeSession(conv.id);
           }
@@ -846,6 +870,8 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
     if (userId) {
       clientInfoStore.remove(userId);
       chatClients.delete(userId);
+      // Anonymous users' chat history is ephemeral — drop it when they leave.
+      try { conversationState.discardEphemeralForUser(userId); } catch (_) { /* noop */ }
       // Clean up buddy observations this user was doing
       for (const [learnerId, observers] of buddyObservers.entries()) {
         for (const obs of observers) {

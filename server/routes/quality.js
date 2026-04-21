@@ -4,9 +4,11 @@ const qualityTracker = require('../core/conversationQualityTracker');
 const ConversationFeedback = require('../models/ConversationFeedback');
 const Conversation = require('../models/Conversation');
 const conversationState = require('../core/conversationState');
+const { requireAuth } = require('../middleware/auth');
 
-// GET /api/quality/stats — aggregate quality stats for team monitoring
-router.get('/stats', (req, res) => {
+// GET /api/quality/stats — aggregate quality stats for team monitoring.
+// Requires auth to avoid exposing internal quality signals publicly.
+router.get('/stats', requireAuth, (req, res) => {
   try {
     const stats = qualityTracker.getAggregateStats();
     const feedback = ConversationFeedback.getAggregateStats();
@@ -17,9 +19,14 @@ router.get('/stats', (req, res) => {
   }
 });
 
-// GET /api/quality/conversation/:id — quality report for a single conversation
-router.get('/conversation/:id', (req, res) => {
+// GET /api/quality/conversation/:id — quality report for a single conversation.
+// Only the owner may read a conversation's quality report.
+router.get('/conversation/:id', requireAuth, (req, res) => {
   try {
+    const conv = Conversation.findById(req.params.id);
+    if (!conv || conv.user_id !== req.user.id) {
+      return res.status(404).json({ error: 'Conversation not found.' });
+    }
     const report = qualityTracker.getQualityReport(req.params.id);
     res.json(report);
   } catch (err) {
@@ -28,15 +35,14 @@ router.get('/conversation/:id', (req, res) => {
   }
 });
 
-// POST /api/quality/feedback — record end-of-chat user feedback
-router.post('/feedback', (req, res) => {
-  const { conversationId, userId, rating, comment } = req.body || {};
+// POST /api/quality/feedback — record end-of-chat user feedback.
+// Derives userId from the session, not the request body.
+router.post('/feedback', requireAuth, (req, res) => {
+  const { conversationId, rating, comment } = req.body || {};
+  const userId = req.user.id;
 
   if (!conversationId || typeof conversationId !== 'string') {
     return res.status(400).json({ error: 'conversationId is required.' });
-  }
-  if (!userId || typeof userId !== 'string') {
-    return res.status(400).json({ error: 'userId is required.' });
   }
   const ratingNum = Number(rating);
   if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
@@ -47,11 +53,8 @@ router.post('/feedback', (req, res) => {
   }
 
   const conversation = Conversation.findById(conversationId);
-  if (!conversation) {
+  if (!conversation || conversation.user_id !== userId) {
     return res.status(404).json({ error: 'Conversation not found.' });
-  }
-  if (conversation.user_id !== userId) {
-    return res.status(403).json({ error: 'Conversation does not belong to this user.' });
   }
 
   try {
@@ -83,22 +86,17 @@ router.post('/feedback', (req, res) => {
 
 // POST /api/quality/feedback/skip — user dismissed the feedback prompt;
 // still close the session so the conversation lifecycle completes.
-router.post('/feedback/skip', (req, res) => {
-  const { conversationId, userId } = req.body || {};
+router.post('/feedback/skip', requireAuth, (req, res) => {
+  const { conversationId } = req.body || {};
+  const userId = req.user.id;
 
   if (!conversationId || typeof conversationId !== 'string') {
     return res.status(400).json({ error: 'conversationId is required.' });
   }
-  if (!userId || typeof userId !== 'string') {
-    return res.status(400).json({ error: 'userId is required.' });
-  }
 
   const conversation = Conversation.findById(conversationId);
-  if (!conversation) {
+  if (!conversation || conversation.user_id !== userId) {
     return res.status(404).json({ error: 'Conversation not found.' });
-  }
-  if (conversation.user_id !== userId) {
-    return res.status(403).json({ error: 'Conversation does not belong to this user.' });
   }
 
   if (conversation.status === 'active') {
