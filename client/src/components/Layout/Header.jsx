@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Header.css';
 
 /**
@@ -6,22 +6,34 @@ import './Header.css';
  *
  * Shows the PC Pal title, user info (clickable to edit), and buddy button.
  */
-function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
+function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardClick, showingDashboard }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editOs, setEditOs] = useState('');
   const [editComfort, setEditComfort] = useState(1);
+  const [editModel, setEditModel] = useState('');
+  const [availableModels, setAvailableModels] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [showMemories, setShowMemories] = useState(false);
   const [memories, setMemories] = useState([]);
   const [loadingMemories, setLoadingMemories] = useState(false);
 
+  // Fetch available models when edit modal opens
+  useEffect(() => {
+    if (!editing) return;
+    fetch('/api/models')
+      .then(r => r.json())
+      .then(data => setAvailableModels(data))
+      .catch(() => setAvailableModels([]));
+  }, [editing]);
+
   const openEdit = () => {
     if (!user) return;
     setEditName(user.name || '');
     setEditOs(user.os_type || 'Windows');
     setEditComfort(user.comfort_level || 1);
+    setEditModel(user.model_preference || '');
     setSaveError('');
     setEditing(true);
   };
@@ -42,6 +54,7 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
         name: editName.trim(),
         os_type: editOs,
         comfort_level: editComfort,
+        model_preference: editModel || null,
       });
       if (!result) {
         throw new Error('No profile was returned. Try reloading the page.');
@@ -66,6 +79,14 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
       </div>
 
       <div className="app-header__right">
+        {onDashboardClick && (
+          <button
+            className={`app-header__dash-btn ${showingDashboard ? 'app-header__dash-btn--active' : ''}`}
+            onClick={onDashboardClick}
+          >
+            Dashboard
+          </button>
+        )}
         {onBuddyClick && (
           <button
             className="app-header__buddy-btn"
@@ -129,6 +150,18 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile }) {
                 <option value={5}>5 — Very comfortable</option>
               </select>
             </label>
+
+            {availableModels.length > 0 && (
+              <label className="profile-edit__label">
+                AI Model
+                <select className="profile-edit__select" value={editModel} onChange={e => setEditModel(e.target.value)}>
+                  <option value="">Default (Claude Sonnet 4)</option>
+                  {availableModels.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
 
             {saveError && (
               <div className="profile-edit__error" role="alert">{saveError}</div>

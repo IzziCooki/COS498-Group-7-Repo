@@ -10,7 +10,7 @@
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, setActiveUserContext } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const UserMemory = require('../models/UserMemory');
 const conversationState = require('./conversationState');
@@ -22,8 +22,8 @@ const qualityTracker = require('./conversationQualityTracker');
 const { anthropicApiKey } = require('../config');
 const youtubeSearch = require('./youtubeSearch');
 const { buildComfortGuidelines } = require('./sharedConstants');
-
-const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
+const vocabularyProgression = require('./vocabularyProgression');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -162,11 +162,23 @@ async function processMessage(text, userId) {
 
     const user = userProfileManager.getOrCreateUser(userId);
 
+    // Resolve model from user preference — Ollama models go through the fallback orchestrator
+    const resolved = resolveModel(user.model_preference);
+    if (resolved.provider === 'ollama') {
+      const fallback = require('./agentOrchestrator');
+      return fallback.processMessage(text, userId);
+    }
+
     if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
       const mockResponder = require('./mockResponder');
       const session = conversationState.getOrCreateSession(userId);
       return mockResponder.respond(text, userId, session.id);
     }
+
+    const activeModel = resolved.model;
+
+    // Check if the user is asking about a jargon term (resets progression)
+    vocabularyProgression.checkForTermQuestions(text, userId);
 
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
@@ -241,7 +253,7 @@ async function processMessage(text, userId) {
         prompt: fullPrompt,
         options: {
           systemPrompt: systemPrompt,
-          model: CLAUDE_MODEL,
+          model: activeModel,
           maxTurns: 10,
           allowedTools: [], // No built-in tools by default — use MCP tools
           mcpServers: mcpServer ? { 'pcpal-tools': mcpServer } : {},
@@ -290,15 +302,15 @@ async function processMessage(text, userId) {
     // Check if artifacts were created during the tool loop
     const guide = getAndClearLastGuide();
     const findings = getAndClearLastFindings();
-    if (guide) {
-      console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
-    }
-    if (findings) {
-      console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
-    }
+    const practice = getAndClearLastPractice();
+    const screenshot = getAndClearLastScreenshot();
+    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
+    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
+    if (practice) console.log(`[agentSdkOrchestrator] Practice session: ${practice.taskId}`);
+    if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyFilter.filterResponse(finalResponse, vocabLevel);
+    let filteredResponse = vocabularyProgression.filterWithProgression(finalResponse, vocabLevel, userId);
     filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
 
     if (!filteredResponse) {
@@ -334,6 +346,8 @@ async function processMessage(text, userId) {
       videos: videos && videos.length > 0 ? videos : null,
       guide: guide || null,
       findings: findings || null,
+      practice: practice || null,
+      screenshot: screenshot || null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

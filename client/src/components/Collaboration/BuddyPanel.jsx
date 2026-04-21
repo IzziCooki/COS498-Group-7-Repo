@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './BuddyPanel.css';
+import VideoCall from './VideoCall';
 
 /**
  * BuddyPanel — slide-in panel for managing buddy/collaboration features.
  *
  * Shows invite code generation, code entry, buddy status, and progress shares.
  */
-function BuddyPanel({ isOpen, onClose, buddyData }) {
+function BuddyPanel({ isOpen, onClose, buddyData, currentUserId, onJoinSession, onLeaveSession, isInSession }) {
   const {
     buddyPair,
     progressShares,
@@ -20,6 +21,7 @@ function BuddyPanel({ isOpen, onClose, buddyData }) {
 
   const [codeInput, setCodeInput] = useState('');
   const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
 
   if (!isOpen) return null;
 
@@ -73,6 +75,55 @@ function BuddyPanel({ isOpen, onClose, buddyData }) {
                   <p className="buddy-panel__buddy-status">Connected</p>
                 </div>
               </div>
+
+              {/* Video call button */}
+              <button
+                className="btn-primary buddy-panel__action-btn buddy-panel__video-btn"
+                onClick={() => setShowVideoCall(!showVideoCall)}
+              >
+                {showVideoCall ? 'Close Video Call' : 'Video Call'}
+              </button>
+
+              {showVideoCall && (
+                <VideoCall
+                  userId={currentUserId}
+                  buddyName={buddyName}
+                  onClose={() => setShowVideoCall(false)}
+                />
+              )}
+
+              {/* Join/Leave session — available for either role */}
+              {currentUserId && onJoinSession && (
+                <div className="buddy-panel__section">
+                  {!isInSession ? (
+                    <button
+                      className="btn-primary buddy-panel__action-btn"
+                      onClick={() => {
+                        const targetId = buddyPair.helper_id === currentUserId
+                          ? buddyPair.learner_id
+                          : buddyPair.helper_id;
+                        onJoinSession(targetId);
+                      }}
+                    >
+                      Join {buddyPair.helper_id === currentUserId
+                        ? (buddyPair.learner_name || "Buddy's")
+                        : (buddyPair.helper_name || "Buddy's")} Session
+                    </button>
+                  ) : (
+                    <button
+                      className="btn-secondary buddy-panel__action-btn"
+                      onClick={() => {
+                        const targetId = buddyPair.helper_id === currentUserId
+                          ? buddyPair.learner_id
+                          : buddyPair.helper_id;
+                        onLeaveSession(targetId);
+                      }}
+                    >
+                      Leave Session
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Recent progress */}
               {progressShares.length > 0 && (

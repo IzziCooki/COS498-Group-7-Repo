@@ -37,6 +37,7 @@ function renderInline(text) {
 
 /** Get a short label for an artifact type */
 function artifactLabel(msg) {
+  if (msg.practice) return 'Practice Mode';
   if (msg.guide) return msg.guide.title || 'Guide';
   if (msg.resources) return msg.resources.topic ? `Resources: ${msg.resources.topic}` : 'Resources';
   if (msg.findings) return msg.findings.title || 'Diagnostic Details';
@@ -52,9 +53,9 @@ function artifactLabel(msg) {
  * If inlineMode is true, the full artifact renders in the chat.
  */
 function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClickArtifact }) {
-  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources } = message;
+  const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, practice, buddyTerminal, screenshot } = message;
   const isUser = role === 'user';
-  const hasArtifact = !isUser && (guide || resources || findings || videos);
+  const hasArtifact = !isUser && (guide || resources || findings || videos || practice);
   const label = hasArtifact ? artifactLabel(message) : null;
 
   const formattedTime = timestamp
@@ -96,6 +97,31 @@ function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClic
             <span className="bubble__artifact-tag-label">{label}</span>
             <span className="bubble__artifact-tag-hint">Click to view</span>
           </button>
+        )}
+
+        {/* Buddy terminal command result (inline always) */}
+        {buddyTerminal && (
+          <div className="bubble__buddy-terminal">
+            <div className="bubble__buddy-terminal-header">
+              {buddyTerminal.buddyName} ran a command
+            </div>
+            <div className="bubble__buddy-terminal-cmd">$ {buddyTerminal.command}</div>
+            {buddyTerminal.running ? (
+              <div className="bubble__buddy-terminal-running">Running...</div>
+            ) : (
+              <pre className={`bubble__buddy-terminal-output ${buddyTerminal.error ? 'bubble__buddy-terminal-output--err' : ''}`}>
+                {buddyTerminal.output || '(no output)'}
+              </pre>
+            )}
+          </div>
+        )}
+
+        {/* Annotated user screenshot (from take_screenshot tool) */}
+        {screenshot && (
+          <div className="bubble__screenshot-annotated">
+            <img src={screenshot.imageUrl} alt={screenshot.description || 'Your screen'} className="bubble__screenshot-img" />
+            {screenshot.description && <p className="bubble__screenshot-caption">{screenshot.description}</p>}
+          </div>
         )}
 
         {/* Annotated device screenshots (always inline) */}

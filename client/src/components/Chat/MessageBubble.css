@@ -126,6 +126,31 @@
   color: #1a3a8a;
 }
 
+/* User screen screenshot (from take_screenshot) */
+.bubble__screenshot-annotated {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #FF3333;
+  box-shadow: 0 4px 12px rgba(255, 51, 51, 0.15);
+}
+
+.bubble__screenshot-annotated .bubble__screenshot-img {
+  width: 100%;
+  display: block;
+  cursor: zoom-in;
+}
+
+.bubble__screenshot-annotated .bubble__screenshot-caption {
+  font-size: 14px;
+  color: #475569;
+  padding: 8px 12px;
+  margin: 0;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
+
 /* Annotated device screenshots */
 .bubble__screenshots {
   display: flex;
@@ -267,4 +292,50 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Buddy terminal inline ─── */
+.bubble__buddy-terminal {
+  margin-top: 10px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.bubble__buddy-terminal-header {
+  padding: 8px 12px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  border-bottom: 1px solid #334155;
+}
+
+.bubble__buddy-terminal-cmd {
+  padding: 8px 12px 4px;
+  color: #a5f3fc;
+}
+
+.bubble__buddy-terminal-running {
+  padding: 4px 12px 8px;
+  color: #facc15;
+  font-style: italic;
+}
+
+.bubble__buddy-terminal-output {
+  padding: 4px 12px 10px;
+  margin: 0;
+  color: #d1d5db;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: inherit;
+  font-size: inherit;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.bubble__buddy-terminal-output--err {
+  color: #fca5a5;
 }

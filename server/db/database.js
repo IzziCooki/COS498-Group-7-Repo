@@ -30,6 +30,7 @@ function runMigrations() {
     'ALTER TABLE users ADD COLUMN collaboration_opt_in INTEGER DEFAULT 0',
     'ALTER TABLE users ADD COLUMN goal_summary TEXT',
     'ALTER TABLE users ADD COLUMN invite_code TEXT',
+    'ALTER TABLE users ADD COLUMN model_preference TEXT',
   ];
   for (const sql of migrations) {
     try {
@@ -41,5 +42,16 @@ function runMigrations() {
 }
 
 runMigrations();
+
+// Standalone tables — CREATE TABLE IF NOT EXISTS is inherently idempotent.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_vocabulary (
+    user_id TEXT NOT NULL,
+    term TEXT NOT NULL,
+    encounter_count INTEGER DEFAULT 0,
+    last_seen_at TEXT,
+    PRIMARY KEY (user_id, term)
+  )
+`);
 
 module.exports = db;
