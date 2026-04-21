@@ -38,7 +38,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -97,9 +97,10 @@ Call save_memory BEFORE your text response with one observation:
 
 ## Artifacts
 
-- **create_guide** — multi-step tasks (text just introduces: "Here's how")
+- **create_guide** — multi-step tasks (text just introduces: "Here's how"). **Every step that describes a button, icon, or UI element listed in AVAILABLE UI REFERENCES below MUST include "image_id": "<exact-id>" so the user sees a picture alongside the text.**
 - **create_findings** — after diagnostics (text just states the takeaway)
 - **find_youtube_videos** — videos appear automatically, don't list in text
+${skillImagePrompt || ''}
 
 ## SIMPLE LANGUAGE IN GUIDE STEPS (critical)
 
@@ -202,21 +203,20 @@ async function processMessage(text, userId) {
     const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
     // Build the UI reference image prompt. Returns wildcard ('*') images even
     // when skillId is null so foundational images (taskbar, browser icons)
-    // are always in scope.
+    // are always in scope. Passed separately to buildSystemPrompt so it can
+    // be rendered as its own top-level section (not buried inside Active Skill).
     const skillImagePrompt = skillMatcher.buildSkillImagePrompt(matchedSkillId);
-    let matchedSkillPrompt = null;
+    const matchedSkillPrompt = skillMatch
+      ? skillMatcher.buildSkillPrompt(skillMatch.skill)
+      : null;
     if (skillMatch) {
-      matchedSkillPrompt = skillMatcher.buildSkillPrompt(skillMatch.skill) + skillImagePrompt;
       console.log(`[agentSdkOrchestrator] Skill ${skillSource === 'sticky' ? '(sticky) ' : ''}matched: "${skillMatch.skill.name}"${skillSource === 'current' ? ` (score: ${skillMatch.score})` : ''}`);
-    } else if (skillImagePrompt) {
-      // No skill matched, but wildcard foundational images still apply
-      matchedSkillPrompt = skillImagePrompt;
     }
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
 
     // Load persistent memories for this user
     const memorySummary = UserMemory.buildMemorySummary(userId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt);
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
