@@ -1,0 +1,29 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "d33a3d8b3c36",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 14,
+  "files_touched": [
+    "client/package-lock.json",
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js",
+    "server/index.js",
+    "server/mcp/pcpalTools.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d3/3a3d8b3c36/0/metadata.json",
+      "transcript": "/d3/3a3d8b3c36/0/full.jsonl",
+      "content_hash": "/d3/3a3d8b3c36/0/content_hash.txt",
+      "prompt": "/d3/3a3d8b3c36/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 766,
+    "cache_creation_tokens": 2480913,
+    "cache_read_tokens": 106568153,
+    "output_tokens": 236267,
+    "api_call_count": 418
+  }
+}
