@@ -45,7 +45,21 @@ const User = {
     return db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   },
 
+  /**
+   * Set (or clear) admin status on a user. Intentionally not exposed via
+   * the HTTP surface — admin promotion only happens via the CLI script
+   * scripts/make-admin.js or a direct server-side call.
+   */
+  setAdmin(id, isAdmin) {
+    const now = new Date().toISOString();
+    db.prepare('UPDATE users SET is_admin = ?, updated_at = ? WHERE id = ?')
+      .run(isAdmin ? 1 : 0, now, id);
+    return this.findById(id);
+  },
+
   update(id, fields) {
+    // is_admin is intentionally NOT in this list — it must never be
+    // settable via the /api/users/:id PUT surface.
     const allowed = ['name', 'os_type', 'vocabulary_level', 'accessibility_needs', 'comfort_level', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code', 'model_preference', 'training_opt_in'];
     const updates = [];
     const values = [];

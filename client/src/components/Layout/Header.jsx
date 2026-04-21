@@ -6,7 +6,7 @@ import './Header.css';
  *
  * Shows the PC Pal title, user info (clickable to edit), and buddy button.
  */
-function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardClick, showingDashboard, onSignOut }) {
+function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardClick, showingDashboard, onSignOut, onAdminClick, showingAdmin }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editOs, setEditOs] = useState('');
@@ -90,6 +90,14 @@ function Header({ user, onBuddyClick, buddyBadge, onUpdateProfile, onDashboardCl
             Dashboard
           </button>
         )}
+        {onAdminClick && user && user.is_admin ? (
+          <button
+            className={`app-header__dash-btn ${showingAdmin ? 'app-header__dash-btn--active' : ''}`}
+            onClick={onAdminClick}
+          >
+            Admin
+          </button>
+        ) : null}
         {onBuddyClick && (
           <button
             className="app-header__buddy-btn"

@@ -29,6 +29,7 @@ const exportRouter = require('./routes/export');
 const buddyRouter = require('./routes/buddy');
 const qualityRouter = require('./routes/quality');
 const authRouter = require('./routes/auth');
+const adminRouter = require('./routes/admin');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
@@ -153,6 +154,7 @@ app.get('/api/open-terminal', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);

@@ -10,6 +10,7 @@ import ChatWindow from './components/Chat/ChatWindow';
 import ConversationSidebar from './components/Chat/ConversationSidebar';
 import BuddyPanel from './components/Collaboration/BuddyPanel';
 import FamilyDashboard from './components/Dashboard/FamilyDashboard';
+import AdminFeedback from './components/Admin/AdminFeedback';
 
 /**
  * App — root component for PC Pal.
@@ -23,7 +24,7 @@ function App() {
   const buddyData = useBuddy(user?.id);
   const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat' | 'dashboard'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat' | 'dashboard' | 'admin'
   const [buddySessionTarget, setBuddySessionTarget] = useState(null);
   const [buddySessionActive, setBuddySessionActive] = useState(false);
   // null = viewing live/active conversation, string = viewing a past conversation
@@ -120,9 +121,13 @@ function App() {
         onUpdateProfile={updateProfile}
         onDashboardClick={() => setCurrentView(prev => prev === 'dashboard' ? 'chat' : 'dashboard')}
         showingDashboard={currentView === 'dashboard'}
+        onAdminClick={() => setCurrentView(prev => prev === 'admin' ? 'chat' : 'admin')}
+        showingAdmin={currentView === 'admin'}
         onSignOut={logout}
       />
-      {currentView === 'dashboard' ? (
+      {currentView === 'admin' ? (
+        <AdminFeedback onClose={() => setCurrentView('chat')} />
+      ) : currentView === 'dashboard' ? (
         <FamilyDashboard
           buddyPairs={buddyData.buddyPair ? [buddyData.buddyPair] : []}
           currentUserId={user?.id}

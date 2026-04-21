@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT,
   is_anonymous INTEGER DEFAULT 1,
   training_opt_in INTEGER DEFAULT 0,
+  is_admin INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

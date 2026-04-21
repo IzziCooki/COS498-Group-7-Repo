@@ -4,11 +4,11 @@ const qualityTracker = require('../core/conversationQualityTracker');
 const ConversationFeedback = require('../models/ConversationFeedback');
 const Conversation = require('../models/Conversation');
 const conversationState = require('../core/conversationState');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 // GET /api/quality/stats — aggregate quality stats for team monitoring.
-// Requires auth to avoid exposing internal quality signals publicly.
-router.get('/stats', requireAuth, (req, res) => {
+// Admin-only: these stats cover the whole platform, not just the caller.
+router.get('/stats', requireAdmin, (req, res) => {
   try {
     const stats = qualityTracker.getAggregateStats();
     const feedback = ConversationFeedback.getAggregateStats();
