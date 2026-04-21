@@ -6,8 +6,13 @@ const fs = require('fs');
 // skills where this image is typically useful. The skills array drives the
 // conditional prompt injection so the agent only sees relevant IDs.
 //
+// Use skills: ['*'] for foundational images (browser icons, taskbar, dock,
+// start button) that apply to virtually every guided task. These are always
+// included alongside whatever skill-specific images match.
+//
 // To add a new reference:
 //   1. Drop the PNG into the matching category folder under ui-references/
+//      (a placeholder is auto-generated at server startup if the file is missing)
 //   2. Add an entry here keyed by the file stem
 //   3. Restart the server (validateLibrary will confirm file presence)
 
@@ -43,11 +48,35 @@ const LIBRARY = {
     category: 'email',
     skills: ['send-email'],
   },
+  'outlook-app-icon': {
+    file: 'email/outlook-app-icon.png',
+    alt: 'Outlook desktop app icon — blue square with a white envelope and "O"',
+    category: 'email',
+    skills: ['send-email'],
+  },
 
-  // --- Video call (3) ---
+  // --- Video call (6) ---
   'zoom-join-meeting': {
     file: 'video-call/zoom-join-meeting.png',
     alt: 'Blue "Join a Meeting" button on the Zoom home screen',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-download-button': {
+    file: 'video-call/zoom-download-button.png',
+    alt: 'Blue "Download" button on the zoom.us website',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-homepage': {
+    file: 'video-call/zoom-homepage.png',
+    alt: 'The zoom.us homepage showing the Download button at the top',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-app-icon': {
+    file: 'video-call/zoom-app-icon.png',
+    alt: 'Zoom desktop app icon — blue square with a white video camera',
     category: 'video-call',
     skills: ['video-call'],
   },
@@ -78,12 +107,36 @@ const LIBRARY = {
     skills: ['text-message'],
   },
 
-  // --- Browser (3) ---
+  // --- Browser (7) ---
+  'chrome-icon': {
+    file: 'browser/chrome-icon.png',
+    alt: 'Chrome browser icon — a colorful circle (red, yellow, green, blue) with a blue dot in the middle',
+    category: 'browser',
+    skills: ['*'],
+  },
+  'edge-icon': {
+    file: 'browser/edge-icon.png',
+    alt: 'Microsoft Edge browser icon — a blue and green swirl that looks like a wave',
+    category: 'browser',
+    skills: ['*'],
+  },
+  'firefox-icon': {
+    file: 'browser/firefox-icon.png',
+    alt: 'Firefox browser icon — an orange fox wrapped around a blue globe',
+    category: 'browser',
+    skills: ['*'],
+  },
+  'safari-icon': {
+    file: 'browser/safari-icon.png',
+    alt: 'Safari browser icon — a blue compass with a red needle',
+    category: 'browser',
+    skills: ['*'],
+  },
   'chrome-address-bar': {
     file: 'browser/chrome-address-bar.png',
-    alt: 'The long white box at the top of Chrome where you type website names',
+    alt: 'The long white box at the top of the browser where you type website names',
     category: 'browser',
-    skills: ['browser', 'send-email'],
+    skills: ['*'],
   },
   'browser-back-button': {
     file: 'browser/browser-back-button.png',
@@ -103,13 +156,13 @@ const LIBRARY = {
     file: 'system-windows/windows-start-button.png',
     alt: 'Windows logo button in the lower-left of the screen — opens the Start menu',
     category: 'system-windows',
-    skills: ['settings', 'restart', 'app-install'],
+    skills: ['*'],
   },
   'windows-taskbar': {
     file: 'system-windows/windows-taskbar.png',
     alt: 'The strip of little pictures along the bottom of the Windows screen',
     category: 'system-windows',
-    skills: ['browser', 'send-email'],
+    skills: ['*'],
   },
   'windows-wifi-icon': {
     file: 'system-windows/windows-wifi-icon.png',
@@ -129,13 +182,13 @@ const LIBRARY = {
     file: 'system-mac/mac-apple-menu.png',
     alt: 'Apple logo in the upper-left corner of the Mac screen',
     category: 'system-mac',
-    skills: ['settings', 'restart'],
+    skills: ['*'],
   },
   'mac-dock': {
     file: 'system-mac/mac-dock.png',
     alt: 'The strip of little pictures along the bottom of the Mac screen',
     category: 'system-mac',
-    skills: ['browser', 'send-email'],
+    skills: ['*'],
   },
   'mac-wifi-menubar': {
     file: 'system-mac/mac-wifi-menubar.png',
@@ -158,8 +211,21 @@ function getById(id) {
   };
 }
 
+// Returns all IDs whose `skills` array contains the target skillId OR the
+// wildcard '*' (foundational images that apply to every task). Skill-specific
+// results are returned first, followed by wildcards — this ordering surfaces
+// the most relevant images at the top of the prompt section.
 function getIdsForSkill(skillId) {
-  return Object.keys(LIBRARY).filter(id => LIBRARY[id].skills.includes(skillId));
+  const specific = [];
+  const wildcard = [];
+  for (const [id, entry] of Object.entries(LIBRARY)) {
+    if (skillId && entry.skills.includes(skillId)) {
+      specific.push(id);
+    } else if (entry.skills.includes('*')) {
+      wildcard.push(id);
+    }
+  }
+  return [...specific, ...wildcard];
 }
 
 function getAllEntries() {

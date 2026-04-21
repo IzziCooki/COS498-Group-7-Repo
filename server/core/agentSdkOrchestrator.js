@@ -176,21 +176,42 @@ async function processMessage(text, userId) {
       taskClassifier.classifyMessage(text, user),
     ]);
 
-    const skillMatch = skillMatcher.matchSkill(text);
-    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
-    // Append UI reference image IDs relevant to the matched skill so the agent
-    // knows exactly which image_id values are valid in create_guide steps.
-    // Returns empty string when no images apply, keeping the prompt lean.
-    const skillImagePrompt = skillMatcher.buildSkillImagePrompt(matchedSkillId);
-    const matchedSkillPrompt = skillMatch
-      ? skillMatcher.buildSkillPrompt(skillMatch.skill) + skillImagePrompt
-      : null;
-    if (skillMatch) {
-      console.log(`[agentSdkOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score})`);
-    }
-
+    // Load conversation history first — we need it for sticky skill matching
+    // when the current message alone doesn't trigger a skill.
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const conversationLength = dbMessages.filter(m => m.role === 'user').length;
+
+    // Sticky skill matching: if the current message has no triggers (e.g.
+    // "yes its Fred", "done", "ok"), walk back through the last 5 user
+    // messages and reuse the most recent match. This keeps the agent equipped
+    // with skill-specific image IDs across a multi-turn conversation.
+    let skillMatch = skillMatcher.matchSkill(text);
+    let skillSource = 'current';
+    if (!skillMatch) {
+      const recentUserMessages = dbMessages.filter(m => m.role === 'user').slice(-5);
+      for (let i = recentUserMessages.length - 1; i >= 0; i--) {
+        const prev = skillMatcher.matchSkill(recentUserMessages[i].body);
+        if (prev) {
+          skillMatch = prev;
+          skillSource = 'sticky';
+          break;
+        }
+      }
+    }
+
+    const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
+    // Build the UI reference image prompt. Returns wildcard ('*') images even
+    // when skillId is null so foundational images (taskbar, browser icons)
+    // are always in scope.
+    const skillImagePrompt = skillMatcher.buildSkillImagePrompt(matchedSkillId);
+    let matchedSkillPrompt = null;
+    if (skillMatch) {
+      matchedSkillPrompt = skillMatcher.buildSkillPrompt(skillMatch.skill) + skillImagePrompt;
+      console.log(`[agentSdkOrchestrator] Skill ${skillSource === 'sticky' ? '(sticky) ' : ''}matched: "${skillMatch.skill.name}"${skillSource === 'current' ? ` (score: ${skillMatch.score})` : ''}`);
+    } else if (skillImagePrompt) {
+      // No skill matched, but wildcard foundational images still apply
+      matchedSkillPrompt = skillImagePrompt;
+    }
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
 
     // Load persistent memories for this user
