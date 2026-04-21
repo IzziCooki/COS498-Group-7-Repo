@@ -523,6 +523,13 @@ const createGuide = tool(
     })).describe('Ordered list of steps'),
   },
   async (args) => {
+    // Diagnostic: log the image_id the agent sent for each step BEFORE expansion.
+    // If this log shows no image_id values, the agent isn't calling the feature;
+    // if it shows image_ids but the expansion below drops them, the registry
+    // doesn't contain those IDs. Either way, this tells us where the problem is.
+    const imageIdsSeen = args.steps.map((s, i) => `step${i + 1}=${s.image_id || 'NONE'}`).join(', ');
+    console.log(`[MCP] create_guide called: "${args.title}" — image_ids: [${imageIdsSeen}]`);
+
     // Expand any image_id references into full {id, url, alt} objects.
     // Unknown IDs are dropped with a warning; the step still renders text.
     const expandedSteps = args.steps.map(step => {
@@ -535,8 +542,9 @@ const createGuide = tool(
         const img = uiReferenceLibrary.getById(step.image_id);
         if (img) {
           out.image = img;
+          console.log(`[MCP]   ✓ Resolved "${step.image_id}" → ${img.url}`);
         } else {
-          console.warn(`[MCP] Unknown image_id "${step.image_id}" — dropped from guide step.`);
+          console.warn(`[MCP]   ✗ Unknown image_id "${step.image_id}" — dropped from guide step.`);
         }
       }
       return out;
@@ -548,7 +556,7 @@ const createGuide = tool(
     };
     _lastGuide = guide;
     const imageCount = expandedSteps.filter(s => s.image).length;
-    console.log(`[MCP] Guide created: "${args.title}" (${args.steps.length} steps, ${imageCount} with images)`);
+    console.log(`[MCP] Guide finalized: "${args.title}" (${args.steps.length} steps, ${imageCount} with images)`);
     return textResult(`Guide "${args.title}" has been created and will appear as an interactive card in the chat. Do NOT repeat the commands in your text — the user can see them in the guide card.`);
   }
 );
