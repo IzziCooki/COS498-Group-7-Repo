@@ -1,0 +1,43 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "a6e3cd57c700",
+  "session_id": "6fc09e9a-0498-45e3-a997-fcb93d1d3f32",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-21T01:20:50.3129306Z",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "server/assets/ui-references/browser/chrome-icon.png",
+    "server/assets/ui-references/browser/edge-icon.png",
+    "server/assets/ui-references/browser/firefox-icon.png",
+    "server/assets/ui-references/browser/safari-icon.png",
+    "server/assets/ui-references/email/outlook-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-download-button.png",
+    "server/assets/ui-references/video-call/zoom-homepage.png",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/skillMatcher.js",
+    "server/core/uiReferenceLibrary.js"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ac585407cc2d",
+  "token_usage": {
+    "input_tokens": 491,
+    "cache_creation_tokens": 1798337,
+    "cache_read_tokens": 62859331,
+    "output_tokens": 152097,
+    "api_call_count": 288
+  },
+  "session_metrics": {
+    "turn_count": 45
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-21T01:20:47.7866971Z",
+    "agent_lines": 75,
+    "human_added": 0,
+    "human_modified": 490,
+    "human_removed": 0,
+    "total_committed": 565,
+    "agent_percentage": 13.274336283185843
+  }
+}

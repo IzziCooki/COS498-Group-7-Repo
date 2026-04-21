@@ -1,0 +1,35 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "a6e3cd57c700",
+  "strategy": "manual-commit",
+  "branch": "frank/working-branch",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "server/assets/ui-references/browser/chrome-icon.png",
+    "server/assets/ui-references/browser/edge-icon.png",
+    "server/assets/ui-references/browser/firefox-icon.png",
+    "server/assets/ui-references/browser/safari-icon.png",
+    "server/assets/ui-references/email/outlook-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-app-icon.png",
+    "server/assets/ui-references/video-call/zoom-download-button.png",
+    "server/assets/ui-references/video-call/zoom-homepage.png",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/skillMatcher.js",
+    "server/core/uiReferenceLibrary.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a6/e3cd57c700/0/metadata.json",
+      "transcript": "/a6/e3cd57c700/0/full.jsonl",
+      "content_hash": "/a6/e3cd57c700/0/content_hash.txt",
+      "prompt": "/a6/e3cd57c700/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 491,
+    "cache_creation_tokens": 1798337,
+    "cache_read_tokens": 62859331,
+    "output_tokens": 152097,
+    "api_call_count": 288
+  }
+}
