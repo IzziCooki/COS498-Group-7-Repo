@@ -1,0 +1,26 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "0563f82a1368",
+  "strategy": "manual-commit",
+  "branch": "frank/elderly-feedback-loop",
+  "checkpoints_count": 9,
+  "files_touched": [
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/05/63f82a1368/0/metadata.json",
+      "transcript": "/05/63f82a1368/0/full.jsonl",
+      "content_hash": "/05/63f82a1368/0/content_hash.txt",
+      "prompt": "/05/63f82a1368/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 915,
+    "cache_creation_tokens": 2822474,
+    "cache_read_tokens": 117882228,
+    "output_tokens": 275966,
+    "api_call_count": 502
+  }
+}
