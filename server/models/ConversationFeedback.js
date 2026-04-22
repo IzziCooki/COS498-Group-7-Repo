@@ -80,6 +80,23 @@ const ConversationFeedback = {
       distribution,
     };
   },
+
+  // Used by the orchestrators to inject this user's recent AI-generated
+  // coaching suggestions into the next conversation's system prompt, so
+  // low-rated feedback actually shapes future behavior instead of just
+  // living on the admin page.
+  getRecentWithSuggestions(userId, limit = 3) {
+    if (!userId) return [];
+    return db.prepare(`
+      SELECT rating, comment, ai_suggestion, created_at
+      FROM conversation_feedback
+      WHERE user_id = ?
+        AND ai_suggestion IS NOT NULL
+        AND ai_suggestion != ''
+      ORDER BY created_at DESC
+      LIMIT ?
+    `).all(userId, limit);
+  },
 };
 
 module.exports = ConversationFeedback;
