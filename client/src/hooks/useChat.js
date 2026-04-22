@@ -587,6 +587,11 @@ export function useChat(userId) {
     joinBuddySession,
     leaveBuddySession,
     sendBuddyCommand,
+    sendScreenFrame: useCallback((imageBase64) => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'screen_frame', imageBase64 }));
+      }
+    }, []),
     wsRef,
   };
 }

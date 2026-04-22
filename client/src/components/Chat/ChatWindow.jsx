@@ -8,6 +8,7 @@ import FeedbackModal from './FeedbackModal';
 import ConnectComputer from './ConnectComputer';
 import SidePanel from './SidePanel';
 import BuddyTerminal from '../Collaboration/BuddyTerminal';
+import ScreenShare from './ScreenShare';
 import './ChatWindow.css';
 
 /**
@@ -60,7 +61,9 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
     joinBuddySession,
     leaveBuddySession,
     sendBuddyCommand,
+    sendScreenFrame,
   } = useChat(userId);
+  const [screenSharing, setScreenSharing] = useState(false);
   const bottomRef = useRef(null);
 
   // Expose startNewChat to parent via ref
@@ -249,6 +252,19 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
           </div>
         )}
         <ConnectComputer isConnected={agentConnected} onPair={pairAgent} />
+        {!screenSharing ? (
+          <button
+            className="chat-header__screen-share-btn"
+            onClick={() => setScreenSharing(true)}
+            title="Share your screen so PC Pal can see and help"
+          >
+            Share Screen
+          </button>
+        ) : (
+          <span className="chat-header__screen-share-active">
+            Screen Sharing
+          </span>
+        )}
         {!isViewingPast && (
           <button
             type="button"
@@ -338,6 +354,12 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
       ) : (
         <>
           <StepSequencePanel activeSequence={activeSequence} onSendMessage={sendMessage} hasBuddy={hasBuddy} />
+          {screenSharing && (
+            <ScreenShare
+              onScreenFrame={sendScreenFrame}
+              onStop={() => setScreenSharing(false)}
+            />
+          )}
           <MessageInput onSend={sendMessage} onGatherResources={gatherResources} isTyping={isTyping} />
         </>
       )}
