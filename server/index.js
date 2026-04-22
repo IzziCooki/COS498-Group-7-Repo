@@ -219,10 +219,20 @@ function sendCommandToAgent(userId, command, timeout = 20000, cwd) {
 }
 
 /**
- * Request a screenshot from the paired relay agent.
- * Returns { imageBase64, error } or null if no agent is paired.
+ * Request a screenshot — tries browser screen share first, then relay agent.
+ * Returns { imageBase64, error } or null if neither is available.
  */
 function requestScreenshot(userId, timeout = 15000) {
+  // Check if the user has browser screen share active (no relay needed)
+  const userWs = chatClients.get(userId);
+  if (userWs && userWs._screenFrames && userWs._screenFrames.latest) {
+    const age = Date.now() - (userWs._screenFrames.timestamp || 0);
+    if (age < 30000) { // frame less than 30s old
+      return Promise.resolve({ imageBase64: userWs._screenFrames.latest, error: false });
+    }
+  }
+
+  // Fall back to relay agent
   const agent = pairedAgents.get(userId);
   if (!agent || agent.ws.readyState !== 1) return null;
 
@@ -630,6 +640,35 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           }
         } catch (err) {
           console.error('[ws] Video relay error:', err.message);
+        }
+
+      } else if (msg.type === 'screen_frame') {
+        // User is sharing their screen — store the latest frame
+        // so the agent's take_screenshot tool can use it
+        if (!userId || !msg.imageBase64) return;
+        // Store as a "virtual relay" screenshot source
+        if (!ws._screenFrames) ws._screenFrames = {};
+        ws._screenFrames.latest = msg.imageBase64;
+        ws._screenFrames.timestamp = Date.now();
+
+        // Forward to buddy if they're watching
+        try {
+          const BuddyPair = require('./models/BuddyPair');
+          const pairs = BuddyPair.findByUserId(userId);
+          if (pairs.length > 0) {
+            const pair = pairs[0];
+            const buddyUserId = pair.learner_id === userId ? pair.helper_id : pair.learner_id;
+            const buddyWs = chatClients.get(buddyUserId);
+            if (buddyWs && buddyWs.readyState === 1) {
+              buddyWs.send(JSON.stringify({
+                type: 'screen_frame',
+                imageBase64: msg.imageBase64,
+                fromUserId: userId,
+              }));
+            }
+          }
+        } catch (err) {
+          // Buddy forwarding is optional — don't fail
         }
 
       } else if (msg.type === 'chat') {
