@@ -17,6 +17,10 @@ function ScreenShare({ onScreenFrame, onStop }) {
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
 
+  // Stable ref for onStop so we never re-create stopSharing
+  const onStopRef = useRef(onStop);
+  useEffect(() => { onStopRef.current = onStop; }, [onStop]);
+
   const stopSharing = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -27,11 +31,11 @@ function ScreenShare({ onScreenFrame, onStop }) {
       streamRef.current = null;
     }
     setSharing(false);
-    if (onStop) onStop();
-  }, [onStop]);
+    if (onStopRef.current) onStopRef.current();
+  }, []);
 
-  // Clean up on unmount
-  useEffect(() => stopSharing, [stopSharing]);
+  // Clean up on unmount only
+  useEffect(() => () => stopSharing(), [stopSharing]);
 
   const captureFrame = useCallback(() => {
     const video = videoRef.current;
@@ -53,7 +57,7 @@ function ScreenShare({ onScreenFrame, onStop }) {
     }
   }, [onScreenFrame]);
 
-  const startSharing = async () => {
+  const startSharing = useCallback(async () => {
     setError('');
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -89,35 +93,46 @@ function ScreenShare({ onScreenFrame, onStop }) {
         console.error('[ScreenShare] Error:', err);
       }
     }
-  };
+  }, [stopSharing, captureFrame]);
+
+  // Auto-start when component mounts — user already clicked "Share Screen" in the header
+  const didAutoStart = useRef(false);
+  useEffect(() => {
+    if (!didAutoStart.current) {
+      didAutoStart.current = true;
+      // Defer to avoid setState-in-effect lint rule
+      queueMicrotask(startSharing);
+    }
+  }, [startSharing]);
 
   return (
     <div className="screen-share">
       {!sharing ? (
         <div className="screen-share__prompt">
-          <button className="screen-share__start-btn" onClick={startSharing}>
-            Share My Screen
-          </button>
-          <p className="screen-share__hint">
-            Let PC Pal see your screen so we can help you find things and guide you step by step.
-          </p>
-          {error && <p className="screen-share__error">{error}</p>}
+          {error ? (
+            <>
+              <p className="screen-share__error">{error}</p>
+              <button className="screen-share__start-btn" onClick={startSharing}>
+                Try Again
+              </button>
+            </>
+          ) : (
+            <p className="screen-share__hint">Starting screen share...</p>
+          )}
         </div>
       ) : (
         <div className="screen-share__active">
-          <div className="screen-share__preview">
-            <video ref={videoRef} autoPlay playsInline muted className="screen-share__video" />
-          </div>
           <div className="screen-share__status">
             <span className="screen-share__live-dot" />
-            <span>Screen sharing is on — PC Pal can see your screen</span>
+            <span>PC Pal can see your screen</span>
+            <button className="screen-share__stop-btn" onClick={stopSharing}>
+              Stop
+            </button>
           </div>
-          <button className="screen-share__stop-btn" onClick={stopSharing}>
-            Stop Sharing
-          </button>
         </div>
       )}
-      {/* Hidden canvas for frame capture */}
+      {/* Hidden video + canvas for frame capture */}
+      <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   );
