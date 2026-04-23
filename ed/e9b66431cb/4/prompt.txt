@@ -1,0 +1,8 @@
+Conversation so far:
+[USER SAID]: i want to send email to my son
+
+[YOU SAID]: First, I need to know which email app you use to send messages. Do you use Gmail, Outlook, Yahoo Mail, or something else? If you're not sure, the most common email app on Windows computers is Outlook - it might have a blue square with a white envelope on your screen.
+
+[USER SAID]: how does it look?
+
+[USER SAYS NOW]: how does it look?
