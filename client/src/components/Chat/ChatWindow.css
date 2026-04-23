@@ -55,15 +55,21 @@
   color: white;
 }
 
-.chat-header__screen-share-active {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: #dcfce7;
-  color: #16a34a;
-  border: 1px solid #86efac;
-  white-space: nowrap;
+.chat-header__screen-share-btn--active {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+  animation: screen-share-pulse 2s ease-in-out infinite;
+}
+
+.chat-header__screen-share-btn--active:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+@keyframes screen-share-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 .chat-header__end-btn {

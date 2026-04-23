@@ -252,19 +252,13 @@ function ChatWindow({ userId, hasBuddy, viewingConversationId, onConversationCha
           </div>
         )}
         <ConnectComputer isConnected={agentConnected} onPair={pairAgent} />
-        {!screenSharing ? (
-          <button
-            className="chat-header__screen-share-btn"
-            onClick={() => setScreenSharing(true)}
-            title="Share your screen so PC Pal can see and help"
-          >
-            Share Screen
-          </button>
-        ) : (
-          <span className="chat-header__screen-share-active">
-            Screen Sharing
-          </span>
-        )}
+        <button
+          className={`chat-header__screen-share-btn ${screenSharing ? 'chat-header__screen-share-btn--active' : ''}`}
+          onClick={() => setScreenSharing(prev => !prev)}
+          title={screenSharing ? 'Stop sharing your screen' : 'Share your screen so PC Pal can see and help'}
+        >
+          {screenSharing ? 'Stop Sharing' : 'Share Screen'}
+        </button>
         {!isViewingPast && (
           <button
             type="button"
