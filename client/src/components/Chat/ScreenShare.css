@@ -89,3 +89,13 @@
 .screen-share__stop-btn:hover {
   background: rgba(255,255,255,0.3);
 }
+
+/* Off-screen but still rendered — display:none breaks video decoding */
+.screen-share__offscreen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
+}
