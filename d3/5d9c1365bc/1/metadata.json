@@ -1,0 +1,34 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "d35d9c1365bc",
+  "session_id": "15639101-c399-4b27-87c3-c46a15c6e6e3",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-23T08:51:44.4454965Z",
+  "branch": "frank/elderly-feedback-loop",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "d61e0517aaed",
+  "token_usage": {
+    "input_tokens": 28,
+    "cache_creation_tokens": 4640,
+    "cache_read_tokens": 47509,
+    "output_tokens": 504,
+    "api_call_count": 3
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-23T08:51:44.3951096Z",
+    "agent_lines": 0,
+    "human_added": 24,
+    "human_modified": 1596,
+    "human_removed": 0,
+    "total_committed": 1620,
+    "agent_percentage": 0
+  }
+}
