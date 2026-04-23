@@ -131,9 +131,11 @@ function ScreenShare({ onScreenFrame, onStop }) {
           </div>
         </div>
       )}
-      {/* Hidden video + canvas for frame capture */}
-      <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      {/* Off-screen video + canvas for frame capture.
+          MUST NOT use display:none — browsers skip frame decoding,
+          making canvas.drawImage produce black frames. */}
+      <video ref={videoRef} autoPlay playsInline muted className="screen-share__offscreen" />
+      <canvas ref={canvasRef} className="screen-share__offscreen" />
     </div>
   );
 }
