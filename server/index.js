@@ -269,6 +269,16 @@ try {
   console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
 }
 
+// Also inject into fallback orchestrator so take_screenshot works when Agent SDK is unavailable
+try {
+  const fallbackOrchestrator = require('./core/agentOrchestrator');
+  if (fallbackOrchestrator.setRequestScreenshotFn) {
+    fallbackOrchestrator.setRequestScreenshotFn(requestScreenshot);
+  }
+} catch (err) {
+  console.warn('[server] Could not inject requestScreenshot into fallback orchestrator:', err.message);
+}
+
 wss.on('connection', (ws, req) => {
   let userId = null;
   let agentCode = null; // set if this connection is a relay agent
