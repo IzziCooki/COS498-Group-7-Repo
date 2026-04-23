@@ -175,7 +175,7 @@ async function processMessage(text, userId, context = {}) {
     const resolved = resolveModel(user.model_preference);
     if (resolved.provider === 'ollama') {
       const fallback = require('./agentOrchestrator');
-      return fallback.processMessage(text, userId);
+      return fallback.processMessage(text, userId, context);
     }
 
     if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
@@ -288,7 +288,7 @@ async function processMessage(text, userId, context = {}) {
       // Fall back to original orchestrator
       try {
         const original = require('./agentOrchestrator');
-        return original.processMessage(text, userId);
+        return original.processMessage(text, userId, context);
       } catch (fallbackErr) {
         console.error('[agentSdkOrchestrator] Fallback also failed:', fallbackErr.message);
         return { response: FALLBACK_RESPONSE, safetyAlert: null };
