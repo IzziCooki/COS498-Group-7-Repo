@@ -2,24 +2,103 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './ScreenShare.css';
 
 /**
+ * Capture a frame from a MediaStream track.
+ *
+ * Strategy 1: ImageCapture API (Chrome/Edge) — grabs directly from the
+ *   track's decoder, no video element needed.
+ * Strategy 2: video + OffscreenCanvas — draws from a video element.
+ * Strategy 3: video + regular canvas — legacy fallback.
+ *
+ * Returns a base64 JPEG string, or null if the frame is black/empty.
+ */
+async function grabFrame(stream, videoEl) {
+  const track = stream.getVideoTracks()[0];
+  if (!track || track.readyState !== 'live') return null;
+
+  let bitmap = null;
+
+  // Strategy 1: ImageCapture (most reliable — no video element rendering needed)
+  if (typeof ImageCapture !== 'undefined') {
+    try {
+      const capture = new ImageCapture(track);
+      bitmap = await capture.grabFrame();
+    } catch {
+      // ImageCapture can fail on some tracks — fall through
+    }
+  }
+
+  // Strategy 2 & 3: draw from video element
+  if (!bitmap && videoEl && videoEl.videoWidth > 0) {
+    bitmap = await createImageBitmap(videoEl);
+  }
+
+  if (!bitmap || bitmap.width === 0 || bitmap.height === 0) return null;
+
+  // Draw bitmap to a canvas to extract base64
+  const w = Math.min(bitmap.width, 1280);
+  const h = Math.round(w * (bitmap.height / bitmap.width));
+
+  let canvas;
+  if (typeof OffscreenCanvas !== 'undefined') {
+    canvas = new OffscreenCanvas(w, h);
+  } else {
+    canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
+
+  // Black-frame detection: sample pixels across the image
+  const imgData = ctx.getImageData(0, 0, w, h).data;
+  let nonBlack = 0;
+  const step = Math.max(1, Math.floor(imgData.length / 400)); // sample ~100 pixels
+  for (let i = 0; i < imgData.length; i += step * 4) {
+    if (imgData[i] > 5 || imgData[i + 1] > 5 || imgData[i + 2] > 5) {
+      nonBlack++;
+      if (nonBlack > 3) break; // enough — it's not black
+    }
+  }
+  if (nonBlack <= 3) {
+    console.warn('[ScreenShare] Black frame detected, skipping');
+    return null;
+  }
+
+  // Convert to base64 JPEG
+  if (canvas instanceof OffscreenCanvas) {
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.7 });
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(blob);
+    });
+  }
+  return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+}
+
+/**
  * ScreenShare — lets the user share their screen so the agent
  * can see what they see and guide them in real-time.
  *
  * Uses the browser's getDisplayMedia API — no relay agent needed.
  * Captures frames periodically and sends them to the server for
- * Claude Vision analysis. Also shows the screen to the buddy.
+ * Claude Vision analysis.
  */
 function ScreenShare({ onScreenFrame, onStop }) {
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState('');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const canvasRef = useRef(null);
   const intervalRef = useRef(null);
 
   // Stable ref for onStop so we never re-create stopSharing
   const onStopRef = useRef(onStop);
   useEffect(() => { onStopRef.current = onStop; }, [onStop]);
+
+  // Stable ref for onScreenFrame
+  const onFrameRef = useRef(onScreenFrame);
+  useEffect(() => { onFrameRef.current = onScreenFrame; }, [onScreenFrame]);
 
   const stopSharing = useCallback(() => {
     if (intervalRef.current) {
@@ -37,25 +116,17 @@ function ScreenShare({ onScreenFrame, onStop }) {
   // Clean up on unmount only
   useEffect(() => () => stopSharing(), [stopSharing]);
 
-  const captureFrame = useCallback(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || !video.videoWidth) return;
-
-    canvas.width = Math.min(video.videoWidth, 1280);
-    canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
-
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convert to base64 JPEG (smaller than PNG)
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-    const base64 = dataUrl.split(',')[1];
-
-    if (onScreenFrame && base64) {
-      onScreenFrame(base64);
+  const captureAndSend = useCallback(async () => {
+    if (!streamRef.current) return;
+    try {
+      const base64 = await grabFrame(streamRef.current, videoRef.current);
+      if (base64 && onFrameRef.current) {
+        onFrameRef.current(base64);
+      }
+    } catch (err) {
+      console.error('[ScreenShare] Frame capture error:', err);
     }
-  }, [onScreenFrame]);
+  }, []);
 
   const startSharing = useCallback(async () => {
     setError('');
@@ -70,21 +141,18 @@ function ScreenShare({ onScreenFrame, onStop }) {
       // If user stops sharing via browser controls
       stream.getVideoTracks()[0].addEventListener('ended', stopSharing);
 
+      // Attach to video element as fallback for grabFrame
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
 
       setSharing(true);
 
-      // Capture a frame every 5 seconds for the agent
-      intervalRef.current = setInterval(captureFrame, 5000);
+      // Wait for the stream to produce actual frames before first capture
+      setTimeout(captureAndSend, 1500);
 
-      // Capture first frame immediately after video loads
-      if (videoRef.current) {
-        videoRef.current.onloadeddata = () => {
-          setTimeout(captureFrame, 500);
-        };
-      }
+      // Then capture every 5 seconds
+      intervalRef.current = setInterval(captureAndSend, 5000);
     } catch (err) {
       if (err.name === 'NotAllowedError') {
         setError('Screen sharing was cancelled. Click the button to try again.');
@@ -93,14 +161,13 @@ function ScreenShare({ onScreenFrame, onStop }) {
         console.error('[ScreenShare] Error:', err);
       }
     }
-  }, [stopSharing, captureFrame]);
+  }, [stopSharing, captureAndSend]);
 
-  // Auto-start when component mounts — user already clicked "Share Screen" in the header
+  // Auto-start when component mounts
   const didAutoStart = useRef(false);
   useEffect(() => {
     if (!didAutoStart.current) {
       didAutoStart.current = true;
-      // Defer to avoid setState-in-effect lint rule
       queueMicrotask(startSharing);
     }
   }, [startSharing]);
@@ -131,11 +198,10 @@ function ScreenShare({ onScreenFrame, onStop }) {
           </div>
         </div>
       )}
-      {/* Off-screen video + canvas for frame capture.
-          MUST NOT use display:none — browsers skip frame decoding,
-          making canvas.drawImage produce black frames. */}
-      <video ref={videoRef} autoPlay playsInline muted className="screen-share__offscreen" />
-      <canvas ref={canvasRef} className="screen-share__offscreen" />
+      {/* Fallback video element for browsers without ImageCapture.
+          Positioned off-screen at full size — no clip, no tiny dimensions.
+          Browsers must decode frames for drawImage/createImageBitmap. */}
+      <video ref={videoRef} autoPlay playsInline muted className="screen-share__offscreen-video" />
     </div>
   );
 }

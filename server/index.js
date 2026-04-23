@@ -666,6 +666,8 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         // User is sharing their screen — store the latest frame
         // so the agent's take_screenshot tool can use it
         if (!userId || !msg.imageBase64) return;
+        // Reject suspiciously small frames (likely all-black — a real screen is > 10KB)
+        if (msg.imageBase64.length < 5000) return;
         const isFirstFrame = !ws._screenFrames || !ws._screenFrames.latest;
         // Store as a "virtual relay" screenshot source
         if (!ws._screenFrames) ws._screenFrames = {};
