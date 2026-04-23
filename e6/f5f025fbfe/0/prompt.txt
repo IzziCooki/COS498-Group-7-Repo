@@ -619,3 +619,7 @@ Click to view
 ---
 
 this is the ss from the terminals too. I think its working now with the feedback loop.
+
+---
+
+go ahead and merge it to the main and comment on what I have improved on this new adition
