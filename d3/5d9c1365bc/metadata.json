@@ -3,7 +3,7 @@
   "checkpoint_id": "d35d9c1365bc",
   "strategy": "manual-commit",
   "branch": "frank/elderly-feedback-loop",
-  "checkpoints_count": 3,
+  "checkpoints_count": 13,
   "files_touched": [
     "server/core/agentOrchestrator.js",
     "server/core/agentSdkOrchestrator.js"
@@ -26,13 +26,19 @@
       "transcript": "/d3/5d9c1365bc/2/full.jsonl",
       "content_hash": "/d3/5d9c1365bc/2/content_hash.txt",
       "prompt": "/d3/5d9c1365bc/2/prompt.txt"
+    },
+    {
+      "metadata": "/d3/5d9c1365bc/3/metadata.json",
+      "transcript": "/d3/5d9c1365bc/3/full.jsonl",
+      "content_hash": "/d3/5d9c1365bc/3/content_hash.txt",
+      "prompt": "/d3/5d9c1365bc/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 102,
-    "cache_creation_tokens": 40546,
-    "cache_read_tokens": 151268,
-    "output_tokens": 2092,
-    "api_call_count": 11
+    "input_tokens": 1094,
+    "cache_creation_tokens": 3626801,
+    "cache_read_tokens": 123752792,
+    "output_tokens": 298656,
+    "api_call_count": 545
   }
 }
