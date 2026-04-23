@@ -1101,8 +1101,6 @@ async function processMessage(text, userId) {
     const coachingNotes = recentFeedback.length > 0
       ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
       : '';
-    // TEMP diagnostic — remove before PR. Prints what went into the prompt.
-    console.log(`[coaching] user=${user?.id || 'anon'} injected=${recentFeedback.length} ${coachingNotes ? `notes:\n${coachingNotes}` : '(none)'}`);
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes);
 
