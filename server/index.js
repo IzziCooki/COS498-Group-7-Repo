@@ -656,10 +656,19 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         // User is sharing their screen — store the latest frame
         // so the agent's take_screenshot tool can use it
         if (!userId || !msg.imageBase64) return;
+        const isFirstFrame = !ws._screenFrames || !ws._screenFrames.latest;
         // Store as a "virtual relay" screenshot source
         if (!ws._screenFrames) ws._screenFrames = {};
         ws._screenFrames.latest = msg.imageBase64;
         ws._screenFrames.timestamp = Date.now();
+
+        // On first frame, log to conversation so Claude knows screen share is active
+        if (isFirstFrame) {
+          try {
+            const session = conversationState.getOrCreateSession(userId);
+            conversationState.addMessage(session.id, 'user', '[The user started sharing their screen with you. You can now call take_screenshot to see what is on their screen.]');
+          } catch (_) { /* non-critical */ }
+        }
 
         // Forward to buddy if they're watching
         try {
@@ -710,7 +719,15 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           }
         }
 
-        const result = await agentOrchestrator.processMessage(msg.text, userId);
+        // Pass screen visibility context to the orchestrator
+        const hasScreenShare = !!(ws._screenFrames && ws._screenFrames.latest
+          && (Date.now() - (ws._screenFrames.timestamp || 0)) < 30000);
+        const hasRelayAgent = !!pairedAgents.get(userId);
+
+        const result = await agentOrchestrator.processMessage(msg.text, userId, {
+          screenShareActive: hasScreenShare,
+          relayAgentConnected: hasRelayAgent,
+        });
 
         if (ws.readyState === ws.OPEN) {
           ws.send(JSON.stringify({

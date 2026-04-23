@@ -13,11 +13,18 @@
     "show me where",
     "point to",
     "can you see my screen",
+    "see my screen",
     "look at my screen",
+    "see my computer",
+    "see what I see",
+    "what's on my screen",
+    "look at this",
     "I'm looking for",
-    "where is the button"
+    "where is the button",
+    "can you see this",
+    "what do you see"
   ],
   "category": "diagnostics",
   "difficulty": "beginner",
-  "prompt": "The user can't find something on their screen. Use take_screenshot to capture their screen, find what they're looking for, and show them an annotated screenshot with the target highlighted. If the relay agent isn't connected, describe the location using spatial language (top-right, bottom-left, etc.) instead."
+  "prompt": "The user wants you to look at their screen or can't find something. You MUST call take_screenshot immediately to actually capture and analyze their screen. Do NOT describe what you think is there — use the tool to see it for real. After analyzing the screenshot, describe what you see and point out the relevant element. If the screenshot tool fails (no relay or screen share), explain that you need them to either click 'Share Screen' or connect their computer first."
 }
