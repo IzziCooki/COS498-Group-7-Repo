@@ -241,7 +241,7 @@ async function processMessage(text, userId, context = {}) {
     // Build screen context for the system prompt
     let screenContext = '';
     if (context.screenShareActive) {
-      screenContext = `\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You CAN see their screen by calling take_screenshot. When they ask "can you see my screen?" or want help finding something, call take_screenshot immediately — do NOT guess or describe what you think is there. Actually look.\n`;
+      screenContext = `\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You can see their screen — call take_screenshot to capture and analyze what's on their screen. When they ask "can you see my screen?" or want help finding something, call take_screenshot FIRST before responding — do NOT guess or give generic instructions.\n`;
     } else if (context.relayAgentConnected) {
       screenContext = `\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.\n`;
     }

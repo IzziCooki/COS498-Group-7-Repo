@@ -1136,12 +1136,36 @@ async function processMessage(text, userId, context = {}) {
     // Build screen context
     let screenContext = '';
     if (context.screenShareActive) {
-      screenContext = `\n\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You CAN see their screen by calling take_screenshot. When they ask "can you see my screen?" or want help finding something, call take_screenshot immediately — do NOT guess or describe what you think is there. Actually look.`;
+      screenContext = `\n\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You can see their screen — the latest screenshot is attached to their message as an image. Describe what you see and help them find what they need. If you need to highlight something specific, use take_screenshot to create an annotated version.`;
     } else if (context.relayAgentConnected) {
       screenContext = `\n\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.`;
     }
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, screenContext);
+
+    // When screen share is active, attach the latest frame to the user's message
+    // so Claude can literally see their screen without needing to call a tool
+    if (context.screenShareActive && _requestScreenshotFn) {
+      try {
+        const ssResult = await _requestScreenshotFn(userId);
+        if (ssResult && !ssResult.error && ssResult.imageBase64) {
+          // Find the last user message and convert to multi-content with image
+          const lastUserIdx = messages.length - 1;
+          if (lastUserIdx >= 0 && messages[lastUserIdx].role === 'user') {
+            const textContent = typeof messages[lastUserIdx].content === 'string'
+              ? messages[lastUserIdx].content
+              : text;
+            messages[lastUserIdx].content = [
+              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: ssResult.imageBase64 } },
+              { type: 'text', text: `[Screenshot of user's screen is attached above]\n\n${textContent}` }
+            ];
+            console.log(`[agentOrchestrator] Attached screen share frame to user message (${Math.round(ssResult.imageBase64.length / 1024)}KB)`);
+          }
+        }
+      } catch (ssErr) {
+        console.error('[agentOrchestrator] Failed to attach screen frame:', ssErr.message);
+      }
+    }
 
     // Resolve model provider
     const resolved = resolveModel(user.model_preference);
