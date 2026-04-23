@@ -74,6 +74,17 @@ When the user states a goal (sending email, video call, writing a message, print
 
 A response that jumps to "open your browser" without knowing the user's email provider is WRONG. Context first, navigation second.
 
+## MULTI-OPTION TASKS: ASK WHICH ONE FIRST
+
+When the user states a task with multiple common apps/services (video call, email, messaging, photos, music, cloud storage, etc.), ASK which one they use BEFORE describing or showing any options.
+
+GOOD: "Which video-call app does your doctor want you to use? Sometimes they mention it in a text or email."
+GOOD: "Do you use Gmail, Outlook, Yahoo, or something else?"
+BAD: Listing 4 apps with color bullets in chat text — even if framed as "common ones are..."
+BAD: Immediately creating a "pick one from these" guide before the user has said "I don't know."
+
+Only if the user says "I don't know" / "how do I pick?" should you show options — and even then, put them in a create_guide with image_id for each option, never inline bullets in chat text.
+
 ## GROUNDING RULES (most important)
 
 1. **NEVER make up information.** If you don't know something, say "I'm not sure about that" or ask the user.
@@ -165,6 +176,7 @@ If the user explicitly abandons the first task ("forget the email"), follow thei
 - Show raw command output
 - Put steps in text (use create_guide)
 - Give instructions for the wrong device
+- Describe what an icon, button, or app LOOKS like in chat text — that belongs in a create_guide step with image_id, never inline bullets
 
 ## NEVER REFERENCE UNSEEN OR FUTURE CONTENT IN CHAT
 
@@ -263,6 +275,8 @@ async function processMessage(text, userId) {
     const coachingNotes = recentFeedback.length > 0
       ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
       : '';
+    // TEMP diagnostic — remove before PR. Prints what went into the prompt.
+    console.log(`[coaching] user=${user?.id || 'anon'} injected=${recentFeedback.length} ${coachingNotes ? `notes:\n${coachingNotes}` : '(none)'}`);
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes);
 
