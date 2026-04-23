@@ -102,7 +102,7 @@ cat > "$DIR/agent.js" << AGENTEOF
 const os=require("os"),{execSync}=require("child_process"),WebSocket=require("ws");
 const SERVER="${wsUrl}";
 const BLOCKED=[/rm\\\\s+-rf\\\\s+\\\\//, /mkfs/, /dd.*of=\\\\/dev/, /shutdown/, /reboot/, /format/];
-function run(c,t,d){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{var o={encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"]};if(d)o.cwd=d;return{output:execSync(c,o).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
+function run(c,t,d){if(BLOCKED.some(function(p){return p.test(c)}))return{output:"BLOCKED",error:true};try{var o={encoding:"utf-8",timeout:t||15e3,maxBuffer:512*1024,stdio:["pipe","pipe","pipe"],cwd:d||os.homedir()};return{output:execSync(c,o).trim(),error:false}}catch(e){return{output:e.stderr?e.stderr.trim():e.message,error:true}}}
 function info(){return{platform:process.platform,hostname:os.hostname(),username:os.userInfo().username,cpu:os.cpus()[0]&&os.cpus()[0].model||"Unknown",cpu_cores:os.cpus().length,total_ram_gb:(os.totalmem()/1073741824).toFixed(1),free_ram_gb:(os.freemem()/1073741824).toFixed(1)}}
 var attempts=0;
 function connect(){
@@ -219,10 +219,20 @@ function sendCommandToAgent(userId, command, timeout = 20000, cwd) {
 }
 
 /**
- * Request a screenshot from the paired relay agent.
- * Returns { imageBase64, error } or null if no agent is paired.
+ * Request a screenshot — tries browser screen share first, then relay agent.
+ * Returns { imageBase64, error } or null if neither is available.
  */
 function requestScreenshot(userId, timeout = 15000) {
+  // Check if the user has browser screen share active (no relay needed)
+  const userWs = chatClients.get(userId);
+  if (userWs && userWs._screenFrames && userWs._screenFrames.latest) {
+    const age = Date.now() - (userWs._screenFrames.timestamp || 0);
+    if (age < 30000) { // frame less than 30s old
+      return Promise.resolve({ imageBase64: userWs._screenFrames.latest, error: false });
+    }
+  }
+
+  // Fall back to relay agent
   const agent = pairedAgents.get(userId);
   if (!agent || agent.ws.readyState !== 1) return null;
 
@@ -257,6 +267,16 @@ try {
   setRequestScreenshotFn(requestScreenshot);
 } catch (err) {
   console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
+}
+
+// Also inject into fallback orchestrator so take_screenshot works when Agent SDK is unavailable
+try {
+  const fallbackOrchestrator = require('./core/agentOrchestrator');
+  if (fallbackOrchestrator.setRequestScreenshotFn) {
+    fallbackOrchestrator.setRequestScreenshotFn(requestScreenshot);
+  }
+} catch (err) {
+  console.warn('[server] Could not inject requestScreenshot into fallback orchestrator:', err.message);
 }
 
 wss.on('connection', (ws, req) => {
@@ -557,7 +577,7 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         // User running a command from the standalone terminal panel
         if (!userId || !msg.command || !msg.requestId) {
           if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'terminal_result', requestId: msg.requestId || '', command: msg.command || '', output: 'Invalid request.', error: true, cwd: terminalCwds.get(userId) || os.homedir() }));
+            ws.send(JSON.stringify({ type: 'terminal_result', requestId: msg.requestId || '', command: msg.command || '', output: 'Invalid request.', error: true, cwd: terminalCwds.get(userId) || '~' }));
           }
           return;
         }
@@ -572,15 +592,17 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
               command: msg.command,
               output: 'No computer connected. Please pair your computer using the Connect button before running terminal commands.',
               error: true,
-              cwd: terminalCwds.get(userId) || os.homedir(),
+              cwd: terminalCwds.get(userId) || '~',
             }));
           }
           return;
         }
         const cmd = msg.command.trim();
         const cwdKey = userId;
-        const currentCwd = terminalCwds.get(cwdKey) || os.homedir();
-        console.log(`[ws] User ${userId} terminal command: "${cmd}" (cwd: ${currentCwd})`);
+        // Don't fall back to server's os.homedir() — it's the container's
+        // home dir, not the user's. null means "use the agent's default".
+        const currentCwd = terminalCwds.get(cwdKey) || null;
+        console.log(`[ws] User ${userId} terminal command: "${cmd}" (cwd: ${currentCwd || '(default)'})`);
 
         // Handle cd as a special stateful command. We don't validate the path
         // against the server's filesystem — the target lives on the user's
@@ -590,13 +612,21 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         // relay agent will surface the error.
         const cdMatch = cmd.match(/^cd(?:\s+(.+))?$/);
         if (cdMatch) {
-          const target = (cdMatch[1] || '').trim().replace(/^["']|["']$/g, '') || '~';
-          const newCwd = target === '~' ? '~' : target;
-          terminalCwds.set(cwdKey, newCwd);
+          const target = (cdMatch[1] || '').trim().replace(/^["']|["']$/g, '');
+          // Send the cd command to the relay agent so it resolves on the
+          // user's machine (handles ~, relative paths, symlinks, etc.)
+          const cdCmd = target ? `cd "${target}" && pwd` : 'cd ~ && pwd';
+          const cdResult = await sendCommandToAgent(userId, cdCmd, 10000);
+          const resolvedCwd = (!cdResult || cdResult.error)
+            ? (target || null)
+            : cdResult.output.trim();
+          if (resolvedCwd) terminalCwds.set(cwdKey, resolvedCwd);
           if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({
               type: 'terminal_result', requestId: msg.requestId, command: cmd,
-              output: newCwd, error: false, cwd: newCwd,
+              output: resolvedCwd || '~',
+              error: cdResult ? cdResult.error : false,
+              cwd: resolvedCwd || '~',
             }));
           }
           return;
@@ -632,6 +662,44 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           console.error('[ws] Video relay error:', err.message);
         }
 
+      } else if (msg.type === 'screen_frame') {
+        // User is sharing their screen — store the latest frame
+        // so the agent's take_screenshot tool can use it
+        if (!userId || !msg.imageBase64) return;
+        const isFirstFrame = !ws._screenFrames || !ws._screenFrames.latest;
+        // Store as a "virtual relay" screenshot source
+        if (!ws._screenFrames) ws._screenFrames = {};
+        ws._screenFrames.latest = msg.imageBase64;
+        ws._screenFrames.timestamp = Date.now();
+
+        // On first frame, log to conversation so Claude knows screen share is active
+        if (isFirstFrame) {
+          try {
+            const session = conversationState.getOrCreateSession(userId);
+            conversationState.addMessage(session.id, 'user', '[The user started sharing their screen with you. You can now call take_screenshot to see what is on their screen.]');
+          } catch (_) { /* non-critical */ }
+        }
+
+        // Forward to buddy if they're watching
+        try {
+          const BuddyPair = require('./models/BuddyPair');
+          const pairs = BuddyPair.findByUserId(userId);
+          if (pairs.length > 0) {
+            const pair = pairs[0];
+            const buddyUserId = pair.learner_id === userId ? pair.helper_id : pair.learner_id;
+            const buddyWs = chatClients.get(buddyUserId);
+            if (buddyWs && buddyWs.readyState === 1) {
+              buddyWs.send(JSON.stringify({
+                type: 'screen_frame',
+                imageBase64: msg.imageBase64,
+                fromUserId: userId,
+              }));
+            }
+          }
+        } catch (err) {
+          // Buddy forwarding is optional — don't fail
+        }
+
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
         if (!userId) {
@@ -661,7 +729,15 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
           }
         }
 
-        const result = await agentOrchestrator.processMessage(msg.text, userId);
+        // Pass screen visibility context to the orchestrator
+        const hasScreenShare = !!(ws._screenFrames && ws._screenFrames.latest
+          && (Date.now() - (ws._screenFrames.timestamp || 0)) < 30000);
+        const hasRelayAgent = !!pairedAgents.get(userId);
+
+        const result = await agentOrchestrator.processMessage(msg.text, userId, {
+          screenShareActive: hasScreenShare,
+          relayAgentConnected: hasRelayAgent,
+        });
 
         if (ws.readyState === ws.OPEN) {
           ws.send(JSON.stringify({
@@ -897,6 +973,11 @@ Order from easiest to most detailed. ONLY include URLs you are confident are rea
         if (agent.code === agentCode) {
           pairedAgents.delete(uid);
           console.log(`[relay] Agent ${agentCode} disconnected from user ${uid}`);
+          // Notify the chat client so the UI updates
+          const userWs = chatClients.get(uid);
+          if (userWs && userWs.readyState === 1) {
+            userWs.send(JSON.stringify({ type: 'agent_status', connected: false }));
+          }
           break;
         }
       }

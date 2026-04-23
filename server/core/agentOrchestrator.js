@@ -29,6 +29,11 @@ const youtubeSearch = require('./youtubeSearch');
 const { VALID_GUIDE_IDS, buildComfortGuidelines } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const ollamaClient = require('./ollamaClient');
+const screenshotAnnotator = require('./screenshotAnnotator');
+
+// Injected from server/index.js — captures screenshot from relay agent or browser screen share
+let _requestScreenshotFn = null;
+function setRequestScreenshotFn(fn) { _requestScreenshotFn = fn; }
 
 if (!anthropicApiKey) {
   console.warn('[agentOrchestrator] ANTHROPIC_API_KEY is not set — AI calls will fail. Running in degraded mode.');
@@ -39,6 +44,10 @@ const client = new Anthropic({ apiKey: anthropicApiKey });
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
 const MAX_TOOL_ROUNDS = 10;
+
+// Side-channel for screenshot data (same pattern as pcpalTools.js)
+let _lastScreenshot = null;
+function getAndClearLastScreenshot() { const s = _lastScreenshot; _lastScreenshot = null; return s; }
 
 // VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
 
@@ -318,11 +327,22 @@ const tools = [
       required: ['query'],
     },
   },
+  {
+    name: 'take_screenshot',
+    description: "Capture and analyze the user's screen to find a button, icon, or menu item they can't locate. Returns an annotated screenshot with the target highlighted. ALWAYS call this when the user asks you to look at their screen, says they can't find something, or when screen sharing is active and they ask 'can you see my screen?'. Do NOT guess what's on screen — use this tool to actually look.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        looking_for: { type: 'string', description: "What the user is trying to find, e.g. 'Settings icon', 'Wi-Fi toggle', 'their screen layout'" },
+      },
+      required: ['looking_for'],
+    },
+  },
 ];
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt, coachingNotes) {
+function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
@@ -607,6 +627,7 @@ You have access to the user's computer and can run safe, read-only diagnostics. 
 - check_disk_health: Check disk space, folder sizes, temp files. Use when computer is "full" or "running out of space."
 - check_installed_software: List or search installed applications. Use to verify software is installed or find the right app.
 - get_battery_status: Check battery level and charging state. Use when user asks about battery or computer shuts off unexpectedly.
+- take_screenshot: Capture and analyze the user's actual screen. ALWAYS call this when the user asks "can you see my screen?", says they can't find a button/icon/setting, or you need to verify what they're seeing. This tool takes a real screenshot, finds what they're looking for, and shows them an annotated image with the target highlighted. Do NOT guess what's on their screen — use this tool to actually look.
 
 ### How to Use Diagnostic Tools
 1. When the user describes a problem, FIRST use the relevant diagnostic tool to gather real data
@@ -636,7 +657,7 @@ Known scam patterns to watch for: ${scamKnowledge.scam_patterns.map(p => p.name)
 - If the user seems confused, follow the Confusion Escalation Ladder.
 - If the user expresses distress, use the flag_emergency tool immediately.
 - When teaching a new topic, use log_skill_started.
-- When the user mentions a life goal or reason for learning, use save_user_goal.${matchedSkillPrompt ? `\n\n## Active Skill Context\n${matchedSkillPrompt}` : ''}`;
+- When the user mentions a life goal or reason for learning, use save_user_goal.${screenContext || ''}${matchedSkillPrompt ? `\n\n## Active Skill Context\n${matchedSkillPrompt}` : ''}`;
 }
 
 async function handleFunctionCall(name, args, userId, sessionId) {
@@ -1019,6 +1040,67 @@ IMPORTANT RULES FOR YOUR RESPONSE:
       console.error('[agentOrchestrator] YouTube search failed:', err.message);
       result = 'Unable to search YouTube right now.';
     }
+  } else if (name === 'take_screenshot') {
+    try {
+      if (!_requestScreenshotFn) {
+        result = 'Screenshot tool not available — server not configured.';
+      } else {
+        const ssResult = await _requestScreenshotFn(userId);
+        if (!ssResult || ssResult.error || !ssResult.imageBase64) {
+          result = 'Could not take a screenshot. The user needs to click "Share Screen" or connect their computer via the Connect Computer button. ' + (ssResult?.message || '');
+        } else {
+          // Use Claude vision to find what the user is looking for
+          let targets = [];
+          let description = '';
+          try {
+            const visionResponse = await client.messages.create({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 500,
+              messages: [{
+                role: 'user',
+                content: [
+                  { type: 'image', source: { type: 'base64', media_type: 'image/png', data: ssResult.imageBase64 } },
+                  { type: 'text', text: `The user is looking for: "${args.looking_for}". Look at this screenshot of their actual screen.\n\nReturn ONLY valid JSON (no markdown):\n{"found": true/false, "targets": [{"x": pixel_x, "y": pixel_y, "label": "short label"}], "description": "one sentence describing where it is using spatial terms like top-right, bottom-left, etc."}` }
+                ]
+              }]
+            });
+            const jsonText = visionResponse.content[0]?.text || '';
+            const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
+            const parsed = JSON.parse(cleanJson);
+            targets = parsed.targets || [];
+            description = parsed.description || '';
+          } catch (visionErr) {
+            console.error('[agentOrchestrator] Vision analysis failed:', visionErr.message);
+            description = `I captured your screen but couldn't analyze it automatically. Look for ${args.looking_for}.`;
+          }
+
+          // Annotate the screenshot if we have targets
+          let annotatedBase64 = ssResult.imageBase64;
+          if (targets.length > 0) {
+            try {
+              annotatedBase64 = await screenshotAnnotator.annotateScreenshot(ssResult.imageBase64, targets);
+            } catch (annErr) {
+              console.error('[agentOrchestrator] Screenshot annotation failed:', annErr.message);
+            }
+          }
+
+          // Store screenshot for the response — will be picked up in processMessage
+          _lastScreenshot = {
+            imageBase64: annotatedBase64,
+            description: description || `Screenshot while looking for: ${args.looking_for}`,
+            found: targets.length > 0,
+          };
+
+          console.log(`[agentOrchestrator] Screenshot taken: ${targets.length} target(s) found for "${args.looking_for}"`);
+          result = targets.length > 0
+            ? `SCREENSHOT TAKEN: Found "${args.looking_for}". ${description}. The annotated screenshot is shown to the user.`
+            : `SCREENSHOT TAKEN: Could not find "${args.looking_for}" on screen. ${description}. The screenshot is shown to the user — describe where to look.`;
+        }
+      }
+    } catch (err) {
+      console.error('[agentOrchestrator] take_screenshot error:', err.message);
+      result = 'Screenshot failed: ' + err.message;
+    }
   } else {
     result = `Unknown function: ${name}`;
   }
@@ -1037,7 +1119,7 @@ function hasToolUse(content) {
   return content.some(block => block.type === 'tool_use');
 }
 
-async function processMessage(text, userId) {
+async function processMessage(text, userId, context = {}) {
   try {
     // Step 1: Safety check
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
@@ -1102,7 +1184,39 @@ async function processMessage(text, userId) {
       ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
       : '';
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes);
+    // Build screen context
+    let screenContext = '';
+    if (context.screenShareActive) {
+      screenContext = `\n\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You can see their screen — the latest screenshot is attached to their message as an image. Describe what you see and help them find what they need. If you need to highlight something specific, use take_screenshot to create an annotated version.`;
+    } else if (context.relayAgentConnected) {
+      screenContext = `\n\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.`;
+    }
+
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes, screenContext);
+
+    // When screen share is active, attach the latest frame to the user's message
+    // so Claude can literally see their screen without needing to call a tool
+    if (context.screenShareActive && _requestScreenshotFn) {
+      try {
+        const ssResult = await _requestScreenshotFn(userId);
+        if (ssResult && !ssResult.error && ssResult.imageBase64) {
+          // Find the last user message and convert to multi-content with image
+          const lastUserIdx = messages.length - 1;
+          if (lastUserIdx >= 0 && messages[lastUserIdx].role === 'user') {
+            const textContent = typeof messages[lastUserIdx].content === 'string'
+              ? messages[lastUserIdx].content
+              : text;
+            messages[lastUserIdx].content = [
+              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: ssResult.imageBase64 } },
+              { type: 'text', text: `[Screenshot of user's screen is attached above]\n\n${textContent}` }
+            ];
+            console.log(`[agentOrchestrator] Attached screen share frame to user message (${Math.round(ssResult.imageBase64.length / 1024)}KB)`);
+          }
+        }
+      } catch (ssErr) {
+        console.error('[agentOrchestrator] Failed to attach screen frame:', ssErr.message);
+      }
+    }
 
     // Resolve model provider
     const resolved = resolveModel(user.model_preference);
@@ -1200,11 +1314,14 @@ async function processMessage(text, userId) {
       console.error('[agentOrchestrator] Quality tracking error (non-fatal):', trackErr.message);
     }
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type };
+    const screenshot = getAndClearLastScreenshot();
+    if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
+
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, screenshot: screenshot || null };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };
   }
 }
 
-module.exports = { processMessage };
+module.exports = { processMessage, setRequestScreenshotFn };

@@ -37,6 +37,41 @@
   flex-shrink: 0;
 }
 
+.chat-header__screen-share-btn {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #16a34a;
+  background: #f0fdf4;
+  color: #16a34a;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chat-header__screen-share-btn:hover {
+  background: #16a34a;
+  color: white;
+}
+
+.chat-header__screen-share-btn--active {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+  animation: screen-share-pulse 2s ease-in-out infinite;
+}
+
+.chat-header__screen-share-btn--active:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+@keyframes screen-share-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 .chat-header__end-btn {
   font: inherit;
   font-weight: 600;
