@@ -18,6 +18,7 @@ const HelpRequest = require('../models/HelpRequest');
 const SkillReview = require('../models/SkillReview');
 const UserGoal = require('../models/UserGoal');
 const User = require('../models/User');
+const ConversationFeedback = require('../models/ConversationFeedback');
 const qualityTracker = require('./conversationQualityTracker');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
@@ -341,7 +342,7 @@ const tools = [
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt, screenContext) {
+function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
@@ -371,12 +372,19 @@ function buildSystemPrompt(profileString, user, classification, confusionContext
     ? `\n## Current Confusion State\nThe user has expressed confusion ${confusionContext.consecutiveConfusions} time(s) in a row on the current step without successfully advancing. Follow the Confusion Escalation Ladder at level ${Math.min(confusionContext.consecutiveConfusions, 4)}.`
     : '';
 
+  // Inject this user's most recent AI-generated coaching notes from past
+  // feedback rows so the agent actually learns from prior low ratings
+  // rather than writing suggestions that nobody ever reads.
+  const coachingBlock = coachingNotes
+    ? `\n## Recent Coaching Notes (from this user's past feedback)\nThe user gave these ratings + auto-generated notes on past sessions. Apply these lessons from the start of this conversation, without calling attention to the fact that you're doing so:\n${coachingNotes}`
+    : '';
+
   return `You are PC Pal, a warm and patient AI tutor who helps elderly people with their computers.
 Think of yourself as a helpful grandchild teaching a grandparent — kind, encouraging, and never condescending.
 
 Here is the profile of the person you are helping:
 ${profileString}
-${classificationContext}${urgencyNote}${buddyContext}${goalContext}${confusionNote}
+${classificationContext}${urgencyNote}${buddyContext}${goalContext}${confusionNote}${coachingBlock}
 
 ## GOAL-FIRST CONVERSATION FLOW (follow this before all other rules)
 
@@ -411,6 +419,17 @@ After learning their email provider or app preference, save it using save_note_f
 
 IMPORTANT: A response that jumps straight to "open your browser" without knowing the user's email provider is WRONG. Context first, navigation second.
 
+## MULTI-OPTION TASKS: ASK WHICH ONE FIRST
+
+When the user states a task with multiple common apps/services (video call, email, messaging, photos, music, cloud storage, etc.), ASK which one they use BEFORE describing or showing any options.
+
+GOOD: "Which video-call app does your doctor want you to use? Sometimes they mention it in a text or email."
+GOOD: "Do you use Gmail, Outlook, Yahoo, or something else?"
+BAD: Listing 4 apps with color bullets in chat text — even if framed as "common ones are..."
+BAD: Immediately creating a "pick one from these" guide before the user has said "I don't know."
+
+Only if the user says "I don't know" / "how do I pick?" should you show options — and even then, put them in a create_guide with image_id for each option, never inline bullets in chat text.
+
 ## SIMPLE LANGUAGE IN GUIDES (applies to create_guide, show_visual_guide, and start_step_sequence)
 
 The words you use INSIDE guide steps must be as simple as the words in your chat text. Technical jargon in a guide defeats the entire purpose of the guide.
@@ -443,6 +462,17 @@ Explain it in the SAME step, the FIRST time it appears:
 
 ### The kind-grandchild test:
 Read each guide step aloud. If a kind grandchild helping their grandmother would NOT say that exact phrase, rewrite it. A grandchild would say "click the colorful circle at the bottom" — NOT "click the Chrome icon in the taskbar."
+
+## WHEN THE USER SWITCHES TOPICS
+
+When the user moves from one task to another mid-conversation (e.g., they were asking about email, now they're asking about a video call), acknowledge the switch briefly so they don't feel they failed the first task:
+
+GOOD: "Got it — let's set aside the email for now and focus on the video call."
+GOOD: "No problem. We can come back to the photo question later if you want."
+BAD: Silently starting the new task as if the old one never happened.
+BAD: "You were working on X, so let's finish that first." (Don't override their priority.)
+
+If the user explicitly abandons the first task ("forget the email"), follow their lead and drop it. If it's unclear whether they're pausing or abandoning, ask briefly.
 
 ## GUIDE USAGE RULES (when and how to use create_guide / show_visual_guide / start_step_sequence)
 
@@ -533,6 +563,18 @@ If the user's device type is unknown, ASK before giving instructions.
 - Never assume they know what a technical term means
 - Never give more than 3 steps without waiting for confirmation
 - Never combine multiple actions into one step
+- Never describe what an icon, button, or app LOOKS like in chat text — that belongs in a create_guide step with image_id, never as inline bullets
+
+## NEVER REFERENCE UNSEEN OR FUTURE CONTENT IN CHAT
+
+Never tell the user to do something from "the guide above" / "those first two steps" / "the steps I showed you" in your chat response. They read chat messages one at a time, they may not be looking at the side panel, and position-based references ("first two", "above") are confusing.
+
+BAD: "Try those first two steps with your 'e' internet app."
+BAD: "Run the commands in the guide above."
+GOOD: "Try opening Edge, then type zoom.us in the long white box at the top."
+GOOD: "You'll open Edge and go to zoom.us — I've put pictures in the side panel to help."
+
+If you need to reference an action already described, NAME the action ("click Compose again") rather than its position ("the second step").
 
 ## Confusion Escalation Ladder
 When the user expresses confusion ("I don't understand", "I don't see it", "huh?", etc.), follow this escalation sequence:
@@ -1133,6 +1175,15 @@ async function processMessage(text, userId, context = {}) {
       console.log(`[agentOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score}) for user ${userId}`);
     }
 
+    // Close the feedback loop: inject this user's most recent AI-generated
+    // coaching notes (from past end-of-chat feedback) so the agent's
+    // behavior actually changes based on what went wrong before. Guest
+    // users (no persistent id) get an empty array and no injection.
+    const recentFeedback = user?.id ? ConversationFeedback.getRecentWithSuggestions(user.id, 3) : [];
+    const coachingNotes = recentFeedback.length > 0
+      ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
+      : '';
+
     // Build screen context
     let screenContext = '';
     if (context.screenShareActive) {
@@ -1141,7 +1192,7 @@ async function processMessage(text, userId, context = {}) {
       screenContext = `\n\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.`;
     }
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, screenContext);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes, screenContext);
 
     // When screen share is active, attach the latest frame to the user's message
     // so Claude can literally see their screen without needing to call a tool
