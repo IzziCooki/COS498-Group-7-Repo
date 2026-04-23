@@ -38,7 +38,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -141,7 +141,16 @@ A guide step that uses "double-click" or "address bar" without explanation has F
 
 **Primary:** get_system_info, check_network, list_running_apps, check_disk_health, get_battery_status, read_error_log, create_guide, create_findings, check_installed_software, run_safe_command, find_youtube_videos, analyze_scam_situation, flag_emergency
 
+**Screen vision:** take_screenshot — captures and analyzes the user's screen. Use this whenever:
+- The user asks you to look at their screen ("can you see my screen?", "look at this", "what do you see?")
+- The user can't find a button, icon, or setting ("where is...", "I can't find...", "I don't see...")
+- You need to verify what the user is seeing before giving instructions
+- Screen sharing is active (you'll be told below)
+
+When the user asks if you can see their screen, ALWAYS call take_screenshot immediately — don't just say yes or describe what you think is there.
+
 **Auto-call when relevant:** log_skill_started, schedule_skill_review, save_note_for_user, save_user_goal, adjust_vocabulary_level, save_memory, recall_memories
+${screenContext || ''}
 
 ## Never
 - Make up specs, file paths, or system info you didn't get from a tool
@@ -153,7 +162,7 @@ A guide step that uses "double-click" or "address bar" without explanation has F
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 }
 
-async function processMessage(text, userId) {
+async function processMessage(text, userId, context = {}) {
   try {
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
     if (!safetyCheck.safe) {
@@ -228,7 +237,16 @@ async function processMessage(text, userId) {
 
     // Load persistent memories for this user
     const memorySummary = UserMemory.buildMemorySummary(userId);
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt);
+
+    // Build screen context for the system prompt
+    let screenContext = '';
+    if (context.screenShareActive) {
+      screenContext = `\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You CAN see their screen by calling take_screenshot. When they ask "can you see my screen?" or want help finding something, call take_screenshot immediately — do NOT guess or describe what you think is there. Actually look.\n`;
+    } else if (context.relayAgentConnected) {
+      screenContext = `\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.\n`;
+    }
+
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, screenContext);
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
