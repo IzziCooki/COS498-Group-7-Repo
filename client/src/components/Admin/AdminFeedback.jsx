@@ -59,7 +59,7 @@ function AdminFeedback({ onClose }) {
           const msgs = await res.json();
           setTranscripts(prev => ({ ...prev, [row.conversation_id]: msgs }));
         }
-      } catch (_) { /* ignore */ }
+      } catch { /* ignore */ }
     }
   }
 

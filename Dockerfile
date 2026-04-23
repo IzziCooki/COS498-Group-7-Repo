@@ -21,12 +21,13 @@ COPY . .
 # Build the React frontend
 RUN cd client && npm run build
 
-# Persistent storage for SQLite (HF Spaces mounts /data as a persistent volume)
+# Persistent storage for SQLite
+# On Railway: attach a volume at /data via the dashboard
+# On HF Spaces: /data is auto-mounted as persistent storage
 RUN mkdir -p /data
-VOLUME /data
 
-# Hugging Face Spaces requires port 7860
-ENV PORT=7860
+# Railway injects PORT at runtime; default to 7860 for HF Spaces
+ENV PORT=${PORT:-7860}
 EXPOSE 7860
 
 CMD ["node", "server/index.js"]

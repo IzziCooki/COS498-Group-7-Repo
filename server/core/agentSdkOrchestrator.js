@@ -39,7 +39,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -167,7 +167,16 @@ If the user explicitly abandons the first task ("forget the email"), follow thei
 
 **Primary:** get_system_info, check_network, list_running_apps, check_disk_health, get_battery_status, read_error_log, create_guide, create_findings, check_installed_software, run_safe_command, find_youtube_videos, analyze_scam_situation, flag_emergency
 
+**Screen vision:** take_screenshot — captures and analyzes the user's screen. Use this whenever:
+- The user asks you to look at their screen ("can you see my screen?", "look at this", "what do you see?")
+- The user can't find a button, icon, or setting ("where is...", "I can't find...", "I don't see...")
+- You need to verify what the user is seeing before giving instructions
+- Screen sharing is active (you'll be told below)
+
+When the user asks if you can see their screen, ALWAYS call take_screenshot immediately — don't just say yes or describe what you think is there.
+
 **Auto-call when relevant:** log_skill_started, schedule_skill_review, save_note_for_user, save_user_goal, adjust_vocabulary_level, save_memory, recall_memories
+${screenContext || ''}
 
 ## Never
 - Make up specs, file paths, or system info you didn't get from a tool
@@ -191,7 +200,7 @@ If you need to reference an action already described, NAME the action ("click Co
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 }
 
-async function processMessage(text, userId) {
+async function processMessage(text, userId, context = {}) {
   try {
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
     if (!safetyCheck.safe) {
@@ -204,7 +213,7 @@ async function processMessage(text, userId) {
     const resolved = resolveModel(user.model_preference);
     if (resolved.provider === 'ollama') {
       const fallback = require('./agentOrchestrator');
-      return fallback.processMessage(text, userId);
+      return fallback.processMessage(text, userId, context);
     }
 
     if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
@@ -276,7 +285,15 @@ async function processMessage(text, userId) {
       ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
       : '';
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes);
+    // Build screen context for the system prompt
+    let screenContext = '';
+    if (context.screenShareActive) {
+      screenContext = `\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You can see their screen — call take_screenshot to capture and analyze what's on their screen. When they ask "can you see my screen?" or want help finding something, call take_screenshot FIRST before responding — do NOT guess or give generic instructions.\n`;
+    } else if (context.relayAgentConnected) {
+      screenContext = `\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.\n`;
+    }
+
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext);
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
@@ -318,7 +335,7 @@ async function processMessage(text, userId) {
       // Fall back to original orchestrator
       try {
         const original = require('./agentOrchestrator');
-        return original.processMessage(text, userId);
+        return original.processMessage(text, userId, context);
       } catch (fallbackErr) {
         console.error('[agentSdkOrchestrator] Fallback also failed:', fallbackErr.message);
         return { response: FALLBACK_RESPONSE, safetyAlert: null };

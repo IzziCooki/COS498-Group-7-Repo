@@ -62,10 +62,10 @@ function MessageInput({ onSend, onGatherResources, isTyping }) {
         className="message-resources-btn"
         onClick={handleResources}
         disabled={isTyping}
-        aria-label="Find videos and resources on this topic"
-        title="Find videos and resources"
+        aria-label="Get external help on this topic"
+        title="Get external help"
       >
-        Resources
+        Get External Help
       </button>
       <button
         className="message-send-btn btn-primary"
