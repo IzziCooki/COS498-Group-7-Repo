@@ -541,3 +541,7 @@ this is the test results
 ---
 
 this is the log from the terminal
+
+---
+
+Tighten the prompts to fix Issue 1 + Issue 2 (add rule: "when user states multi-option task, gather which option BEFORE 'let me show you what they look like'")
