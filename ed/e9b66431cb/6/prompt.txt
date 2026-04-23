@@ -1,0 +1,25 @@
+Conversation so far:
+[USER SAID]: i want to send email to my son
+
+[YOU SAID]: First, I need to know which email app you use to send messages. Do you use Gmail, Outlook, Yahoo Mail, or something else? If you're not sure, the most common email app on Windows computers is Outlook - it might have a blue square with a white envelope on your screen.
+
+[USER SAID]: how does it look?
+
+[YOU SAID]: I'll show you what the different email apps look like so you can find yours! Take a look at those pictures and tell me if you see any of those little pictures on your screen.
+
+[USER SAID]: oh this one i use gmail
+
+[YOU SAID]: Perfect! Gmail it is. Now, do you know your son's email address? I'll need that so we can send the message to him.
+
+[USER SAID]: i need to video call my doctor
+
+[YOU SAID]: Got it — let's set aside the email for now and focus on the video call with your doctor. Which app do you use to make video calls? Some common ones are Zoom, FaceTime (if you have an iPhone), Microsoft Teams, or Google Meet. Your doctor's office might have told you which one to use. If you're not sure, look for little pictures on your screen that might be:
+- A blue square with a white video camera (Zoom)
+- A green square with a white camera (FaceTime) 
+- A purple square with a white "T" (Teams)
+
+It's completely normal to feel nervous about your first video call — we'll go through it step by step!
+
+[USER SAID]: where do i find them
+
+[USER SAYS NOW]: where do i find them
