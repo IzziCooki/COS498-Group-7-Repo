@@ -615,3 +615,7 @@ Perfect! I've created a guide to open Gmail. Try those two steps and let me know
 Open Gmail to Send Your Email
 Click to view
 03:07 PM
+
+---
+
+this is the ss from the terminals too. I think its working now with the feedback loop.
