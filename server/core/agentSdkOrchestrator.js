@@ -13,6 +13,7 @@ const { query } = require('@anthropic-ai/claude-agent-sdk');
 const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const UserMemory = require('../models/UserMemory');
+const ConversationFeedback = require('../models/ConversationFeedback');
 const conversationState = require('./conversationState');
 const vocabularyFilter = require('./vocabularyFilter');
 const userProfileManager = require('./userProfileManager');
@@ -38,7 +39,7 @@ try {
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
-function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, screenContext) {
+function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
 
   // Detect conversation phase: opening, mid-conversation, or follow-up
@@ -57,6 +58,9 @@ User: ${profileString}
 Comfort: ${comfortGuidelines}
 Phase: ${phaseNote}
 ${memorySummary ? `\n## What you know about this person (from past sessions)\n${memorySummary}\n\nUse this naturally — don't announce you "remember."` : ''}
+${coachingNotes ? `\n## Recent Coaching Notes (from this user's past feedback)
+The user gave these ratings + auto-generated notes on past sessions. Apply these lessons from the start of this conversation, without calling attention to the fact that you're doing so:
+${coachingNotes}` : ''}
 
 ## GOAL-FIRST CONVERSATION FLOW (follow this before all other rules)
 
@@ -69,6 +73,17 @@ When the user states a goal (sending email, video call, writing a message, print
 5. **Save preferences** via save_memory (type: context) so you never ask the same question twice.
 
 A response that jumps to "open your browser" without knowing the user's email provider is WRONG. Context first, navigation second.
+
+## MULTI-OPTION TASKS: ASK WHICH ONE FIRST
+
+When the user states a task with multiple common apps/services (video call, email, messaging, photos, music, cloud storage, etc.), ASK which one they use BEFORE describing or showing any options.
+
+GOOD: "Which video-call app does your doctor want you to use? Sometimes they mention it in a text or email."
+GOOD: "Do you use Gmail, Outlook, Yahoo, or something else?"
+BAD: Listing 4 apps with color bullets in chat text — even if framed as "common ones are..."
+BAD: Immediately creating a "pick one from these" guide before the user has said "I don't know."
+
+Only if the user says "I don't know" / "how do I pick?" should you show options — and even then, put them in a create_guide with image_id for each option, never inline bullets in chat text.
 
 ## GROUNDING RULES (most important)
 
@@ -127,6 +142,17 @@ BAD: "Double-click the browser icon."
 
 A guide step that uses "double-click" or "address bar" without explanation has FAILED. Rewrite it.
 
+## WHEN THE USER SWITCHES TOPICS
+
+When the user moves from one task to another mid-conversation (e.g., they were asking about email, now they're asking about a video call), acknowledge the switch briefly so they don't feel they failed the first task:
+
+GOOD: "Got it — let's set aside the email for now and focus on the video call."
+GOOD: "No problem. We can come back to the photo question later if you want."
+BAD: Silently starting the new task as if the old one never happened.
+BAD: "You were working on X, so let's finish that first." (Don't override their priority.)
+
+If the user explicitly abandons the first task ("forget the email"), follow their lead and drop it. If it's unclear whether they're pausing or abandoning, ask briefly.
+
 ## GUIDE USAGE RULES (critical)
 
 1. **Troubleshooting goes in a guide too.** If the user says "I can't find the X" or "it's not working", call create_guide with 2-3 steps. Do NOT put troubleshooting bullets in chat text. Every set of numbered/bulleted instructions belongs in a guide.
@@ -159,6 +185,18 @@ ${screenContext || ''}
 - Show raw command output
 - Put steps in text (use create_guide)
 - Give instructions for the wrong device
+- Describe what an icon, button, or app LOOKS like in chat text — that belongs in a create_guide step with image_id, never inline bullets
+
+## NEVER REFERENCE UNSEEN OR FUTURE CONTENT IN CHAT
+
+Never tell the user to do something from "the guide above" / "those first two steps" / "the steps I showed you" in your chat response. They read chat messages one at a time, they may not be looking at the side panel, and position-based references ("first two", "above") are confusing.
+
+BAD: "Try those first two steps with your 'e' internet app."
+BAD: "Run the commands in the guide above."
+GOOD: "Try opening Edge, then type zoom.us in the long white box at the top."
+GOOD: "You'll open Edge and go to zoom.us — I've put pictures in the side panel to help."
+
+If you need to reference an action already described, NAME the action ("click Compose again") rather than its position ("the second step").
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
 }
 
@@ -238,6 +276,15 @@ async function processMessage(text, userId, context = {}) {
     // Load persistent memories for this user
     const memorySummary = UserMemory.buildMemorySummary(userId);
 
+    // Close the feedback loop: inject this user's most recent AI-generated
+    // coaching notes (from past end-of-chat feedback) so the agent's
+    // behavior actually changes based on what went wrong before. Guest
+    // users (no persistent id) get an empty array and no injection.
+    const recentFeedback = user?.id ? ConversationFeedback.getRecentWithSuggestions(user.id, 3) : [];
+    const coachingNotes = recentFeedback.length > 0
+      ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
+      : '';
+
     // Build screen context for the system prompt
     let screenContext = '';
     if (context.screenShareActive) {
@@ -246,7 +293,7 @@ async function processMessage(text, userId, context = {}) {
       screenContext = `\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.\n`;
     }
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, screenContext);
+    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext);
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
