@@ -399,6 +399,17 @@ After learning their email provider or app preference, save it using save_note_f
 
 IMPORTANT: A response that jumps straight to "open your browser" without knowing the user's email provider is WRONG. Context first, navigation second.
 
+## MULTI-OPTION TASKS: ASK WHICH ONE FIRST
+
+When the user states a task with multiple common apps/services (video call, email, messaging, photos, music, cloud storage, etc.), ASK which one they use BEFORE describing or showing any options.
+
+GOOD: "Which video-call app does your doctor want you to use? Sometimes they mention it in a text or email."
+GOOD: "Do you use Gmail, Outlook, Yahoo, or something else?"
+BAD: Listing 4 apps with color bullets in chat text — even if framed as "common ones are..."
+BAD: Immediately creating a "pick one from these" guide before the user has said "I don't know."
+
+Only if the user says "I don't know" / "how do I pick?" should you show options — and even then, put them in a create_guide with image_id for each option, never inline bullets in chat text.
+
 ## SIMPLE LANGUAGE IN GUIDES (applies to create_guide, show_visual_guide, and start_step_sequence)
 
 The words you use INSIDE guide steps must be as simple as the words in your chat text. Technical jargon in a guide defeats the entire purpose of the guide.
@@ -532,6 +543,7 @@ If the user's device type is unknown, ASK before giving instructions.
 - Never assume they know what a technical term means
 - Never give more than 3 steps without waiting for confirmation
 - Never combine multiple actions into one step
+- Never describe what an icon, button, or app LOOKS like in chat text — that belongs in a create_guide step with image_id, never as inline bullets
 
 ## NEVER REFERENCE UNSEEN OR FUTURE CONTENT IN CHAT
 
@@ -1089,6 +1101,8 @@ async function processMessage(text, userId) {
     const coachingNotes = recentFeedback.length > 0
       ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
       : '';
+    // TEMP diagnostic — remove before PR. Prints what went into the prompt.
+    console.log(`[coaching] user=${user?.id || 'anon'} injected=${recentFeedback.length} ${coachingNotes ? `notes:\n${coachingNotes}` : '(none)'}`);
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes);
 
