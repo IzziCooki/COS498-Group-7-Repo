@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './OnboardingFlow.css';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const OS_OPTIONS = [
   { value: 'Windows', label: 'Windows' },
@@ -21,11 +21,12 @@ const COMFORT_LABELS = {
 /**
  * OnboardingFlow — multi-step wizard for new users.
  *
- * Step 1: Name
- * Step 2: Device / OS type
- * Step 3: Comfort level (1–5)
- * Step 4: Learning goal (optional)
- * Step 5: Buddy opt-in
+ * Step 1: Capabilities intro (what PC Pal can and can't do)
+ * Step 2: Name
+ * Step 3: Device / OS type
+ * Step 4: Comfort level (1–5)
+ * Step 5: Learning goal (optional)
+ * Step 6: Buddy opt-in
  * Submit: calls createUser, then completeOnboarding
  */
 function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
@@ -43,9 +44,10 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
   const goBack = () => setStep((s) => Math.max(s - 1, 1));
 
   const canGoNext = () => {
-    if (step === 1) return name.trim().length > 0;
-    if (step === 2) return osType.length > 0;
-    return true; // steps 3, 4, 5 always have valid defaults or are optional
+    if (step === 1) return true; // capabilities intro — no input
+    if (step === 2) return name.trim().length > 0;
+    if (step === 3) return osType.length > 0;
+    return true; // steps 4, 5, 6 always have valid defaults or are optional
   };
 
   const handleSubmit = async () => {
@@ -114,7 +116,6 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
     }
   };
 
-  // Step 5 special: if they chose buddy and got invite code, show it before proceeding
   const handleBuddyChoice = (choice) => {
     setWantsBuddy(choice);
   };
@@ -138,6 +139,55 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
         <div className="onboarding-step" key={step}>
           {step === 1 && (
             <div className="animate-slide-up">
+              <h1 className="onboarding-heading">Hi! Here's how I can help.</h1>
+              <p className="onboarding-intro">
+                I'm PC Pal. I help with computer questions — big or small.
+              </p>
+
+              <div className="capabilities-grid" role="list">
+                <div className="capability-card" role="listitem">
+                  <span className="capability-card__icon" aria-hidden="true">📶</span>
+                  <span className="capability-card__title">Fix your internet</span>
+                  <span className="capability-card__desc">
+                    Wi-Fi, slow connection, or no internet
+                  </span>
+                </div>
+                <div className="capability-card" role="listitem">
+                  <span className="capability-card__icon" aria-hidden="true">📧</span>
+                  <span className="capability-card__title">Teach you new skills</span>
+                  <span className="capability-card__desc">
+                    Email, video calls, photos, and more
+                  </span>
+                </div>
+                <div className="capability-card" role="listitem">
+                  <span className="capability-card__icon" aria-hidden="true">🐌</span>
+                  <span className="capability-card__title">Speed up your computer</span>
+                  <span className="capability-card__desc">
+                    Check why it's slow and clean things up
+                  </span>
+                </div>
+                <div className="capability-card" role="listitem">
+                  <span className="capability-card__icon" aria-hidden="true">🛡️</span>
+                  <span className="capability-card__title">Spot scams</span>
+                  <span className="capability-card__desc">
+                    Check suspicious emails, calls, or texts
+                  </span>
+                </div>
+              </div>
+
+              <div className="capability-cannot">
+                <p className="capability-cannot__label">A few things I can't do:</p>
+                <ul className="capability-cannot__list">
+                  <li>Click buttons for you — you're in control</li>
+                  <li>Fix broken hardware</li>
+                  <li>Make phone calls or send messages for you</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="animate-slide-up">
               <h1 className="onboarding-heading">Welcome to PC Pal!</h1>
               <p className="onboarding-intro">
                 I'm here to help you with your computer — no question is too simple!
@@ -159,7 +209,7 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="animate-slide-up">
               <h1 className="onboarding-heading">
                 {name ? `Nice to meet you, ${name}!` : 'Your Device'}
@@ -181,7 +231,7 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="animate-slide-up">
               <h1 className="onboarding-heading">How comfortable are you?</h1>
               <p className="onboarding-label">
@@ -205,7 +255,7 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="animate-slide-up">
               <h1 className="onboarding-heading">Your Goal</h1>
               <p className="onboarding-label">
@@ -227,7 +277,7 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="animate-slide-up">
               <h1 className="onboarding-heading">Want a Buddy?</h1>
               <p className="onboarding-label">
@@ -296,7 +346,7 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
               onClick={goNext}
               disabled={!canGoNext()}
             >
-              {step === 4 && !goalText.trim() ? 'Skip' : 'Next'}
+              {step === 5 && !goalText.trim() ? 'Skip' : 'Next'}
             </button>
           ) : (
             <button
