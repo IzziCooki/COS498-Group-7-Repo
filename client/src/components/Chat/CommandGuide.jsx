@@ -33,6 +33,15 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
     }
   }, [pageStart]);
 
+  // When the user switches between guides (e.g. Gmail → Yahoo → Outlook),
+  // React reuses the same CommandGuide instance and pageStart would carry
+  // over from the previous guide — so a brand-new guide could open at
+  // page 4 instead of page 1. Reset to the start whenever the guide
+  // identity changes (title is the cheapest stable key here).
+  useEffect(() => {
+    setPageStart(0);
+  }, [guide?.title]);
+
   if (dismissed || !guide || !guide.steps) return null;
 
   function handleCopy(command, idx) {
