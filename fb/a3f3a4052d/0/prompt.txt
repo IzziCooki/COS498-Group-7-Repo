@@ -754,3 +754,9 @@ this were the response
 ---
 
 ok i have created a short gif for sending email using gmail I will point you to the folder and then you can add it to the branch for us to see how it works with the agent
+
+---
+
+"C:\Users\DELL\Desktop\GMAIL GIF"
+
+THIS IS THE PATH LETS USE IT TO OPTIMIZE OUR AGENT TEST RUN IT SO IT IMPROVES THE USER EXPERIENCE. ALSO SEE IF U NEED TO RUN IT THROUGH OPTIMIZER AS U SUGESTED SINCE ITS ABOUT 4MB
