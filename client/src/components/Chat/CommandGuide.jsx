@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import AnimatedHotspot from './AnimatedHotspot';
 import './CommandGuide.css';
+
+// Pagination size for guide steps. Long guides (especially the 8-step
+// send-email flow with illustrations) overwhelm elderly users when shown
+// as one big scroll; 2 per page lets them focus on a small chunk and
+// click Next when ready. Guides with <= STEPS_PER_PAGE render single-page.
+const STEPS_PER_PAGE = 2;
 
 /**
  * CommandGuide — Interactive guide artifact with copy-paste commands
@@ -14,6 +21,31 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
   const [collapsed, setCollapsed] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState(null);
+  const [pageStart, setPageStart] = useState(0);
+  const stepsRef = useRef(null);
+  const prevTitleRef = useRef(guide?.title);
+
+  // When the user advances to a new page, scroll the guide back to the top
+  // of the steps list so they're not still looking at the bottom of the
+  // previous page. Only fires after the initial render.
+  useEffect(() => {
+    if (pageStart > 0 && stepsRef.current) {
+      stepsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [pageStart]);
+
+  // When the user switches between guides (e.g. Gmail → Yahoo → Outlook),
+  // React reuses the same CommandGuide instance and pageStart would carry
+  // over from the previous guide — so a brand-new guide could open at
+  // page 4 instead of page 1. Reset to the start whenever the guide
+  // identity changes (title is the cheapest stable key here).
+  // Resetting during render (not in an effect) avoids a cascading extra
+  // render cycle — React will re-render immediately without painting the
+  // intermediate state.
+  if (prevTitleRef.current !== guide?.title) {
+    prevTitleRef.current = guide?.title;
+    setPageStart(0);
+  }
 
   if (dismissed || !guide || !guide.steps) return null;
 
@@ -25,6 +57,12 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
   }
 
   const showBody = embedded || !collapsed;
+  const totalSteps = guide.steps.length;
+  const paginated = totalSteps > STEPS_PER_PAGE;
+  const pageEnd = Math.min(pageStart + STEPS_PER_PAGE, totalSteps);
+  const visibleSteps = paginated
+    ? guide.steps.slice(pageStart, pageEnd)
+    : guide.steps;
 
   return (
     <div className="cmd-guide" role="region" aria-label={guide.title || 'Guide'}>
@@ -59,26 +97,44 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
             <p className="cmd-guide__desc">{guide.description}</p>
           )}
 
-          <ol className="cmd-guide__steps">
-            {guide.steps.map((step, i) => {
+          <ol className="cmd-guide__steps" ref={stepsRef}>
+            {visibleSteps.map((step, i) => {
+              const globalIdx = (paginated ? pageStart : 0) + i;
+              const stepNum = globalIdx + 1;
               const result = step.command ? commandResults[step.command] : null;
 
               return (
-                <li key={i} className="cmd-guide__step">
+                <li
+                  key={globalIdx}
+                  className="cmd-guide__step"
+                  data-step-num={stepNum}
+                >
                   <div className="cmd-guide__step-text">{step.text}</div>
 
                   {step.image && step.image.url && (
                     <figure className="cmd-guide__step-image">
-                      <img
-                        src={step.image.url}
-                        alt={step.image.alt || 'Reference image'}
-                        loading="lazy"
-                        onError={(e) => {
-                          // Graceful fallback: hide the figure if the file is
-                          // missing on disk. The step still renders text-only.
-                          e.currentTarget.parentElement.style.display = 'none';
-                        }}
-                      />
+                      <div className="cmd-guide__image-wrap">
+                        <img
+                          src={step.image.url}
+                          alt={step.image.alt || 'Reference image'}
+                          loading="lazy"
+                          onError={(e) => {
+                            // Graceful fallback: hide the figure if the file is
+                            // missing on disk. The step still renders text-only.
+                            const fig = e.currentTarget.closest('figure');
+                            if (fig) fig.style.display = 'none';
+                          }}
+                        />
+                        {Array.isArray(step.image.hotspots) &&
+                          step.image.hotspots.map((h, hi) => (
+                            <AnimatedHotspot
+                              key={hi}
+                              x={h.x}
+                              y={h.y}
+                              label={h.label}
+                            />
+                          ))}
+                      </div>
                       {step.image.alt && (
                         <figcaption className="cmd-guide__step-image-caption">
                           {step.image.alt}
@@ -94,10 +150,10 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
                         <div className="cmd-guide__command-actions">
                           <button
                             className="cmd-guide__copy-btn"
-                            onClick={() => handleCopy(step.command, i)}
+                            onClick={() => handleCopy(step.command, globalIdx)}
                             aria-label={`Copy: ${step.command}`}
                           >
-                            {copiedIdx === i ? 'Copied!' : 'Copy'}
+                            {copiedIdx === globalIdx ? 'Copied!' : 'Copy'}
                           </button>
                           {onRunCommand && (
                             <button
@@ -127,6 +183,32 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
               );
             })}
           </ol>
+
+          {paginated && (
+            <div className="cmd-guide__pager" role="navigation" aria-label="Guide steps pagination">
+              <button
+                type="button"
+                className="cmd-guide__pager-btn"
+                onClick={() => setPageStart(Math.max(0, pageStart - STEPS_PER_PAGE))}
+                disabled={pageStart === 0}
+                aria-label="Previous steps"
+              >
+                ← Previous
+              </button>
+              <span className="cmd-guide__pager-status" aria-live="polite">
+                Steps {pageStart + 1}–{pageEnd} of {totalSteps}
+              </span>
+              <button
+                type="button"
+                className="cmd-guide__pager-btn"
+                onClick={() => setPageStart(Math.min(totalSteps - STEPS_PER_PAGE, pageStart + STEPS_PER_PAGE))}
+                disabled={pageEnd >= totalSteps}
+                aria-label="Next steps"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
