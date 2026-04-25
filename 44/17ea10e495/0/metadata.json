@@ -1,0 +1,35 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "4417ea10e495",
+  "session_id": "6fc09e9a-0498-45e3-a997-fcb93d1d3f32",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-25T17:29:59.7501665Z",
+  "branch": "frank/animated-hotspots-prototype",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "client/src/components/Chat/CommandGuide.css",
+    "client/src/components/Chat/CommandGuide.jsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "cec2a60bb3f0",
+  "token_usage": {
+    "input_tokens": 1181,
+    "cache_creation_tokens": 4503071,
+    "cache_read_tokens": 159270435,
+    "output_tokens": 385036,
+    "api_call_count": 658
+  },
+  "session_metrics": {
+    "turn_count": 105
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-25T17:29:53.7240203Z",
+    "agent_lines": 0,
+    "human_added": 131,
+    "human_modified": 389,
+    "human_removed": 0,
+    "total_committed": 520,
+    "agent_percentage": 0
+  }
+}
