@@ -1,0 +1,25 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "f2a2db76a198",
+  "strategy": "manual-commit",
+  "branch": "frank/animated-hotspots-prototype",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "server/skills/send-email.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f2/a2db76a198/0/metadata.json",
+      "transcript": "/f2/a2db76a198/0/full.jsonl",
+      "content_hash": "/f2/a2db76a198/0/content_hash.txt",
+      "prompt": "/f2/a2db76a198/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1264,
+    "cache_creation_tokens": 4554202,
+    "cache_read_tokens": 174525255,
+    "output_tokens": 417693,
+    "api_call_count": 696
+  }
+}
