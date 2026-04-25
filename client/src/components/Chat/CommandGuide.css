@@ -79,20 +79,21 @@
 
 .cmd-guide__steps {
   list-style: none;
-  counter-reset: guide-step;
   padding: 0;
   margin: 0;
 }
 
 .cmd-guide__step {
-  counter-increment: guide-step;
   margin-bottom: 20px;
   padding-left: 40px;
   position: relative;
 }
 
+/* Step number comes from the data-step-num attribute (set by React) so
+   that paginated guides can show the GLOBAL step number (e.g. "3, 4" on
+   page 2) instead of CSS counter resetting to "1, 2" each page. */
 .cmd-guide__step::before {
-  content: counter(guide-step);
+  content: attr(data-step-num);
   position: absolute;
   left: 0;
   top: 0;
@@ -305,6 +306,66 @@
   font-style: italic;
   margin: 6px 0 0;
   line-height: 1.4;
+}
+
+/* Within-guide pagination — 2 steps per page for long guides so elderly
+   users can focus on a small chunk and click through at their own pace.
+   Mirrors the AdminFeedback pagination pattern but with bigger touch
+   targets and a friendlier label. */
+.cmd-guide__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-top: 1px solid #c7d2fe;
+  background: #eef2ff;
+  border-radius: 0 0 14px 14px;
+}
+
+.cmd-guide__pager-btn {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 2px solid var(--color-primary, #2563eb);
+  background: white;
+  color: var(--color-primary, #2563eb);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cmd-guide__pager-btn:hover:not(:disabled) {
+  background: var(--color-primary, #2563eb);
+  color: white;
+}
+
+.cmd-guide__pager-btn:disabled {
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}
+
+.cmd-guide__pager-status {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  text-align: center;
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .cmd-guide__pager {
+    flex-wrap: wrap;
+  }
+  .cmd-guide__pager-status {
+    order: -1;
+    width: 100%;
+    margin-bottom: 6px;
+  }
 }
 
 /* Responsive */
