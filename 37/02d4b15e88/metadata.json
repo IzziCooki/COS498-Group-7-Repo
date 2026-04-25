@@ -1,0 +1,29 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "3702d4b15e88",
+  "strategy": "manual-commit",
+  "branch": "frank/elderly-prompt-fixes-round-2",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "server/__tests__/vocabularyFilter.test.js",
+    "server/assets/vocabulary/basicSubstitutions.json",
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/vocabularyFilter.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/37/02d4b15e88/0/metadata.json",
+      "transcript": "/37/02d4b15e88/0/full.jsonl",
+      "content_hash": "/37/02d4b15e88/0/content_hash.txt",
+      "prompt": "/37/02d4b15e88/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1130,
+    "cache_creation_tokens": 4142680,
+    "cache_read_tokens": 148560059,
+    "output_tokens": 357834,
+    "api_call_count": 627
+  }
+}

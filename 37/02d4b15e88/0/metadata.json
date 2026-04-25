@@ -1,0 +1,38 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "3702d4b15e88",
+  "session_id": "6fc09e9a-0498-45e3-a997-fcb93d1d3f32",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-25T16:15:31.133846Z",
+  "branch": "frank/elderly-prompt-fixes-round-2",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "server/__tests__/vocabularyFilter.test.js",
+    "server/assets/vocabulary/basicSubstitutions.json",
+    "server/core/agentOrchestrator.js",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/vocabularyFilter.js"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "d0f3d092414c",
+  "token_usage": {
+    "input_tokens": 1130,
+    "cache_creation_tokens": 4142680,
+    "cache_read_tokens": 148560059,
+    "output_tokens": 357834,
+    "api_call_count": 627
+  },
+  "session_metrics": {
+    "turn_count": 101
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-25T16:15:27.7679164Z",
+    "agent_lines": 0,
+    "human_added": 364,
+    "human_modified": 2176,
+    "human_removed": 0,
+    "total_committed": 2540,
+    "agent_percentage": 0
+  }
+}
