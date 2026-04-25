@@ -182,6 +182,18 @@ describe('enforceReadability', () => {
     expect(enforceReadability('')).toBe('');
   });
 
+  test('does NOT split when the segment AFTER the conjunction would be too short', () => {
+    // 21 words — triggers split logic (>20). The only "and" has a 2-word tail
+    // ("click slowly"). Without the fix, the splitter would produce "...mouse
+    // cursor. And click slowly." — exact pattern of the bug from test 11.
+    // The after-segment word count check should now skip this break entirely.
+    const text =
+      'To open the system menu you should hover at the bottom of your screen with your mouse cursor and click slowly.';
+    const result = enforceReadability(text);
+    // No new sentence created at the "and": result must NOT contain ". And ".
+    expect(result).not.toMatch(/\.\s+And\s/);
+  });
+
   test('capitalizes first letter of each new segment after split', () => {
     const long =
       'You need to open the settings menu on your computer and then scroll down to the display section and change the brightness level.';
