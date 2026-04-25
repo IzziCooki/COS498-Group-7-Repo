@@ -94,11 +94,19 @@ function enforceReadability(text) {
 
     while ((match = breakPattern.exec(sentence)) !== null) {
       const upToBreak = sentence.slice(lastIndex, match.index).trim();
-      // Only accept this break if the segment before it is long enough.
-      // This prevents awkward fragments like "she'll be. So happy..." when
-      // the conjunction is part of a short adjectival phrase.
+      // Only accept this break if BOTH segments would be long enough on their own.
+      // Checking only the before-segment let through fragments like "And R together"
+      // (3 words) when the agent wrote "Press the Windows key and R together":
+      // the after-segment was tiny but the before-segment passed. Now we look at
+      // both sides; if either would be < MIN_WORDS_PER_SEGMENT, skip the break.
       const beforeWordCount = upToBreak.split(/\s+/).filter(Boolean).length;
-      if (upToBreak && beforeWordCount >= MIN_WORDS_PER_SEGMENT) {
+      const afterBreak = sentence.slice(match.index + match[0].length).trim();
+      const afterWordCount = afterBreak.split(/\s+/).filter(Boolean).length;
+      if (
+        upToBreak &&
+        beforeWordCount >= MIN_WORDS_PER_SEGMENT &&
+        afterWordCount >= MIN_WORDS_PER_SEGMENT
+      ) {
         parts.push(upToBreak);
         // Start the next segment with the conjunction (skip the leading space)
         lastIndex = match.index + 1;
