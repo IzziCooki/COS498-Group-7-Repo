@@ -673,3 +673,7 @@ can i share my screen so you help me know what to turn off
 Yes, I'd love to see your screen and help you pick which programs to turn off! But first we need to connect your computer so I can see what you're seeing. Look for a button that says "Connect Computer" somewhere on this page - it might be at the top or in a corner. Click that button and it will give you steps to connect your computer to me. Once you do that, I'll be able to see your Task Manager window. And help you identify exactly which startup programs are slowing things down. And which ones are safe to turn off. Can you find that "Connect Computer" button? If you don't see it, tell me what buttons or options you do see on this page.
 
 this is the conversation with the pc pal it has a long way to go. the sharescreen is not working. connect computer is not working too well. lets analyze it
+
+---
+
+lets go to plan mode and fix these things but lemme ask a quick qustion. can we make animated guide to help improve users experience??
