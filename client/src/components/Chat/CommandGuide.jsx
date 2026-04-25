@@ -23,6 +23,7 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
   const [copiedIdx, setCopiedIdx] = useState(null);
   const [pageStart, setPageStart] = useState(0);
   const stepsRef = useRef(null);
+  const prevTitleRef = useRef(guide?.title);
 
   // When the user advances to a new page, scroll the guide back to the top
   // of the steps list so they're not still looking at the bottom of the
@@ -38,9 +39,13 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
   // over from the previous guide — so a brand-new guide could open at
   // page 4 instead of page 1. Reset to the start whenever the guide
   // identity changes (title is the cheapest stable key here).
-  useEffect(() => {
+  // Resetting during render (not in an effect) avoids a cascading extra
+  // render cycle — React will re-render immediately without painting the
+  // intermediate state.
+  if (prevTitleRef.current !== guide?.title) {
+    prevTitleRef.current = guide?.title;
     setPageStart(0);
-  }, [guide?.title]);
+  }
 
   if (dismissed || !guide || !guide.steps) return null;
 
