@@ -1,0 +1,762 @@
+hi
+
+---
+
+go to plan mode
+
+---
+
+can you access the repo COS498?
+
+---
+
+GIVE me a basic overview of this project
+
+---
+
+We need to review the AI-generated project specifications to ensure they are accurate and complete. Please review the documents, edit where the AI missed or used inaccurate information but do not commit and push you lemme know the changes and why that improvement matters before
+
+---
+
+yea leave a TODO note but leave a comment on what has been done to update the document and then push and commit
+
+---
+
+what is new in this repo check the updated version and report
+
+---
+
+go to the repo and lets see the updated version of it
+
+---
+
+whats the link to test the agent
+
+---
+
+npm run dev          # Web mode → http://localhost:5173
+lets run it and see
+
+---
+
+are you still in plan mode?
+
+---
+
+I want us to pull the repo and see the latest additions to it
+
+---
+
+I want us to create a branch that we can work on without affecting the main code. can you do that?
+
+---
+
+now that we are in my branch do you want us to work in your current or plan mode to improve the agent?
+
+---
+
+lets go to plan mode and I will send you some prompts to improve only in my branch
+
+---
+
+You are an expert full-stack developer working on PC Pal, an AI helper designed specifically for seniors and adults with little to no computer experience.
+
+Your task is to improve the response quality in **server/core/agentOrchestrator.js** by updating the system prompt sent to Claude.
+
+### Current Problems:
+- The agent jumps too quickly into navigation steps without gathering context.
+- For goal-oriented tasks like "I want to send an email to my son", it gets stuck helping with icons and address bars instead of helping with the actual goal (writing and sending the email).
+- The user's real intention gets lost, leading to frustration.
+
+### Desired New Behavior:
+The agent must:
+1. Always acknowledge the user's goal warmly at the start.
+2. Gather necessary context (email provider, message content, etc.) **before** giving navigation steps.
+3. Keep the end goal visible in every response.
+4. Offer high-value help: once it has enough info, offer to draft the actual email/message for the user.
+5. Use the existing memory system (`userProfileManager`) to remember details like email provider.
+6. Keep responses short, simple, encouraging, with 1-2 steps maximum and one clear question at the end.
+
+### Example of Desired Conversation Flow (use this as the gold standard):
+
+**User:** i want to send an email to my son  
+
+**Agent:**  
+Hi Frank! That's a lovely idea — I'd be happy to help you write and send a nice email to your son.  
+
+To make this really easy for you, I just need a couple of quick details:  
+1. Which email service do you use? (For example: Yahoo, Outlook, Gmail, or one from your internet company like Comcast?)  
+2. What would you like to say to him? Just tell me in your own words — even a short note like “Hi son, how are you?” is fine. I can help write the full message for you.  
+
+Take your time and reply with those two things whenever you're ready. I'm right here with you.
+
+**User:** i use yahoo  
+
+**Agent:**  
+Great, thank you Frank! I'll remember that you use Yahoo email.  
+
+Now that I know that, here's the simple next step:  
+
+1. Open your internet app (the blue "e" or colorful circle icon at the bottom of your screen).  
+2. In the long white box at the very top, type **yahoo.com** and press Enter.
+
+Once the Yahoo page opens, let me know and I'll show you exactly how to sign in and then help you write your email to your son.  
+
+Did you find the white box at the top?
+
+**User:** I cant find the address bar how does it look like.  
+
+**Agent:**  
+No worries, Frank. The address bar is the long white empty box right at the very top of the screen — it's where you type website names.
+
+Click once inside that white box (you'll see a blinking line), then type **yahoo.com** and press the Enter key.
+
+Would you like me to show you a picture of what it looks like?
+
+Once you're on the Yahoo page, we'll sign in together and then I'll draft a nice email message for your son based on what you want to say.
+
+**User:** ok im on the yahoo page  
+
+**Agent:**  
+Excellent job, Frank! You're now on the right page.  
+
+Next, click the big "Sign in" button and use your Yahoo email and password.  
+
+Once you're signed in, tell me:  
+What would you like to say to your son today?  
+
+I'll write a polite, friendly email for you right here. You can copy and paste it with just one click.  
+
+I'm proud of you for getting this far — we're almost ready to send that email!
+
+### Your Task:
+Update the system prompt construction logic in `server/core/agentOrchestrator.js` (likely in `buildSystemPrompt()` or the main prompt builder).
+
+Create a clear, detailed new system prompt section that enforces the 5 rules above and uses the example conversation as a reference for tone, structure, and flow.
+
+Requirements:
+- Make the new rules prominent and strict.
+- Dynamically inject user context (name: Frank, device: Windows PC, skill level: beginner, saved memory like email provider).
+- Preserve all existing tools, safetyMonitor, vocabularyFilter, visual guides, and step sequences.
+- Keep tone warm, patient, and encouraging — like a kind grandchild helping a grandparent.
+- Add helpful comments explaining the changes.
+
+Please output:
+1. The **new system prompt block** you created.
+2. The **updated code snippet** showing exactly how to integrate it into `agentOrchestrator.js`.
+3. A short explanation of the changes.
+4. Any small suggestions for other files if needed (e.g. userProfileManager.js).
+
+Make the changes clean, well-commented, and easy to merge into the current branch.
+
+---
+
+yea commit this to my branch and guide me on how to test the latest updates to my branch
+
+---
+
+did you hardcode Frank as the name or you made it dynamic to the user?
+
+---
+
+give me the guide to test these as a beginner to claude code. so give me the guide step by step and should I use the terminal for this? I am new her so explain it to me as a begineer
+
+---
+
+after installing nodejs which says successfully installed. i run the command and this is what it showed on my terminal :
+
+---
+
+this is the new error code
+
+---
+
+i guess it worked so can i move on now ?
+
+---
+
+when i tried .cp .env.example .env
+this is the pop up message that comes cp .env.example .env
+
+---
+
+this is the final ss. so what next?
+
+---
+
+this is the final ss. so what next?
+
+---
+
+i think I have the one we are using to run the main code can I still use that one?
+
+---
+
+where do u want me to find the .env you are speaking of?
+
+---
+
+<ide_opened_file>The user opened the file c:\Users\DELL\Documents\GitHub\COS498-Group-7-Repo\.env in the IDE. This may or may not be related to the current task.</ide_opened_file>
+did i do the right thing?
+
+---
+
+here is the prompt and the response: I want to send an email to my son
+
+06:28 PM
+That's wonderful, Jack! Sending an email to your son is absolutely doable, and I'll walk you through each step. To get started, I need to know which email service you use. Do you use: - Gmail (from Google) - Outlook (from Microsoft) - Yahoo Mail - AOL Mail. Or maybe you're not sure which one? If you have a Windows computer, Outlook is very common. Take your time - there's no rush!
+
+---
+
+this is the conversation so far and it opens a side bar to guide him with the steps to send the mail. it uses double clicking which the adult may not know what that is. that is where the simple words come in. I want to send an email to my son
+
+06:28 PM
+That's wonderful, Jack! Sending an email to your son is absolutely doable, and I'll walk you through each step. To get started, I need to know which email service you use. Do you use: - Gmail (from Google) - Outlook (from Microsoft) - Yahoo Mail - AOL Mail. Or maybe you're not sure which one? If you have a Windows computer, Outlook is very common. Take your time - there's no rush!
+
+06:28 PM
+PC
+i use yahoo
+
+06:31 PM
+Perfect! Yahoo Mail is a great choice. Before we open it up, what would you like to say to your son in this email? Is it just a quick hello, sharing some news, or something specific? Once I know what you want to write, I can help you send that email to him step by step.
+
+06:32 PM
+PC
+I want to ask how he is doing and that i miss him and when will he come and visit me
+
+06:33 PM
+That's such a heartfelt message, Jack! I can help you write something warm and loving. Here's what I'd suggest for your email:
+
+Subject: Thinking of you
+
+Message: Hi [son's name],
+
+I was just thinking about you. And wondering how you've been doing. I hope everything is going well for you. I miss you so much and would love to see you. Do you think you might be able to come for a visit sometime soon? It would mean the world to me to spend some time together. Love you, Dad
+
+Does that sound good to you? You can change anything you'd like - maybe add his name or change any of the words. Once you're happy with what to write, I'll show you exactly how to send it through Yahoo Mail!
+
+06:33 PM
+PC
+yes this is ok my sons name is Fred
+
+06:34 PM
+Perfect! I'll update the message with Fred's name. Here's how to send that loving email to Fred through Yahoo Mail:
+
+The guide above shows the first steps. Try those first two, then let me know when you're done. And I'll show you the next steps to log in. And compose your message.
+
+---
+
+yes lets make this change now
+
+---
+
+this was the response now: I want to send an email to my son
+
+09:15 AM
+Here's how to get started. Try those first two steps to open Yahoo Mail, then let me know how it goes. Once you're there, I'll show you how to sign in and create your message to Fred. : it remembered our conversation from the previous conversation and has replaced the terms with simple english
+
+---
+
+lets continue with the iteration to the last part where the user is able to send the mail
+
+---
+
+i have tested it to the end and I have shared the responses with you as well as ss. lets go through it and we will need to make some few adjustments later. just analyze it and give me ur honest feedback.
+
+---
+
+yes lets make the suggested upgrades
+
+---
+
+this is test 3. lets analyze this and see if we can improve on the response by showing pictures of the the things we would like the elderly person to click on to help aid them. what do you think?
+
+---
+
+will this plan be dynamic for others like video calling, i want to send a message or similar tasks or this library will be specifically for emails only?
+
+---
+
+ok lets fix the punctuation bug
+
+---
+
+<task-notification>
+<task-id>bjgued3jk</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\bjgued3jk.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+continue with the punctuation bug fix: check test results and commit
+
+---
+
+do u still want to work in this mode or plan mode?
+
+---
+
+yes lets switch to plan mode
+
+---
+
+<task-notification>
+<task-id>bjmpixp1d</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\bjmpixp1d.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+continue implementing image library: check test results, commit and push
+
+---
+
+now this is where I want us to fix these things. when the agent tried to tell the user to use zoom call i expect the agen to show a picture of the zoom call. when it described chrome as colourful circle i expect the agent to show a picture or chrome or edge or a similar thing. can we fix that so that we can add pictures of the things we are describing for the user to have visuals to guide them through their use of the agent
+
+---
+
+go to plan mode and then apply the recommendations
+
+---
+
+<task-notification>
+<task-id>b7b65bnbf</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\b7b65bnbf.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+finish the image library improvements: check test results, commit and push
+
+---
+
+from the response it is still not working. we need to fix this cuz its a major upgrade for this project
+
+---
+
+<task-notification>
+<task-id>bz51ch2h9</task-id>
+<tool-use-id>toolu_01KovvVD29DAfpN1e52yFgFz</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\bz51ch2h9.output</output-file>
+<status>completed</status>
+<summary>Background command "Run test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+finish the image library prompt-structure fix: check test results and commit
+
+---
+
+we need to dig deeper to solve this issue of the pictures. its still not showing
+
+---
+
+<task-notification>
+<task-id>bdhqp7ybx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\bdhqp7ybx.output</output-file>
+<status>completed</status>
+<summary>Background command "Run tests" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+finish the Vite proxy fix: check test results and commit
+
+---
+
+i guess it worked i see the placeholder icons in place. what do you think/
+
+---
+
+lets fix the minor issues first
+
+---
+
+<task-notification>
+<task-id>brf8mq9kn</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\brf8mq9kn.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+finish the vocabulary + readability fixes: check test results and commit
+
+---
+
+OK GIVE ME A LIST OF ALL THE MUST HAVE ICONS WE NEED TO HAVE TO REPLACE THE PLACEHOLDERS AND EVEN MORE
+
+---
+
+IF i GIVE YOU THE PATH TO A FOLDER ON THE DESKTOP CONTAINING SOME OF THESE ICONS CAN YOU USE THEM TO REPLACE SOME OF THE PLACEHOLDERS?
+
+---
+
+"C:\Users\DELL\Desktop\PC PAL SS" THIS IS THE PATH ACCESS IT AND SEE IF YOU CAN WORK WITH THE ICONS
+
+---
+
+<task-notification>
+<task-id>bsxntnipt</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>C:\Users\DELL\AppData\Local\Temp\claude\c--Users-DELL-Documents-GitHub-COS498-Group-7-Repo\aa950681-72fb-4ea8-b7ae-c2018e8fa719\tasks\bsxntnipt.output</output-file>
+<status>completed</status>
+<summary>Background command "Run full test suite" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+finish the real image import: check test results and commit
+
+---
+
+DO NOT COMPACT
+
+---
+
+i think its working quite well for now
+
+---
+
+i want you to create tasks on git for myself and mark them as done based on all the improvements we have done so far and then we will continue from there on the next steps
+
+---
+
+continue as it is
+
+---
+
+i have installed it so check it and try again
+
+---
+
+i think its all done try again
+
+---
+
+i restarted vs code so try again
+
+---
+
+this is what my cmd tells me
+
+---
+
+where did you post it? i dont see it in the cos498 group 7 repo
+
+---
+
+do you want us to merge now or we should create a PR for others to review? if we merge now and others dont like the changes can we reverse the changes?
+
+---
+
+CHECK THE CURRENT WORK AND LETS SEE IF WE MERGE IF OUR WORK IS MORE ADVANCED THAN THE CURRENT MAIN REPO
+
+---
+
+YES
+
+---
+
+WHICH IS BEST
+
+---
+
+I CANT TEST IT NOW SO PUSH AND OPEN PR AS BEST AS POSSIBLE
+
+---
+
+DO U HAVE TO SEND THEM MAIL FOR THEM TO CHECK IT OUT OR SOMETHING TO NOTIFY THEM?
+
+---
+
+YES ADD COMMENT AND SEND ALL OF THEM A MESSAGE
+
+---
+
+NO LETS CALL IT A SESSION FOR TODAY BUT BEFORE WE GO WHAT DO WE HAVE TO IMPROVE TOMORROW?
+
+---
+
+PULL the code and lets see where we are
+
+---
+
+so the old branch has been merged to the main right?
+
+---
+
+yea checkout the main and pull so I am up to date and create a new branch to work on
+
+---
+
+i have been tasked to improve the feedback and train the agent so elderly people will have luxury to use it. so I have to improve the responses and make it very user friendly
+
+---
+
+go to plan mode
+
+---
+
+<ide_opened_file>The user opened the file c:\Users\DELL\Documents\GitHub\COS498-Group-7-Repo\.env in the IDE. This may or may not be related to the current task.</ide_opened_file>
+yes I want to test it with real prompts so how do we go about it?
+
+---
+
+which one do you think will make the test more practical?
+
+---
+
+yes
+
+---
+
+this is what I see when i tried to start the server
+
+---
+
+still persisits
+
+---
+
+this is what I see on the browser when i tried running it
+
+---
+
+this is the test results
+
+---
+
+this is the log from the terminal
+
+---
+
+Tighten the prompts to fix Issue 1 + Issue 2 (add rule: "when user states multi-option task, gather which option BEFORE 'let me show you what they look like'")
+
+---
+
+i want to send email to my son
+
+02:44 PM
+Since you use Gmail, I can help you send that email! Before we open Gmail, what would you like to say to your son in the email? Is there something specific you want to tell him or ask him about?
+
+02:45 PM
+PC
+yea I want to tell him I miss him
+
+02:45 PM
+That's such a sweet message! Do you have your son's email address? It might be saved in your Gmail contacts, or you might need to type it in. I can help you write the email once we get to the compose screen. Would you like me to suggest what to write, or do you want to type your own message to him?
+
+02:46 PM
+PC
+oh I have to video call my doctor
+
+02:47 PM
+I'm having a little trouble right now. Could you try asking me again in a moment?
+
+02:48 PM
+PC
+i want to video call my  doctor
+
+02:48 PM
+Got it — let's set aside the email for now and focus on the video call with your doctor. Which video-call app does your doctor want you to use? Sometimes they mention it in a text or email they sent you. Common ones are Zoom, Microsoft Teams, or sometimes they use a special app for their medical practice.
+
+02:49 PM
+
+I think it worked
+
+---
+
+give me the step by step guidance on how to test the seed-coaching
+
+---
+
+hello I want to send an email to my son
+
+03:03 PM
+That's wonderful! Sending an email to your son will be easy once we get started. Which email do you use - Gmail, Outlook, Yahoo, or something else?
+
+03:04 PM
+PC
+gmail
+
+03:04 PM
+What would you like to say to your son in the email?
+
+03:05 PM
+PC
+i want to tell him i miss him
+
+03:05 PM
+Do you know your son's email address?
+
+03:06 PM
+PC
+yes
+
+03:06 PM
+Perfect! I've created a guide to open Gmail. Try those two steps and let me know - did that work?
+
+
+☰
+Open Gmail to Send Your Email
+Click to view
+03:07 PM
+
+---
+
+this is the ss from the terminals too. I think its working now with the feedback loop.
+
+---
+
+go ahead and merge it to the main and comment on what I have improved on this new adition
+
+---
+
+pull the latest code and lets see whats new
+
+---
+
+lets test the onboarding flow
+
+---
+
+how do I make my pc faster
+
+11:08 AM
+I'd love to help make your computer faster! Think of your PC like a desk - when it gets cluttered with too many things, it's harder to find what you need and work efficiently. Let me ask you a quick question first: Is your computer feeling slow when you try to open things. Or does it take a long time to start up when you turn it on?
+
+While I figure out how to check what's happening inside your computer, here are the most common reasons PCs slow down. And simple ways to fix them:
+
+Like cleaning your house, your computer needs tidying up too: - Too many programs trying to run at once (like having every drawer open) - Not enough storage space (like a closet stuffed too full) - Programs that start automatically when you turn on your computer
+
+Once you tell me what feels slow, I can give you specific steps to speed things up. The good news is that most slowdowns are easy to fix - just like organizing a messy room makes it work better! What part feels slow to you?
+
+11:08 AM
+PC
+its feeling slow when opening things up
+
+11:20 AM
+I can see your Windows computer has good processing power with 8 cores. But likely has too many programs trying to start up at once when you turn it on. This makes everything slow to open later. Let's turn off the extra programs that don't need to start automatically:
+
+Step 1: Press the Windows key. And R together, then type msconfig and press Enter. This opens a window to control what starts with your computer. Step 2: Click on the "Startup" label you can click at the top (also called a tab) at the top, then click "Open Task Manager" to see all the programs. Try those two steps and let me know when you see the Task Manager window with a list of programs. I'll then show you which ones are safe to turn off to speed things up!
+
+11:21 AM
+PC
+yes it worked
+
+11:24 AM
+Look at those two things in your Task Manager window. Do you see any programs that you recognize but don't need right when your computer starts? Things like music apps, games, or photo programs? Tell me what you see and I'll help you pick which ones to turn off safely.
+
+
+☰
+Turn Off Extra Startup Programs
+Click to view
+11:25 AM
+PC
+can i share my screen so you help me know what to turn off
+
+11:35 AM
+Yes, I'd love to see your screen and help you pick which programs to turn off! But first we need to connect your computer so I can see what you're seeing. Look for a button that says "Connect Computer" somewhere on this page - it might be at the top or in a corner. Click that button and it will give you steps to connect your computer to me. Once you do that, I'll be able to see your Task Manager window. And help you identify exactly which startup programs are slowing things down. And which ones are safe to turn off. Can you find that "Connect Computer" button? If you don't see it, tell me what buttons or options you do see on this page.
+
+this is the conversation with the pc pal it has a long way to go. the sharescreen is not working. connect computer is not working too well. lets analyze it
+
+---
+
+lets go to plan mode and fix these things but lemme ask a quick qustion. can we make animated guide to help improve users experience??
+
+---
+
+how do i hard reset my server
+
+---
+
+my pc is running slow
+
+12:48 PM
+Here's how to see what's slowing down your computer. Try the steps in the side panel and tell me what you see.
+
+
+☰
+Check What's Running on Your Computer
+Click to view
+12:49 PM
+PC
+how can I see the ones to turn off?
+
+01:04 PM
+I can help you identify which programs are safe to turn off! Here are the types you can safely disable:
+
+Safe to turn off: - Programs you don't use often (games, photo editors you rarely open) - Chat apps like Skype. Or WhatsApp (you can open them when needed) - Music apps like Spotify. Or iTunes - Office programs like Word. Or Excel (they'll still work when you click on them)
+
+Keep these running: - Your internet security program (virus protection program (also called a antivirus)) - Windows programs (anything that says "Microsoft". Or "Windows") - Your mouse or printer software
+
+How to tell: If you recognize the program name. And don't use it every day, it's probably safe to turn off. When in doubt, leave it alone. Did that work? What programs do you see in your list that you're wondering about?
+
+01:04 PM
+
+
+this is the response but we need to make the experience much better.
+
+---
+
+I want us to make it visually appealing to have visual aids to assist the user. in your own opinion can you code  to include animated guide to help assist users i think it will be a game changer and acting as an advanced computer software engineer help create that visual effects to improve this agent
+
+---
+
+lets create a separate branch and go into plan mode so we create a small prototype to see how it works. but can claude code create the animation all by yourself ?
+
+---
+
+i want to send email to my son
+
+01:44 PM
+Which email service do you use to send emails? Some common ones are:
+
+- Gmail (Google's email) - Outlook (Microsoft's email, often comes with Windows computers) - Yahoo Mail - AOL Mail
+
+If you're not sure, many Windows computers come with Outlook already set up. Or you might go to a website like gmail.com to check your email. Do any of those sound familiar?
+
+01:45 PM
+PC
+I use gmail
+
+01:45 PM
+Perfect! Gmail is a great choice for sending emails to your son. What would you like to say to him in the email? Is this just to say hello, or did you want to share something specific with him?
+
+01:45 PM
+PC
+to tell him I miss him
+
+01:47 PM
+Let me know when you see Chrome (your internet app) open up on your screen. And then I'll show you how to get to Gmail to send that message to your son!
+
+
+☰
+Open Gmail to Email Your Son
+Click to view
+
+this were the response
+
+---
+
+ok i have created a short gif for sending email using gmail I will point you to the folder and then you can add it to the branch for us to see how it works with the agent
+
+---
+
+"C:\Users\DELL\Desktop\GMAIL GIF"
+
+THIS IS THE PATH LETS USE IT TO OPTIMIZE OUR AGENT TEST RUN IT SO IT IMPROVES THE USER EXPERIENCE. ALSO SEE IF U NEED TO RUN IT THROUGH OPTIMIZER AS U SUGESTED SINCE ITS ABOUT 4MB
