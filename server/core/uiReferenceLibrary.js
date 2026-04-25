@@ -29,6 +29,12 @@ const LIBRARY = {
     alt: 'Red Compose button with a pencil icon, upper-left of Gmail',
     category: 'email',
     skills: ['send-email'],
+    // Animated hotspot prototype. A pulsing ring is drawn on top of the
+    // image at these coordinates (% of width/height). Pure visual — does
+    // not change what the agent says, only how the image renders.
+    hotspots: [
+      { x: 18, y: 22, label: 'Click here' },
+    ],
   },
   'email-to-field': {
     file: 'email/email-to-field.png',
@@ -59,6 +65,167 @@ const LIBRARY = {
     alt: 'Paperclip icon in the email toolbar — click to attach a file to your message',
     category: 'email',
     skills: ['send-email', 'attach-file'],
+  },
+  // Animated demos. Short looping clips showing the full send-email flow
+  // end-to-end for each provider. Use as a "watch this first" overview
+  // step before the click-by-click static images. The img tag plays GIFs
+  // natively so no extra rendering code is needed.
+  'gmail-send-email-demo': {
+    file: 'email/gmail-send-email-demo.gif',
+    alt: 'Short demo: opening Gmail and sending an email step by step',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-send-email-demo': {
+    file: 'email/yahoo-send-email-demo.gif',
+    alt: 'Short demo: opening Yahoo Mail and sending an email step by step',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-send-email-demo': {
+    file: 'email/outlook-send-email-demo.gif',
+    alt: 'Short demo: opening Outlook and sending an email step by step',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  // Illustrated step-by-step images (warm cartoon style, friendlier on the
+  // eye for elderly users than raw screenshots). One per step of the
+  // standard 7-step send-email flow, available for each provider. Use in
+  // create_guide steps when walking through the click-by-click portion.
+  // The matching GIF demo (gmail/yahoo/outlook-send-email-demo) is the
+  // animated overview; these stills let users follow at their own pace.
+  // Note: alt text below describes what each illustration ACTUALLY depicts
+  // (verified from rendered output). The agent is told via the send-email
+  // skill prompt to match its step text to these alts so the picture and
+  // the words always agree.
+  'gmail-illustrated-step-1': {
+    file: 'email/gmail-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser to start using Gmail',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-2': {
+    file: 'email/gmail-illustrated-step-2.png',
+    alt: 'Step 2 — typing gmail.com in the address bar and pressing Enter',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-3': {
+    file: 'email/gmail-illustrated-step-3.png',
+    alt: 'Step 3 — signing in to your Gmail account with your email and password',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-4': {
+    file: 'email/gmail-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the Compose button to start a new email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-5': {
+    file: 'email/gmail-illustrated-step-5.png',
+    alt: 'Step 5 — filling in the email: type the recipient address in To, a subject line, and your message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-6': {
+    file: 'email/gmail-illustrated-step-6.png',
+    alt: 'Step 6 — reviewing your email and clicking the Send button',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-7': {
+    file: 'email/gmail-illustrated-step-7.png',
+    alt: 'Step 7 — your email has been sent successfully (a confirmation appears on screen)',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  'yahoo-illustrated-step-1': {
+    file: 'email/yahoo-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser to start using Yahoo Mail',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-2': {
+    file: 'email/yahoo-illustrated-step-2.png',
+    alt: 'Step 2 — typing yahoo.com (or mail.yahoo.com) in the address bar and pressing Enter',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-3': {
+    file: 'email/yahoo-illustrated-step-3.png',
+    alt: 'Step 3 — signing in to your Yahoo Mail account with your email and password',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-4': {
+    file: 'email/yahoo-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the Compose button to start a new email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-5': {
+    file: 'email/yahoo-illustrated-step-5.png',
+    alt: 'Step 5 — filling in the email: type the recipient address in To, a subject line, and your message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-6': {
+    file: 'email/yahoo-illustrated-step-6.png',
+    alt: 'Step 6 — reviewing your email and clicking the Send button',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-7': {
+    file: 'email/yahoo-illustrated-step-7.png',
+    alt: 'Step 7 — your email has been sent successfully (a confirmation appears on screen)',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  'outlook-illustrated-step-1': {
+    file: 'email/outlook-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser to start using Outlook',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-2': {
+    file: 'email/outlook-illustrated-step-2.png',
+    alt: 'Step 2 — typing outlook.com in the address bar and pressing Enter',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-3': {
+    file: 'email/outlook-illustrated-step-3.png',
+    alt: 'Step 3 — signing in to your Outlook account with your email and password',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-4': {
+    file: 'email/outlook-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the New Mail button to start a new email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-5': {
+    file: 'email/outlook-illustrated-step-5.png',
+    alt: 'Step 5 — filling in the email: type the recipient address in To, a subject line, and your message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-6': {
+    file: 'email/outlook-illustrated-step-6.png',
+    alt: 'Step 6 — reviewing your email and clicking the Send button',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-7': {
+    file: 'email/outlook-illustrated-step-7.png',
+    alt: 'Step 7 — your email has been sent successfully (a confirmation appears on screen)',
+    category: 'email',
+    skills: ['send-email'],
   },
 
   // --- Video call (6) ---
@@ -256,6 +423,10 @@ function getById(id) {
     id,
     url: `${URL_PREFIX}/${entry.file}`,
     alt: entry.alt,
+    // Optional pulsing-ring overlays drawn on top of the image. Empty
+    // array when an entry has no annotations — keeps the client side
+    // safe to spread/iterate without an existence check.
+    hotspots: Array.isArray(entry.hotspots) ? entry.hotspots : [],
   };
 }
 
