@@ -82,6 +82,147 @@ const LIBRARY = {
     category: 'email',
     skills: ['send-email'],
   },
+  'outlook-send-email-demo': {
+    file: 'email/outlook-send-email-demo.gif',
+    alt: 'Short demo: opening Outlook and sending an email step by step',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  // Illustrated step-by-step images (warm cartoon style, friendlier on the
+  // eye for elderly users than raw screenshots). One per step of the
+  // standard 7-step send-email flow, available for each provider. Use in
+  // create_guide steps when walking through the click-by-click portion.
+  // The matching GIF demo (gmail/yahoo/outlook-send-email-demo) is the
+  // animated overview; these stills let users follow at their own pace.
+  'gmail-illustrated-step-1': {
+    file: 'email/gmail-illustrated-step-1.png',
+    alt: 'Step 1 illustration — opening your internet browser to start sending an email with Gmail',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-2': {
+    file: 'email/gmail-illustrated-step-2.png',
+    alt: 'Step 2 illustration — going to gmail.com',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-3': {
+    file: 'email/gmail-illustrated-step-3.png',
+    alt: 'Step 3 illustration — clicking the Compose button to start a new Gmail message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-4': {
+    file: 'email/gmail-illustrated-step-4.png',
+    alt: 'Step 4 illustration — typing the recipient\'s email address in the To field',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-5': {
+    file: 'email/gmail-illustrated-step-5.png',
+    alt: 'Step 5 illustration — typing the email subject line',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-6': {
+    file: 'email/gmail-illustrated-step-6.png',
+    alt: 'Step 6 illustration — typing the email message body',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'gmail-illustrated-step-7': {
+    file: 'email/gmail-illustrated-step-7.png',
+    alt: 'Step 7 illustration — clicking the Send button to send the email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  'yahoo-illustrated-step-1': {
+    file: 'email/yahoo-illustrated-step-1.png',
+    alt: 'Step 1 illustration — opening your internet browser to start sending an email with Yahoo Mail',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-2': {
+    file: 'email/yahoo-illustrated-step-2.png',
+    alt: 'Step 2 illustration — going to yahoo.com / mail.yahoo.com',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-3': {
+    file: 'email/yahoo-illustrated-step-3.png',
+    alt: 'Step 3 illustration — clicking the Compose button to start a new Yahoo Mail message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-4': {
+    file: 'email/yahoo-illustrated-step-4.png',
+    alt: 'Step 4 illustration — typing the recipient\'s email address in the To field',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-5': {
+    file: 'email/yahoo-illustrated-step-5.png',
+    alt: 'Step 5 illustration — typing the email subject line',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-6': {
+    file: 'email/yahoo-illustrated-step-6.png',
+    alt: 'Step 6 illustration — typing the email message body',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-illustrated-step-7': {
+    file: 'email/yahoo-illustrated-step-7.png',
+    alt: 'Step 7 illustration — clicking the Send button to send the email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+
+  'outlook-illustrated-step-1': {
+    file: 'email/outlook-illustrated-step-1.png',
+    alt: 'Step 1 illustration — opening your internet browser or the Outlook app to start sending an email',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-2': {
+    file: 'email/outlook-illustrated-step-2.png',
+    alt: 'Step 2 illustration — going to outlook.com or opening the Outlook app',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-3': {
+    file: 'email/outlook-illustrated-step-3.png',
+    alt: 'Step 3 illustration — clicking New Mail to start a new Outlook message',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-4': {
+    file: 'email/outlook-illustrated-step-4.png',
+    alt: 'Step 4 illustration — typing the recipient\'s email address in the To field',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-5': {
+    file: 'email/outlook-illustrated-step-5.png',
+    alt: 'Step 5 illustration — typing the email subject line',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-6': {
+    file: 'email/outlook-illustrated-step-6.png',
+    alt: 'Step 6 illustration — typing the email message body',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'outlook-illustrated-step-7': {
+    file: 'email/outlook-illustrated-step-7.png',
+    alt: 'Step 7 illustration — clicking the Send button to send the email',
+    category: 'email',
+    skills: ['send-email'],
+  },
 
   // --- Video call (6) ---
   'zoom-join-meeting': {
