@@ -66,13 +66,19 @@ const LIBRARY = {
     category: 'email',
     skills: ['send-email', 'attach-file'],
   },
-  // Animated demo: a short looping screen capture showing the full Gmail
-  // send-an-email flow. Use this when the user wants to SEE how it works
-  // end-to-end, not for a single click target. The img tag plays GIFs
+  // Animated demos. Short looping clips showing the full send-email flow
+  // end-to-end for each provider. Use as a "watch this first" overview
+  // step before the click-by-click static images. The img tag plays GIFs
   // natively so no extra rendering code is needed.
   'gmail-send-email-demo': {
     file: 'email/gmail-send-email-demo.gif',
     alt: 'Short demo: opening Gmail and sending an email step by step',
+    category: 'email',
+    skills: ['send-email'],
+  },
+  'yahoo-send-email-demo': {
+    file: 'email/yahoo-send-email-demo.gif',
+    alt: 'Short demo: opening Yahoo Mail and sending an email step by step',
     category: 'email',
     skills: ['send-email'],
   },
