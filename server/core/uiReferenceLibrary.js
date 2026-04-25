@@ -29,6 +29,12 @@ const LIBRARY = {
     alt: 'Red Compose button with a pencil icon, upper-left of Gmail',
     category: 'email',
     skills: ['send-email'],
+    // Animated hotspot prototype. A pulsing ring is drawn on top of the
+    // image at these coordinates (% of width/height). Pure visual — does
+    // not change what the agent says, only how the image renders.
+    hotspots: [
+      { x: 18, y: 22, label: 'Click here' },
+    ],
   },
   'email-to-field': {
     file: 'email/email-to-field.png',
@@ -256,6 +262,10 @@ function getById(id) {
     id,
     url: `${URL_PREFIX}/${entry.file}`,
     alt: entry.alt,
+    // Optional pulsing-ring overlays drawn on top of the image. Empty
+    // array when an entry has no annotations — keeps the client side
+    // safe to spread/iterate without an existence check.
+    hotspots: Array.isArray(entry.hotspots) ? entry.hotspots : [],
   };
 }
 
