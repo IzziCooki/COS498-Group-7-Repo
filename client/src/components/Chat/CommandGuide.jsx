@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AnimatedHotspot from './AnimatedHotspot';
 import './CommandGuide.css';
 
 /**
@@ -69,16 +70,28 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
 
                   {step.image && step.image.url && (
                     <figure className="cmd-guide__step-image">
-                      <img
-                        src={step.image.url}
-                        alt={step.image.alt || 'Reference image'}
-                        loading="lazy"
-                        onError={(e) => {
-                          // Graceful fallback: hide the figure if the file is
-                          // missing on disk. The step still renders text-only.
-                          e.currentTarget.parentElement.style.display = 'none';
-                        }}
-                      />
+                      <div className="cmd-guide__image-wrap">
+                        <img
+                          src={step.image.url}
+                          alt={step.image.alt || 'Reference image'}
+                          loading="lazy"
+                          onError={(e) => {
+                            // Graceful fallback: hide the figure if the file is
+                            // missing on disk. The step still renders text-only.
+                            const fig = e.currentTarget.closest('figure');
+                            if (fig) fig.style.display = 'none';
+                          }}
+                        />
+                        {Array.isArray(step.image.hotspots) &&
+                          step.image.hotspots.map((h, hi) => (
+                            <AnimatedHotspot
+                              key={hi}
+                              x={h.x}
+                              y={h.y}
+                              label={h.label}
+                            />
+                          ))}
+                      </div>
                       {step.image.alt && (
                         <figcaption className="cmd-guide__step-image-caption">
                           {step.image.alt}
