@@ -1,0 +1,27 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "26abc547705a",
+  "strategy": "manual-commit",
+  "branch": "frank/animated-hotspots-prototype",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "client/src/components/Chat/CommandGuide.css",
+    "client/src/components/Chat/CommandGuide.jsx",
+    "server/skills/send-email.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/26/abc547705a/0/metadata.json",
+      "transcript": "/26/abc547705a/0/full.jsonl",
+      "content_hash": "/26/abc547705a/0/content_hash.txt",
+      "prompt": "/26/abc547705a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1298,
+    "cache_creation_tokens": 4614985,
+    "cache_read_tokens": 185773100,
+    "output_tokens": 446111,
+    "api_call_count": 720
+  }
+}
