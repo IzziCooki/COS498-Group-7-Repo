@@ -960,3 +960,11 @@ ok give me a list of all possible animation illustrations you want us to add to 
 "C:\Users\DELL\Desktop\ZOOM CALL"
 
 I HAVE UPLOADED THE ZOOM CALL IMAGES ANG .GIF. I HAVE ALSO ADDED IMAGES FOR ALL 4 BROWSERS SO THAT DEPENDING ON WHAT THE USER USES THE AGENT WILL PICK THAT IMAGE FOR THE USER. CHECK AND GET BACK TO ME
+
+---
+
+I am creating more images and .gif so for now lets push and commit this but dont open a branch yet I will add more resources to it so we have comprehensive library
+
+---
+
+I am creating more images and .gif so for now lets push and commit this but dont open a PR yet I will add more resources to it so we have comprehensive library so yea create a branch but dont create pr yet until it all looks good
