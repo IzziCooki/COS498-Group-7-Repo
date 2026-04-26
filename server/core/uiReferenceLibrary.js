@@ -350,6 +350,53 @@ const LIBRARY = {
     skills: ['video-call'],
   },
 
+  // FaceTime illustrated walkthrough. Native Mac / iOS app so no browser
+  // variants needed — single 6-step linear flow plus an animated GIF
+  // overview. Use these when the user says they're calling on FaceTime
+  // (typically iPhone/iPad/Mac users).
+  'facetime-video-call-demo': {
+    file: 'video-call/facetime-video-call-demo.gif',
+    alt: 'Short demo: making a FaceTime video call step by step',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-1': {
+    file: 'video-call/facetime-illustrated-step-1.png',
+    alt: 'Step 1 — opening the FaceTime app from the Dock or app list',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-2': {
+    file: 'video-call/facetime-illustrated-step-2.png',
+    alt: 'Step 2 — clicking the New FaceTime button to start a new call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-3': {
+    file: 'video-call/facetime-illustrated-step-3.png',
+    alt: 'Step 3 — typing the name or phone number of the person you want to call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-4': {
+    file: 'video-call/facetime-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the green video button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-5': {
+    file: 'video-call/facetime-illustrated-step-5.png',
+    alt: 'Step 5 — waiting for the other person to answer (the screen shows their name and rings)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-6': {
+    file: 'video-call/facetime-illustrated-step-6.png',
+    alt: 'Step 6 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
   // --- Messaging (2) ---
   'imessage-new-message': {
     file: 'messaging/imessage-new-message.png',
