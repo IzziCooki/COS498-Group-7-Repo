@@ -30,6 +30,7 @@ const { VALID_GUIDE_IDS, buildComfortGuidelines } = require('./sharedConstants')
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const ollamaClient = require('./ollamaClient');
 const screenshotAnnotator = require('./screenshotAnnotator');
+const dllKnowledge = require('../assets/dll-knowledge.json');
 
 // Injected from server/index.js — captures screenshot from relay agent or browser screen share
 let _requestScreenshotFn = null;
@@ -338,6 +339,19 @@ const tools = [
       required: ['looking_for'],
     },
   },
+  {
+    name: 'diagnose_missing_dll',
+    description: "Diagnose a missing DLL error on Windows. Takes the DLL filename from the error message and returns the exact official fix — which Microsoft installer to download, step-by-step instructions, and safety warnings. NEVER suggest downloading DLL files from third-party websites.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        dll_name: { type: 'string', description: "The DLL filename from the error, e.g. 'MSVCP140.dll', 'VCRUNTIME140.dll'" },
+        error_text: { type: 'string', description: "The full error message text if available" },
+        program_name: { type: 'string', description: "The program that showed the error" },
+      },
+      required: ['dll_name'],
+    },
+  },
 ];
 
 // buildComfortGuidelines imported from sharedConstants.js — single source of truth
@@ -627,7 +641,8 @@ You have access to the user's computer and can run safe, read-only diagnostics. 
 - check_disk_health: Check disk space, folder sizes, temp files. Use when computer is "full" or "running out of space."
 - check_installed_software: List or search installed applications. Use to verify software is installed or find the right app.
 - get_battery_status: Check battery level and charging state. Use when user asks about battery or computer shuts off unexpectedly.
-- take_screenshot: Capture and analyze the user's actual screen. ALWAYS call this when the user asks "can you see my screen?", says they can't find a button/icon/setting, or you need to verify what they're seeing. This tool takes a real screenshot, finds what they're looking for, and shows them an annotated image with the target highlighted. Do NOT guess what's on their screen — use this tool to actually look.
+- take_screenshot: Capture and analyze the user's actual screen. ALWAYS call this when the user asks "can you see my screen?", says they can't find a button/icon/setting, or you need to verify what they're seeing.
+- diagnose_missing_dll: When a user reports a missing DLL error or a program that won't start, call this with the DLL name to get the official fix. NEVER suggest downloading DLL files from third-party websites — they often contain malware. Always use this tool to identify the correct Microsoft installer.
 
 ### How to Use Diagnostic Tools
 1. When the user describes a problem, FIRST use the relevant diagnostic tool to gather real data
@@ -1039,6 +1054,69 @@ IMPORTANT RULES FOR YOUR RESPONSE:
     } catch (err) {
       console.error('[agentOrchestrator] YouTube search failed:', err.message);
       result = 'Unable to search YouTube right now.';
+    }
+  } else if (name === 'diagnose_missing_dll') {
+    try {
+      const dllName = (args.dll_name || '').toLowerCase().replace(/\.dll$/i, '') + '.dll';
+      let foundFamily = null;
+      let foundFamilyId = null;
+      let foundVersion = null;
+
+      // Exact match
+      for (const [fid, fam] of Object.entries(dllKnowledge.families)) {
+        if (fam.dlls && fam.dlls.includes(dllName)) {
+          foundFamily = fam;
+          foundFamilyId = fid;
+          break;
+        }
+      }
+
+      // Prefix match
+      if (!foundFamily) {
+        const prefixes = { 'msvcp': 'vcredist', 'msvcr': 'vcredist', 'vcruntime': 'vcredist', 'mfc': 'vcredist', 'atl': 'vcredist', 'api-ms-win-crt': 'ucrt', 'd3d': 'directx', 'd3dx': 'directx', 'xinput': 'directx', 'xaudio': 'directx', 'hostfxr': 'dotnet', 'coreclr': 'dotnet' };
+        for (const [prefix, fid] of Object.entries(prefixes)) {
+          if (dllName.startsWith(prefix)) {
+            foundFamily = dllKnowledge.families[fid];
+            foundFamilyId = fid;
+            break;
+          }
+        }
+      }
+
+      // Version detection for vcredist
+      if (foundFamilyId === 'vcredist' && foundFamily.versions) {
+        const verMatch = dllName.match(/(\d{2,3})/);
+        if (verMatch) foundVersion = foundFamily.versions[verMatch[1]] || null;
+      }
+
+      const lines = [`DLL: ${args.dll_name}`];
+      if (foundFamily) {
+        lines.push(`IDENTIFIED AS: ${foundFamily.name}`, `DESCRIPTION: ${foundFamily.description}`, '');
+        if (foundVersion) {
+          lines.push(`VERSION: ${foundVersion.year} (${foundVersion.note})`);
+          if (foundVersion.download_x64) lines.push(`DOWNLOAD (64-bit): ${foundVersion.download_x64}`);
+          if (foundVersion.download_x86) lines.push(`DOWNLOAD (32-bit): ${foundVersion.download_x86}`);
+        } else if (foundFamily.download) {
+          lines.push(`DOWNLOAD: ${foundFamily.download}`);
+        }
+        if (foundFamilyId === 'vcredist' && foundFamily.install_both_note) {
+          lines.push('', `TIP: ${foundFamily.install_both_note}`);
+        }
+        lines.push('', 'FIX STEPS:');
+        foundFamily.fix_steps.forEach((s, i) => lines.push(`${i + 1}. ${s}`));
+        if (foundFamily.note) lines.push('', `NOTE: ${foundFamily.note}`);
+      } else {
+        lines.push('STATUS: Not a standard Windows/runtime DLL — likely belongs to a specific program.', '', 'RECOMMENDED FIX:');
+        lines.push(`1. Reinstall the program${args.program_name ? ` (${args.program_name})` : ''}`, '2. Install Visual C++ 2015-2022 Redistributable from Microsoft', '3. Run Windows Update');
+      }
+      lines.push('', 'SAFETY: NEVER download individual DLL files from third-party websites — they often contain malware. Only use official Microsoft installers.');
+      if (args.program_name) lines.push('', `PROGRAM: The user is trying to run "${args.program_name}".`);
+
+      console.log(`[agentOrchestrator] DLL diagnosis: ${args.dll_name} → ${foundFamily ? foundFamily.name : 'unknown'}`);
+      result = lines.join('\n');
+    } catch (err) {
+      console.error('[agentOrchestrator] diagnose_missing_dll error:', err.message);
+      result = 'DLL diagnosis failed: ' + err.message;
     }
   } else if (name === 'take_screenshot') {
     try {

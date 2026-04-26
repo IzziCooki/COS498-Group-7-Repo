@@ -45,6 +45,7 @@ const SkillReview = require('../models/SkillReview');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const conversationState = require('../core/conversationState');
 const userProfileManager = require('../core/userProfileManager');
+const dllKnowledge = require('../assets/dll-knowledge.json');
 
 function textResult(text) {
   return { content: [{ type: 'text', text: String(text) }] };
@@ -643,6 +644,136 @@ const createFindings = tool(
   }
 );
 
+// Missing DLL Diagnosis Tool
+
+/**
+ * Look up a DLL name in the knowledge base and return the fix.
+ * Handles partial matches, version extraction, and family detection.
+ */
+function lookupDll(dllName) {
+  const name = dllName.toLowerCase().replace(/\.dll$/i, '') + '.dll';
+
+  for (const [familyId, family] of Object.entries(dllKnowledge.families)) {
+    if (family.dlls && family.dlls.includes(name)) {
+      // Determine version for vcredist
+      let version = null;
+      if (familyId === 'vcredist' && family.versions) {
+        const verMatch = name.match(/(\d{2,3})/);
+        if (verMatch) {
+          version = family.versions[verMatch[1]] || null;
+        }
+      }
+      return { found: true, familyId, family, version, dll: name };
+    }
+  }
+
+  // Fuzzy match: check if the DLL starts with a known prefix
+  const prefixes = {
+    'msvcp': 'vcredist', 'msvcr': 'vcredist', 'vcruntime': 'vcredist',
+    'mfc': 'vcredist', 'atl': 'vcredist', 'concrt': 'vcredist', 'vcomp': 'vcredist',
+    'api-ms-win-crt': 'ucrt',
+    'd3d': 'directx', 'd3dx': 'directx', 'xinput': 'directx', 'xaudio': 'directx', 'x3daudio': 'directx',
+    'hostfxr': 'dotnet', 'hostpolicy': 'dotnet', 'coreclr': 'dotnet',
+  };
+
+  for (const [prefix, familyId] of Object.entries(prefixes)) {
+    if (name.startsWith(prefix)) {
+      const family = dllKnowledge.families[familyId];
+      let version = null;
+      if (familyId === 'vcredist' && family.versions) {
+        const verMatch = name.match(/(\d{2,3})/);
+        if (verMatch) version = family.versions[verMatch[1]] || null;
+      }
+      return { found: true, familyId, family, version, dll: name, fuzzy: true };
+    }
+  }
+
+  return { found: false, dll: name };
+}
+
+const diagnoseMissingDll = tool(
+  'diagnose_missing_dll',
+  "Diagnose a missing DLL error on Windows. Takes the DLL filename from the error message and returns the exact official fix — which Microsoft installer to download, step-by-step instructions, and safety warnings. NEVER suggest downloading DLL files from third-party sites.",
+  {
+    dll_name: z.string().describe("The DLL filename from the error message, e.g. 'MSVCP140.dll', 'VCRUNTIME140.dll', 'api-ms-win-crt-runtime-l1-1-0.dll'"),
+    error_text: z.string().optional().describe("The full error message text if available"),
+    program_name: z.string().optional().describe("The program that showed the error"),
+  },
+  async (args) => {
+    const result = lookupDll(args.dll_name);
+
+    if (!result.found) {
+      // Unknown DLL — likely app-specific
+      const lines = [
+        `DLL: ${args.dll_name}`,
+        `STATUS: Not a standard Windows/runtime DLL — likely belongs to a specific program.`,
+        '',
+        'RECOMMENDED FIX:',
+        `1. Reinstall the program${args.program_name ? ` (${args.program_name})` : ''} — this will restore its missing files`,
+        '2. If reinstalling does not work, also install the Visual C++ 2015-2022 Redistributable from Microsoft',
+        '3. Run Windows Update to make sure your system is current',
+        '',
+        'SAFETY WARNING:',
+        ...dllKnowledge.safety_rules.map(r => `- ${r}`),
+      ];
+      return textResult(lines.join('\n'));
+    }
+
+    const { family, version, familyId } = result;
+    const lines = [
+      `DLL: ${args.dll_name}`,
+      `IDENTIFIED AS: ${family.name}`,
+      `DESCRIPTION: ${family.description}`,
+      '',
+    ];
+
+    // Download links
+    if (version) {
+      lines.push(`VERSION: ${version.year} (${version.note})`);
+      if (version.download_x64) lines.push(`DOWNLOAD (64-bit): ${version.download_x64}`);
+      if (version.download_x86) lines.push(`DOWNLOAD (32-bit): ${version.download_x86}`);
+      if (version.download) lines.push(`DOWNLOAD: ${version.download}`);
+    } else if (family.download) {
+      lines.push(`DOWNLOAD: ${family.download}`);
+    } else if (familyId === 'ucrt' && family.download_standalone) {
+      lines.push(`DOWNLOAD: ${family.download_standalone}`);
+    } else if (familyId === 'dotnet') {
+      lines.push('DOWNLOAD: https://dotnet.microsoft.com/en-us/download');
+    }
+
+    // Install-both note for vcredist
+    if (familyId === 'vcredist' && family.install_both_note) {
+      lines.push('');
+      lines.push(`TIP: ${family.install_both_note}`);
+    }
+
+    lines.push('');
+    lines.push('FIX STEPS:');
+    family.fix_steps.forEach((step, i) => {
+      lines.push(`${i + 1}. ${step}`);
+    });
+
+    if (family.note) {
+      lines.push('');
+      lines.push(`NOTE: ${family.note}`);
+    }
+
+    lines.push('');
+    lines.push('SAFETY WARNING:');
+    lines.push('- NEVER download individual DLL files from third-party websites — they often contain malware');
+    lines.push('- Only use official Microsoft installers or reinstall the program');
+
+    // If the program is known, add context
+    if (args.program_name) {
+      lines.push('');
+      lines.push(`PROGRAM CONTEXT: The user is trying to run "${args.program_name}". After installing the fix above, they should try opening it again.`);
+    }
+
+    console.log(`[MCP] DLL diagnosis: ${args.dll_name} → ${family.name} (${familyId})`);
+    return textResult(lines.join('\n'));
+  }
+);
+
 // Guide Artifact Tool
 
 const createGuide = tool(
@@ -735,6 +866,8 @@ function createPcPalMcpServer() {
       askBuddyForHelp,
       // Vision
       takeScreenshot,
+      // DLL Diagnosis
+      diagnoseMissingDll,
       // Media
       findYoutubeVideos,
       // Memory

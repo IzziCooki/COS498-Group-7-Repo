@@ -1,0 +1,235 @@
+{
+  "families": {
+    "vcredist": {
+      "name": "Microsoft Visual C++ Redistributable",
+      "description": "Runtime libraries required by programs built with Visual C++. Most common cause of missing DLL errors on Windows.",
+      "dlls": [
+        "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll", "msvcp140_1.dll",
+        "msvcp120.dll", "msvcr120.dll", "vccorlib120.dll",
+        "msvcp110.dll", "msvcr110.dll", "vccorlib110.dll",
+        "msvcp100.dll", "msvcr100.dll",
+        "msvcp90.dll", "msvcr90.dll",
+        "msvcp80.dll", "msvcr80.dll",
+        "msvcp71.dll", "msvcr71.dll",
+        "msvcp60.dll", "msvcr60.dll",
+        "mfc140u.dll", "mfc120u.dll", "mfc110u.dll", "mfc100u.dll",
+        "atl140.dll", "atl120.dll", "atl110.dll", "atl100.dll",
+        "concrt140.dll", "vcomp140.dll", "vcamp140.dll"
+      ],
+      "versions": {
+        "140": {
+          "year": "2015-2022",
+          "download_x64": "https://aka.ms/vs/17/release/vc_redist.x64.exe",
+          "download_x86": "https://aka.ms/vs/17/release/vc_redist.x86.exe",
+          "note": "Covers Visual Studio 2015, 2017, 2019, and 2022 — all use the same runtime"
+        },
+        "120": {
+          "year": "2013",
+          "download_x64": "https://aka.ms/highdpimfc2013x64enu",
+          "download_x86": "https://aka.ms/highdpimfc2013x86enu",
+          "note": "Visual Studio 2013 runtime"
+        },
+        "110": {
+          "year": "2012",
+          "download_x64": "https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe",
+          "download_x86": "https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe",
+          "note": "Visual Studio 2012 runtime"
+        },
+        "100": {
+          "year": "2010",
+          "download_x64": "https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x64.exe",
+          "download_x86": "https://download.microsoft.com/download/5/B/C/5BC5DBB3-652D-4DCE-B14A-475AB85EEF6E/vcredist_x86.exe",
+          "note": "Visual Studio 2010 runtime"
+        },
+        "90": {
+          "year": "2008",
+          "download_x86": "https://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x86.exe",
+          "note": "Visual Studio 2008 runtime"
+        }
+      },
+      "fix_steps": [
+        "Download the correct Visual C++ Redistributable from Microsoft",
+        "Run the installer — it will say 'Microsoft Visual C++ Redistributable'",
+        "Click 'Install' and wait for it to finish",
+        "Restart your computer",
+        "Try opening the program again"
+      ],
+      "install_both_note": "If you are not sure whether your program is 32-bit or 64-bit, install BOTH the x86 (32-bit) and x64 (64-bit) versions. This is safe and common."
+    },
+
+    "ucrt": {
+      "name": "Universal C Runtime (Windows Update)",
+      "description": "Core Windows component. Usually fixed by running Windows Update rather than downloading separately.",
+      "dlls": [
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-multibyte-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "ucrtbase.dll"
+      ],
+      "fix_steps": [
+        "Open Settings (press the Windows key, then click the gear icon)",
+        "Click 'Update & Security' (or 'Windows Update' on Windows 11)",
+        "Click 'Check for updates'",
+        "Install all available updates",
+        "Restart your computer",
+        "If the error persists, also install the Visual C++ 2015-2022 Redistributable"
+      ],
+      "download_standalone": "https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c",
+      "note": "These DLLs are part of the Universal CRT which ships with Windows 10+. On older Windows (7/8), they come via Windows Update KB2999226."
+    },
+
+    "dotnet": {
+      "name": ".NET Runtime",
+      "description": "Required by programs built with Microsoft .NET technology.",
+      "dlls": [
+        "hostfxr.dll", "hostpolicy.dll", "coreclr.dll", "clrjit.dll",
+        "mscoree.dll", "mscorlib.dll", "clr.dll",
+        "wpfgfx_cor3.dll", "presentationcore.dll", "windowsbase.dll"
+      ],
+      "versions": {
+        "net8": {
+          "name": ".NET 8",
+          "download": "https://dotnet.microsoft.com/en-us/download/dotnet/8.0"
+        },
+        "net6": {
+          "name": ".NET 6",
+          "download": "https://dotnet.microsoft.com/en-us/download/dotnet/6.0"
+        },
+        "netfx48": {
+          "name": ".NET Framework 4.8",
+          "download": "https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48"
+        }
+      },
+      "fix_steps": [
+        "The program needs the .NET Runtime installed",
+        "Go to Microsoft's .NET download page",
+        "Download the '.NET Desktop Runtime' (not the SDK — you only need the runtime)",
+        "Run the installer and follow the steps",
+        "Restart your computer, then try opening the program again"
+      ],
+      "note": "The error message usually says which version of .NET is needed (e.g., '.NET 6.0 Runtime'). If not specified, try the latest .NET 8 Desktop Runtime."
+    },
+
+    "directx": {
+      "name": "DirectX Runtime",
+      "description": "Graphics and multimedia libraries used by games and media software.",
+      "dlls": [
+        "d3d9.dll", "d3d10.dll", "d3d11.dll", "d3d12.dll",
+        "d3dx9_43.dll", "d3dx9_42.dll", "d3dx9_41.dll", "d3dx9_40.dll",
+        "d3dx9_39.dll", "d3dx9_38.dll", "d3dx9_37.dll", "d3dx9_36.dll",
+        "d3dx9_35.dll", "d3dx9_34.dll", "d3dx9_33.dll", "d3dx9_32.dll",
+        "d3dx9_31.dll", "d3dx9_30.dll", "d3dx9_29.dll", "d3dx9_28.dll",
+        "d3dx9_27.dll", "d3dx9_26.dll", "d3dx9_25.dll", "d3dx9_24.dll",
+        "d3dx10_43.dll", "d3dx10_42.dll", "d3dx10_41.dll", "d3dx10_40.dll",
+        "d3dx11_43.dll", "d3dx11_42.dll",
+        "d3dcompiler_43.dll", "d3dcompiler_47.dll",
+        "xinput1_3.dll", "xinput1_4.dll", "xinput9_1_0.dll",
+        "xaudio2_9.dll", "xaudio2_8.dll", "xaudio2_7.dll",
+        "x3daudio1_7.dll", "x3daudio1_6.dll",
+        "xactengine3_7.dll",
+        "dxgi.dll"
+      ],
+      "download": "https://www.microsoft.com/en-us/download/details.aspx?id=35",
+      "fix_steps": [
+        "Download the DirectX End-User Runtime Web Installer from Microsoft",
+        "Run the installer — it is called 'dxwebsetup.exe'",
+        "Follow the steps to install (uncheck any optional offers)",
+        "Restart your computer",
+        "Try opening the game or program again"
+      ],
+      "note": "Many games include DirectX in their installer. If you just installed the game, try running the game's setup again and look for a 'DirectX' or 'Prerequisites' option."
+    },
+
+    "openal": {
+      "name": "OpenAL (Audio Library)",
+      "description": "Audio library used by some games.",
+      "dlls": ["openal32.dll", "soft_oal.dll"],
+      "download": "https://www.openal.org/downloads/",
+      "fix_steps": [
+        "Download OpenAL from openal.org",
+        "Run the installer",
+        "Restart and try the game again"
+      ]
+    },
+
+    "physx": {
+      "name": "NVIDIA PhysX",
+      "description": "Physics engine used by some games.",
+      "dlls": ["physxloader.dll", "physxcore.dll", "nxcharacter.dll", "cudart32_30_9.dll", "cudart64_30_9.dll"],
+      "download": "https://www.nvidia.com/en-us/drivers/physx/physx-9-19-0218-driver/",
+      "fix_steps": [
+        "Download PhysX from NVIDIA's website",
+        "Run the installer",
+        "Restart and try the game again"
+      ]
+    },
+
+    "vb_runtime": {
+      "name": "Visual Basic Runtime",
+      "description": "Required by older programs built with Visual Basic.",
+      "dlls": ["msvbvm50.dll", "msvbvm60.dll", "vb40032.dll"],
+      "note": "These DLLs are included with Windows. If missing, run 'sfc /scannow' from an admin Command Prompt to repair system files."
+    },
+
+    "windows_system": {
+      "name": "Windows System File",
+      "description": "Core Windows files that should never be missing. Usually indicates system corruption.",
+      "dlls": [
+        "kernel32.dll", "ntdll.dll", "user32.dll", "gdi32.dll",
+        "advapi32.dll", "shell32.dll", "ole32.dll", "oleaut32.dll",
+        "ws2_32.dll", "winmm.dll", "crypt32.dll", "comctl32.dll",
+        "comdlg32.dll", "winspool.drv", "secur32.dll", "rpcrt4.dll"
+      ],
+      "fix_steps": [
+        "Open the Start Menu and search for 'Command Prompt'",
+        "Right-click on Command Prompt and choose 'Run as administrator'",
+        "Type: sfc /scannow (then press Enter)",
+        "Wait for it to finish — it may take 10-15 minutes",
+        "If it says it found and fixed problems, restart your computer",
+        "If problems remain, try: DISM /Online /Cleanup-Image /RestoreHealth"
+      ],
+      "note": "Missing Windows system DLLs are serious. They should never need to be downloaded separately — if they are missing, Windows itself is damaged and needs repair."
+    }
+  },
+
+  "safety_rules": [
+    "NEVER suggest downloading individual DLL files from third-party websites",
+    "NEVER recommend sites like dll-files.com, dll-download.com, or any 'DLL download' site — they often bundle malware",
+    "ALWAYS recommend the official Microsoft installer or the program's own installer",
+    "If the DLL belongs to a specific program (not Windows/runtime), the fix is to reinstall that program",
+    "If a system DLL is missing, use sfc /scannow — do NOT download it from the internet",
+    "When in doubt, reinstalling the program that shows the error is always a safe first step"
+  ],
+
+  "common_error_patterns": [
+    "The program can't start because {dll} is missing from your computer",
+    "The code execution cannot proceed because {dll} was not found",
+    "{dll} was not found",
+    "{dll} is missing",
+    "Entry point not found in {dll}",
+    "Unable to locate component {dll}",
+    "This application failed to start because {dll} was not found",
+    "Error loading {dll}",
+    "The procedure entry point could not be located in {dll}",
+    "System error: {dll} is not designed to run on Windows"
+  ],
+
+  "diagnostic_commands": {
+    "check_installed_redists": "wmic product where \"name like '%Visual C++%'\" get name,version",
+    "check_system_files": "sfc /scannow",
+    "check_dotnet": "dotnet --list-runtimes",
+    "check_directx": "dxdiag",
+    "check_architecture": "wmic os get osarchitecture"
+  }
+}

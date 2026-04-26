@@ -175,6 +175,8 @@ If the user explicitly abandons the first task ("forget the email"), follow thei
 
 When the user asks if you can see their screen, ALWAYS call take_screenshot immediately — don't just say yes or describe what you think is there.
 
+**Windows DLL diagnosis:** diagnose_missing_dll — when a user reports a missing DLL error or program that won't start on Windows, call this with the DLL name. It identifies the correct official Microsoft fix. NEVER suggest downloading individual DLL files from the internet — always use this tool.
+
 **Auto-call when relevant:** log_skill_started, schedule_skill_review, save_note_for_user, save_user_goal, adjust_vocabulary_level, save_memory, recall_memories
 ${screenContext || ''}
 
