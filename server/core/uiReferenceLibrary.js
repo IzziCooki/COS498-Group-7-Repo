@@ -278,6 +278,78 @@ const LIBRARY = {
     skills: ['video-call'],
   },
 
+  // Zoom join-a-meeting illustrated walkthrough. Step 1 has 4 browser
+  // variants (chrome / edge / firefox / safari) — the agent picks the
+  // right one based on the user's stated browser. Steps 2-7 are the
+  // shared in-Zoom flow regardless of browser. The matching GIF demo
+  // is `zoom-video-call-demo`.
+  'zoom-video-call-demo': {
+    file: 'video-call/zoom-video-call-demo.gif',
+    alt: 'Short demo: opening your browser and joining a Zoom meeting step by step',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-chrome': {
+    file: 'video-call/zoom-illustrated-step-1-chrome.png',
+    alt: 'Step 1 — opening Chrome (the colorful circle on your taskbar) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-edge': {
+    file: 'video-call/zoom-illustrated-step-1-edge.png',
+    alt: 'Step 1 — opening Microsoft Edge (the blue and green wave) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-firefox': {
+    file: 'video-call/zoom-illustrated-step-1-firefox.png',
+    alt: 'Step 1 — opening Firefox (the orange fox around a blue globe) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-safari': {
+    file: 'video-call/zoom-illustrated-step-1-safari.png',
+    alt: 'Step 1 — opening Safari (the blue compass) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-2': {
+    file: 'video-call/zoom-illustrated-step-2.png',
+    alt: 'Step 2 — typing zoom.us in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-3': {
+    file: 'video-call/zoom-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the blue "Join a Meeting" button on the Zoom homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-4': {
+    file: 'video-call/zoom-illustrated-step-4.png',
+    alt: 'Step 4 — typing the meeting ID number that your doctor or family member sent you',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-5': {
+    file: 'video-call/zoom-illustrated-step-5.png',
+    alt: 'Step 5 — clicking the blue Join button to enter the meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-6': {
+    file: 'video-call/zoom-illustrated-step-6.png',
+    alt: 'Step 6 — clicking Allow when your browser asks to use the camera and microphone',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-7': {
+    file: 'video-call/zoom-illustrated-step-7.png',
+    alt: 'Step 7 — you are in the call! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
   // --- Messaging (2) ---
   'imessage-new-message': {
     file: 'messaging/imessage-new-message.png',
