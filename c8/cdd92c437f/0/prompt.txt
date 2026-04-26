@@ -968,3 +968,9 @@ I am creating more images and .gif so for now lets push and commit this but dont
 ---
 
 I am creating more images and .gif so for now lets push and commit this but dont open a PR yet I will add more resources to it so we have comprehensive library so yea create a branch but dont create pr yet until it all looks good
+
+---
+
+"C:\Users\DELL\Desktop\FACETIME"
+
+I HAVE ADDED FACETIME CHECK IF ITS OK AND REPORT
