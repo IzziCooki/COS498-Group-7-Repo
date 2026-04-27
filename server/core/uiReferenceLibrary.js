@@ -397,6 +397,148 @@ const LIBRARY = {
     skills: ['video-call'],
   },
 
+  // Skype illustrated walkthrough — 10-step web-based flow including
+  // sign-in. Use when the user says they're calling on Skype. Skype was
+  // retired by Microsoft in 2025 but some users may still have accounts;
+  // treat as a supported flow until we hear otherwise.
+  'skype-video-call-demo': {
+    file: 'video-call/skype-video-call-demo.gif',
+    alt: 'Short demo: making a Skype video call from start to finish',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-1': {
+    file: 'video-call/skype-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser (Chrome shown; Edge, Firefox, or Safari work the same way)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-2': {
+    file: 'video-call/skype-illustrated-step-2.png',
+    alt: 'Step 2 — typing skype.com in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-3': {
+    file: 'video-call/skype-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the Sign in button on the Skype homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-4': {
+    file: 'video-call/skype-illustrated-step-4.png',
+    alt: 'Step 4 — entering your email address or phone number',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-5': {
+    file: 'video-call/skype-illustrated-step-5.png',
+    alt: 'Step 5 — typing your password and clicking Sign in',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-6': {
+    file: 'video-call/skype-illustrated-step-6.png',
+    alt: 'Step 6 — typing the name of the person you want to call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-7': {
+    file: 'video-call/skype-illustrated-step-7.png',
+    alt: 'Step 7 — clicking on the person\'s name in the search results',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-8': {
+    file: 'video-call/skype-illustrated-step-8.png',
+    alt: 'Step 8 — clicking the video camera button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-9': {
+    file: 'video-call/skype-illustrated-step-9.png',
+    alt: 'Step 9 — clicking Allow when your browser asks to use the camera and microphone',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-10': {
+    file: 'video-call/skype-illustrated-step-10.png',
+    alt: 'Step 10 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
+  // Microsoft Teams illustrated walkthrough — 10-step web-based flow.
+  // Step 6 is unique to Teams: choosing "Use the web app instead" rather
+  // than downloading the desktop app. Use when the user is on Teams
+  // (often for medical, work, or school calls).
+  'teams-video-call-demo': {
+    file: 'video-call/teams-video-call-demo.gif',
+    alt: 'Short demo: making a Microsoft Teams video call from start to finish',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-1': {
+    file: 'video-call/teams-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser (Chrome shown; Edge, Firefox, or Safari work the same way)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-2': {
+    file: 'video-call/teams-illustrated-step-2.png',
+    alt: 'Step 2 — typing teams.microsoft.com in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-3': {
+    file: 'video-call/teams-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the Sign in button on the Teams homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-4': {
+    file: 'video-call/teams-illustrated-step-4.png',
+    alt: 'Step 4 — entering your email address and clicking Next',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-5': {
+    file: 'video-call/teams-illustrated-step-5.png',
+    alt: 'Step 5 — typing your password and clicking Sign in',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-6': {
+    file: 'video-call/teams-illustrated-step-6.png',
+    alt: 'Step 6 — clicking "Use the web app instead" so you don\'t need to download anything',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-7': {
+    file: 'video-call/teams-illustrated-step-7.png',
+    alt: 'Step 7 — typing the person\'s name in the Search box at the top',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-8': {
+    file: 'video-call/teams-illustrated-step-8.png',
+    alt: 'Step 8 — clicking on the person\'s name in the search results',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-9': {
+    file: 'video-call/teams-illustrated-step-9.png',
+    alt: 'Step 9 — clicking the video camera button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-10': {
+    file: 'video-call/teams-illustrated-step-10.png',
+    alt: 'Step 10 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
   // --- Messaging (2) ---
   'imessage-new-message': {
     file: 'messaging/imessage-new-message.png',
