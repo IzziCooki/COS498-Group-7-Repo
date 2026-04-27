@@ -622,6 +622,52 @@ const LIBRARY = {
     category: 'system-windows',
     skills: ['wifi', 'network-fix'],
   },
+
+  // Windows Wi-Fi connect illustrated walkthrough — 6-step linear flow
+  // for users who need to join a wireless network on Windows. The
+  // matching GIF demo is `windows-wifi-connect-demo`.
+  'windows-wifi-connect-demo': {
+    file: 'system-windows/windows-wifi-connect-demo.gif',
+    alt: 'Short demo: connecting to a Wi-Fi network on Windows step by step',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-1': {
+    file: 'system-windows/windows-wifi-illustrated-step-1.png',
+    alt: 'Step 1 — clicking the Wi-Fi icon in the bottom-right corner of the screen (in the system tray)',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-2': {
+    file: 'system-windows/windows-wifi-illustrated-step-2.png',
+    alt: 'Step 2 — opening the list of nearby Wi-Fi networks',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-3': {
+    file: 'system-windows/windows-wifi-illustrated-step-3.png',
+    alt: 'Step 3 — clicking your home Wi-Fi network in the list',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-4': {
+    file: 'system-windows/windows-wifi-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the Connect button',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-5': {
+    file: 'system-windows/windows-wifi-illustrated-step-5.png',
+    alt: 'Step 5 — typing your Wi-Fi password (often printed on a sticker on the back or bottom of your internet box)',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-6': {
+    file: 'system-windows/windows-wifi-illustrated-step-6.png',
+    alt: 'Step 6 — connected! Your computer is now on the internet',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
   'windows-settings-gear': {
     file: 'system-windows/windows-settings-gear.png',
     alt: 'Gear-shaped Settings icon in the Start menu',
