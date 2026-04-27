@@ -687,6 +687,48 @@ const LIBRARY = {
     skills: ['*'],
   },
 
+  // --- Printing (universal) ---
+  // 6-asset set (1 GIF + 5 stills) for the standard print-a-document
+  // flow. Works on both Windows (Ctrl+P) and Mac (Cmd+P) — the only
+  // difference is the keystroke at step 3, which the agent adapts in
+  // its chat text based on the user's OS.
+  'print-document-demo': {
+    file: 'printing/print-document-demo.gif',
+    alt: 'Short demo: printing a document from open file to paper coming out',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-1': {
+    file: 'printing/print-document-illustrated-step-1.png',
+    alt: 'Step 1 — opening the document you want to print on your screen',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-2': {
+    file: 'printing/print-document-illustrated-step-2.png',
+    alt: 'Step 2 — pressing Ctrl and P together (or Command and P on Mac) to open the print window',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-3': {
+    file: 'printing/print-document-illustrated-step-3.png',
+    alt: 'Step 3 — the print window opens showing a preview of your document',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-4': {
+    file: 'printing/print-document-illustrated-step-4.png',
+    alt: 'Step 4 — checking the printer name and page count to make sure they look right',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-5': {
+    file: 'printing/print-document-illustrated-step-5.png',
+    alt: 'Step 5 — clicking the blue Print button to send the document to the printer',
+    category: 'printing',
+    skills: ['print'],
+  },
+
   // --- Mac system (3) ---
   'mac-apple-menu': {
     file: 'system-mac/mac-apple-menu.png',
