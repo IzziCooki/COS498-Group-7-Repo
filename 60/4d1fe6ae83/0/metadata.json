@@ -1,0 +1,23 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "604d1fe6ae83",
+  "session_id": "6fc09e9a-0498-45e3-a997-fcb93d1d3f32",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-27T22:45:08.0086711Z",
+  "branch": "frank/illustrated-flows-expansion",
+  "checkpoints_count": 2,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "7d90406e61f0",
+  "token_usage": {
+    "input_tokens": 1449,
+    "cache_creation_tokens": 5728744,
+    "cache_read_tokens": 231491690,
+    "output_tokens": 507922,
+    "api_call_count": 806
+  },
+  "session_metrics": {
+    "turn_count": 128
+  }
+}

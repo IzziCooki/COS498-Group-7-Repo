@@ -1,0 +1,23 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "604d1fe6ae83",
+  "strategy": "manual-commit",
+  "branch": "frank/illustrated-flows-expansion",
+  "checkpoints_count": 2,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/60/4d1fe6ae83/0/metadata.json",
+      "transcript": "/60/4d1fe6ae83/0/full.jsonl",
+      "content_hash": "/60/4d1fe6ae83/0/content_hash.txt",
+      "prompt": "/60/4d1fe6ae83/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1449,
+    "cache_creation_tokens": 5728744,
+    "cache_read_tokens": 231491690,
+    "output_tokens": 507922,
+    "api_call_count": 806
+  }
+}
