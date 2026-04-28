@@ -11,3 +11,7 @@ I don't think that would work because I think we're getting rid of the buddy sys
 ---
 
 Alright, let's let the buddy and dashboard remove us the first deliverable, and then we're keeping the admin in.
+
+---
+
+Let's go A all around, implement this in auto mode, let's crank out this feature.
