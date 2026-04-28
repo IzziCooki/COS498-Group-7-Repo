@@ -278,6 +278,267 @@ const LIBRARY = {
     skills: ['video-call'],
   },
 
+  // Zoom join-a-meeting illustrated walkthrough. Step 1 has 4 browser
+  // variants (chrome / edge / firefox / safari) — the agent picks the
+  // right one based on the user's stated browser. Steps 2-7 are the
+  // shared in-Zoom flow regardless of browser. The matching GIF demo
+  // is `zoom-video-call-demo`.
+  'zoom-video-call-demo': {
+    file: 'video-call/zoom-video-call-demo.gif',
+    alt: 'Short demo: opening your browser and joining a Zoom meeting step by step',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-chrome': {
+    file: 'video-call/zoom-illustrated-step-1-chrome.png',
+    alt: 'Step 1 — opening Chrome (the colorful circle on your taskbar) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-edge': {
+    file: 'video-call/zoom-illustrated-step-1-edge.png',
+    alt: 'Step 1 — opening Microsoft Edge (the blue and green wave) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-firefox': {
+    file: 'video-call/zoom-illustrated-step-1-firefox.png',
+    alt: 'Step 1 — opening Firefox (the orange fox around a blue globe) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-1-safari': {
+    file: 'video-call/zoom-illustrated-step-1-safari.png',
+    alt: 'Step 1 — opening Safari (the blue compass) to start joining a Zoom meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-2': {
+    file: 'video-call/zoom-illustrated-step-2.png',
+    alt: 'Step 2 — typing zoom.us in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-3': {
+    file: 'video-call/zoom-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the blue "Join a Meeting" button on the Zoom homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-4': {
+    file: 'video-call/zoom-illustrated-step-4.png',
+    alt: 'Step 4 — typing the meeting ID number that your doctor or family member sent you',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-5': {
+    file: 'video-call/zoom-illustrated-step-5.png',
+    alt: 'Step 5 — clicking the blue Join button to enter the meeting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-6': {
+    file: 'video-call/zoom-illustrated-step-6.png',
+    alt: 'Step 6 — clicking Allow when your browser asks to use the camera and microphone',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'zoom-illustrated-step-7': {
+    file: 'video-call/zoom-illustrated-step-7.png',
+    alt: 'Step 7 — you are in the call! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
+  // FaceTime illustrated walkthrough. Native Mac / iOS app so no browser
+  // variants needed — single 6-step linear flow plus an animated GIF
+  // overview. Use these when the user says they're calling on FaceTime
+  // (typically iPhone/iPad/Mac users).
+  'facetime-video-call-demo': {
+    file: 'video-call/facetime-video-call-demo.gif',
+    alt: 'Short demo: making a FaceTime video call step by step',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-1': {
+    file: 'video-call/facetime-illustrated-step-1.png',
+    alt: 'Step 1 — opening the FaceTime app from the Dock or app list',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-2': {
+    file: 'video-call/facetime-illustrated-step-2.png',
+    alt: 'Step 2 — clicking the New FaceTime button to start a new call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-3': {
+    file: 'video-call/facetime-illustrated-step-3.png',
+    alt: 'Step 3 — typing the name or phone number of the person you want to call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-4': {
+    file: 'video-call/facetime-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the green video button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-5': {
+    file: 'video-call/facetime-illustrated-step-5.png',
+    alt: 'Step 5 — waiting for the other person to answer (the screen shows their name and rings)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'facetime-illustrated-step-6': {
+    file: 'video-call/facetime-illustrated-step-6.png',
+    alt: 'Step 6 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
+  // Skype illustrated walkthrough — 10-step web-based flow including
+  // sign-in. Use when the user says they're calling on Skype. Skype was
+  // retired by Microsoft in 2025 but some users may still have accounts;
+  // treat as a supported flow until we hear otherwise.
+  'skype-video-call-demo': {
+    file: 'video-call/skype-video-call-demo.gif',
+    alt: 'Short demo: making a Skype video call from start to finish',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-1': {
+    file: 'video-call/skype-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser (Chrome shown; Edge, Firefox, or Safari work the same way)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-2': {
+    file: 'video-call/skype-illustrated-step-2.png',
+    alt: 'Step 2 — typing skype.com in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-3': {
+    file: 'video-call/skype-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the Sign in button on the Skype homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-4': {
+    file: 'video-call/skype-illustrated-step-4.png',
+    alt: 'Step 4 — entering your email address or phone number',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-5': {
+    file: 'video-call/skype-illustrated-step-5.png',
+    alt: 'Step 5 — typing your password and clicking Sign in',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-6': {
+    file: 'video-call/skype-illustrated-step-6.png',
+    alt: 'Step 6 — typing the name of the person you want to call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-7': {
+    file: 'video-call/skype-illustrated-step-7.png',
+    alt: 'Step 7 — clicking on the person\'s name in the search results',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-8': {
+    file: 'video-call/skype-illustrated-step-8.png',
+    alt: 'Step 8 — clicking the video camera button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-9': {
+    file: 'video-call/skype-illustrated-step-9.png',
+    alt: 'Step 9 — clicking Allow when your browser asks to use the camera and microphone',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'skype-illustrated-step-10': {
+    file: 'video-call/skype-illustrated-step-10.png',
+    alt: 'Step 10 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
+  // Microsoft Teams illustrated walkthrough — 10-step web-based flow.
+  // Step 6 is unique to Teams: choosing "Use the web app instead" rather
+  // than downloading the desktop app. Use when the user is on Teams
+  // (often for medical, work, or school calls).
+  'teams-video-call-demo': {
+    file: 'video-call/teams-video-call-demo.gif',
+    alt: 'Short demo: making a Microsoft Teams video call from start to finish',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-1': {
+    file: 'video-call/teams-illustrated-step-1.png',
+    alt: 'Step 1 — opening your internet browser (Chrome shown; Edge, Firefox, or Safari work the same way)',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-2': {
+    file: 'video-call/teams-illustrated-step-2.png',
+    alt: 'Step 2 — typing teams.microsoft.com in the address bar and pressing Enter',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-3': {
+    file: 'video-call/teams-illustrated-step-3.png',
+    alt: 'Step 3 — clicking the Sign in button on the Teams homepage',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-4': {
+    file: 'video-call/teams-illustrated-step-4.png',
+    alt: 'Step 4 — entering your email address and clicking Next',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-5': {
+    file: 'video-call/teams-illustrated-step-5.png',
+    alt: 'Step 5 — typing your password and clicking Sign in',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-6': {
+    file: 'video-call/teams-illustrated-step-6.png',
+    alt: 'Step 6 — clicking "Use the web app instead" so you don\'t need to download anything',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-7': {
+    file: 'video-call/teams-illustrated-step-7.png',
+    alt: 'Step 7 — typing the person\'s name in the Search box at the top',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-8': {
+    file: 'video-call/teams-illustrated-step-8.png',
+    alt: 'Step 8 — clicking on the person\'s name in the search results',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-9': {
+    file: 'video-call/teams-illustrated-step-9.png',
+    alt: 'Step 9 — clicking the video camera button to start the call',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+  'teams-illustrated-step-10': {
+    file: 'video-call/teams-illustrated-step-10.png',
+    alt: 'Step 10 — you are connected! Wave hello and start chatting',
+    category: 'video-call',
+    skills: ['video-call'],
+  },
+
   // --- Messaging (2) ---
   'imessage-new-message': {
     file: 'messaging/imessage-new-message.png',
@@ -361,6 +622,52 @@ const LIBRARY = {
     category: 'system-windows',
     skills: ['wifi', 'network-fix'],
   },
+
+  // Windows Wi-Fi connect illustrated walkthrough — 6-step linear flow
+  // for users who need to join a wireless network on Windows. The
+  // matching GIF demo is `windows-wifi-connect-demo`.
+  'windows-wifi-connect-demo': {
+    file: 'system-windows/windows-wifi-connect-demo.gif',
+    alt: 'Short demo: connecting to a Wi-Fi network on Windows step by step',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-1': {
+    file: 'system-windows/windows-wifi-illustrated-step-1.png',
+    alt: 'Step 1 — clicking the Wi-Fi icon in the bottom-right corner of the screen (in the system tray)',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-2': {
+    file: 'system-windows/windows-wifi-illustrated-step-2.png',
+    alt: 'Step 2 — opening the list of nearby Wi-Fi networks',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-3': {
+    file: 'system-windows/windows-wifi-illustrated-step-3.png',
+    alt: 'Step 3 — clicking your home Wi-Fi network in the list',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-4': {
+    file: 'system-windows/windows-wifi-illustrated-step-4.png',
+    alt: 'Step 4 — clicking the Connect button',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-5': {
+    file: 'system-windows/windows-wifi-illustrated-step-5.png',
+    alt: 'Step 5 — typing your Wi-Fi password (often printed on a sticker on the back or bottom of your internet box)',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
+  'windows-wifi-illustrated-step-6': {
+    file: 'system-windows/windows-wifi-illustrated-step-6.png',
+    alt: 'Step 6 — connected! Your computer is now on the internet',
+    category: 'system-windows',
+    skills: ['wifi', 'network-fix'],
+  },
   'windows-settings-gear': {
     file: 'system-windows/windows-settings-gear.png',
     alt: 'Gear-shaped Settings icon in the Start menu',
@@ -378,6 +685,48 @@ const LIBRARY = {
     alt: 'Search box next to the Start button at the bottom of the screen — type here to find apps or files',
     category: 'system-windows',
     skills: ['*'],
+  },
+
+  // --- Printing (universal) ---
+  // 6-asset set (1 GIF + 5 stills) for the standard print-a-document
+  // flow. Works on both Windows (Ctrl+P) and Mac (Cmd+P) — the only
+  // difference is the keystroke at step 3, which the agent adapts in
+  // its chat text based on the user's OS.
+  'print-document-demo': {
+    file: 'printing/print-document-demo.gif',
+    alt: 'Short demo: printing a document from open file to paper coming out',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-1': {
+    file: 'printing/print-document-illustrated-step-1.png',
+    alt: 'Step 1 — opening the document you want to print on your screen',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-2': {
+    file: 'printing/print-document-illustrated-step-2.png',
+    alt: 'Step 2 — pressing Ctrl and P together (or Command and P on Mac) to open the print window',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-3': {
+    file: 'printing/print-document-illustrated-step-3.png',
+    alt: 'Step 3 — the print window opens showing a preview of your document',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-4': {
+    file: 'printing/print-document-illustrated-step-4.png',
+    alt: 'Step 4 — checking the printer name and page count to make sure they look right',
+    category: 'printing',
+    skills: ['print'],
+  },
+  'print-document-illustrated-step-5': {
+    file: 'printing/print-document-illustrated-step-5.png',
+    alt: 'Step 5 — clicking the blue Print button to send the document to the printer',
+    category: 'printing',
+    skills: ['print'],
   },
 
   // --- Mac system (3) ---
