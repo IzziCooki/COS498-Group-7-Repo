@@ -1,0 +1,23 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "77649333f6ea",
+  "session_id": "38f6a403-acfb-4ee5-ab30-6d9d2b304939",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-28T21:32:52.8760229Z",
+  "branch": "refactor/remove-buddy-system",
+  "checkpoints_count": 4,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "394878b7bd82",
+  "token_usage": {
+    "input_tokens": 2359,
+    "cache_creation_tokens": 538269,
+    "cache_read_tokens": 15739664,
+    "output_tokens": 99934,
+    "api_call_count": 80
+  },
+  "session_metrics": {
+    "turn_count": 4
+  }
+}
