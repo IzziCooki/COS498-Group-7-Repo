@@ -209,6 +209,10 @@ function CommandGuide({ guide, onRunCommand, commandResults = {}, embedded = fal
               </button>
             </div>
           )}
+
+          {guide.source && (
+            <p className="cmd-guide__source">Source: {guide.source}</p>
+          )}
         </div>
       )}
     </div>

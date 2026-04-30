@@ -485,50 +485,46 @@ wss.on('connection', (ws, req) => {
           // Search YouTube
           const videos = await youtubeSearch.searchVideos(topic, 3);
 
-          // Use the AI to generate a brief summary and relevant links
-          let summary = `Here are resources related to: ${topic}`;
-          let links = [];
+          // Look up curated, verified resources instead of hallucinating URLs
+          const supportResourceLookup = require('./core/supportResourceLookup');
+          const user = userProfileManager.getOrCreateUser(userId);
+          const curatedLinks = supportResourceLookup.lookupResources(
+            topic,
+            user?.os_type || null,
+            null,
+          );
 
+          // Format curated links with source attribution
+          const links = curatedLinks.map(r => ({
+            title: r.title,
+            url: r.url,
+            description: r.description,
+            time: r.time,
+            type: r.type,
+            source: r.source,
+          }));
+
+          // Use AI only for generating a friendly summary (no URLs)
+          let summary = `Here are resources related to: ${topic}`;
           try {
             const { anthropicApiKey } = require('./config');
-            const { matchSkill, buildSkillPrompt } = require('./core/skillMatcher');
-
             if (anthropicApiKey && process.env.MOCK_MODE !== 'true') {
-              // Load the gather-resources skill prompt for curation guidance
-              const skillMatch = matchSkill('find resources about ' + topic);
-              const skillPrompt = skillMatch ? buildSkillPrompt(skillMatch.skill) : '';
-
               const Anthropic = require('@anthropic-ai/sdk');
               const client = new Anthropic({ apiKey: anthropicApiKey });
               const aiResponse = await client.messages.create({
                 model: 'claude-sonnet-4-20250514',
-                max_tokens: 800,
-                system: `You curate learning resources for elderly and beginner computer users. ${skillPrompt}`,
+                max_tokens: 200,
+                system: 'You write brief 2-3 sentence summaries for elderly computer users. Plain language, no jargon, under 60 words.',
                 messages: [{
                   role: 'user',
-                  content: `The user is learning about: "${topic}". Recent conversation: "${conversationTopics.substring(0, 300)}".
-
-Return a JSON object with:
-1. "summary": A 2-3 sentence plain-English summary of the topic and why these resources help (under 60 words). Write like you're explaining to a grandparent.
-2. "links": An array of 3-5 resource objects, each with:
-   - "title": Name of the resource
-   - "url": Real URL (only well-known sites you're confident exist: Apple Support, Microsoft Support, wikiHow, YouTube, public libraries)
-   - "description": One sentence explaining WHY this is useful, e.g. "Shows you exactly which buttons to click with big pictures"
-   - "time": Estimated time, e.g. "Quick read (2 min)" or "Short video (5 min)"
-   - "type": One of "watch", "read", or "try"
-
-Order from easiest to most detailed. ONLY include URLs you are confident are real. Return ONLY valid JSON.`,
+                  content: `Write a 2-3 sentence summary explaining why resources about "${topic}" are helpful for someone learning to use their computer. Write like you're explaining to a grandparent.`,
                 }],
               });
-              const jsonText = aiResponse.content[0]?.text || '';
-              // Strip markdown fences if present
-              const cleanJson = jsonText.replace(/```json\n?|\n?```/g, '').trim();
-              const parsed = JSON.parse(cleanJson);
-              summary = parsed.summary || summary;
-              links = parsed.links || [];
+              const text = aiResponse.content[0]?.text || '';
+              if (text) summary = text;
             }
           } catch (aiErr) {
-            console.error('[ws] AI resource generation failed:', aiErr.message);
+            console.error('[ws] AI summary generation failed:', aiErr.message);
           }
 
           if (ws.readyState === ws.OPEN) {

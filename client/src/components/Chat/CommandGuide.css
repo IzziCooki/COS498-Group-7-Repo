@@ -368,6 +368,14 @@
   }
 }
 
+.cmd-guide__source {
+  font-size: 13px;
+  color: #059669;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .cmd-guide__command-row {

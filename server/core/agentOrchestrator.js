@@ -318,7 +318,7 @@ const tools = [
   },
   {
     name: 'find_youtube_videos',
-    description: "Search YouTube for helpful tutorial videos related to the user's question. Use when the user asks to see a video, wants a visual demonstration, or would benefit from watching someone do the task. Returns playable videos in the chat.",
+    description: "Search YouTube for helpful tutorial videos. PROACTIVELY call this whenever teaching a new skill — elderly users strongly prefer watching someone do it. Also use when the user asks to see a video or would benefit from a visual demonstration. Videos appear automatically in the chat.",
     input_schema: {
       type: 'object',
       properties: {
@@ -350,6 +350,19 @@ const tools = [
         program_name: { type: 'string', description: "The program that showed the error" },
       },
       required: ['dll_name'],
+    },
+  },
+  {
+    name: 'lookup_support_resources',
+    description: "Look up verified official support links for a topic. Returns curated resources from Apple Support, Microsoft Support, Google Support, Zoom Support, and other trusted sources. PROACTIVELY call this when teaching any new skill — the user gets official links they can bookmark or share with family. ALWAYS call this instead of generating URLs from memory.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        topic: { type: 'string', description: "The topic to find resources for, e.g. 'copy and paste', 'connect to wifi'" },
+        os_type: { type: 'string', description: "User's OS if known: Windows, macOS, iPhone, Android" },
+        service: { type: 'string', description: "Specific service if known: gmail, outlook, yahoo, zoom, facetime" },
+      },
+      required: ['topic'],
     },
   },
 ];
@@ -443,6 +456,14 @@ BAD: Listing 4 apps with color bullets in chat text — even if framed as "commo
 BAD: Immediately creating a "pick one from these" guide before the user has said "I don't know."
 
 Only if the user says "I don't know" / "how do I pick?" should you show options — and even then, put them in a create_guide with image_id for each option, never inline bullets in chat text.
+
+## GROUNDING RULES (most important)
+
+1. **NEVER make up information.** If you don't know something, say "I'm not sure about that" or ask the user.
+2. **Only state facts you got from a tool result.** If you didn't run a diagnostic tool, don't claim to know what's on the user's computer.
+3. **Don't fill gaps with assumptions.** If the user asks something you can't verify, say so and offer to help them check.
+4. **NEVER generate URLs from memory.** When you want to recommend a support article, tutorial, or official page, call \`lookup_support_resources\` first. If no curated resource exists, tell the user to visit the official support site for their device (support.apple.com, support.microsoft.com, support.google.com) or search wikiHow.com — do NOT invent a URL.
+5. **When creating guides based on official documentation**, include the \`source\` parameter to give credit, e.g. source: "Based on Apple Support" or source: "From Microsoft Support".
 
 ## SIMPLE LANGUAGE IN GUIDES (applies to create_guide, show_visual_guide, and start_step_sequence)
 
@@ -643,6 +664,14 @@ You have access to the user's computer and can run safe, read-only diagnostics. 
 - get_battery_status: Check battery level and charging state. Use when user asks about battery or computer shuts off unexpectedly.
 - take_screenshot: Capture and analyze the user's actual screen. ALWAYS call this when the user asks "can you see my screen?", says they can't find a button/icon/setting, or you need to verify what they're seeing.
 - diagnose_missing_dll: When a user reports a missing DLL error or a program that won't start, call this with the DLL name to get the official fix. NEVER suggest downloading DLL files from third-party websites — they often contain malware. Always use this tool to identify the correct Microsoft installer.
+- lookup_support_resources: Look up verified official support links for any topic. PROACTIVELY call this when teaching any new skill — the user gets official links they can bookmark or share with family. Pass the user's OS type for device-specific results. ALWAYS call this instead of generating URLs from memory.
+
+## Proactive Resource Usage
+
+When teaching a new skill:
+1. Call find_youtube_videos with a beginner-friendly search query — elderly users strongly prefer watching someone do it.
+2. Call lookup_support_resources so the user also gets official links they can revisit later.
+3. You can call create_guide, find_youtube_videos, and lookup_support_resources in the SAME turn.
 
 ### How to Use Diagnostic Tools
 1. When the user describes a problem, FIRST use the relevant diagnostic tool to gather real data
@@ -1118,6 +1147,26 @@ IMPORTANT RULES FOR YOUR RESPONSE:
       console.error('[agentOrchestrator] diagnose_missing_dll error:', err.message);
       result = 'DLL diagnosis failed: ' + err.message;
     }
+  } else if (name === 'lookup_support_resources') {
+    try {
+      const supportResourceLookup = require('./supportResourceLookup');
+      const results = supportResourceLookup.lookupResources(
+        args.topic || '',
+        args.os_type || null,
+        args.service || null,
+      );
+      if (results.length === 0) {
+        result = 'NO_CURATED_RESOURCES: No verified resources found for this topic. Do NOT generate URLs from memory — instead, suggest the user search on the official support site for their device (support.apple.com, support.microsoft.com, support.google.com) or on wikiHow.com.';
+      } else {
+        const formatted = results.map((r, i) =>
+          `${i + 1}. [${r.source}] ${r.title}\n   URL: ${r.url}\n   ${r.description} (${r.time})`
+        ).join('\n');
+        result = `VERIFIED_RESOURCES:\n${formatted}`;
+      }
+    } catch (err) {
+      console.error('[agentOrchestrator] lookup_support_resources error:', err.message);
+      result = 'Unable to look up resources right now.';
+    }
   } else if (name === 'take_screenshot') {
     try {
       if (!_requestScreenshotFn) {
@@ -1363,6 +1412,19 @@ async function processMessage(text, userId, context = {}) {
       return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null };
     }
 
+    // Step 8a: Extract tool markers from response text
+    // YouTube videos from find_youtube_videos tool
+    let videos = null;
+    const ytMatch = finalTextResponse.match(/YOUTUBE_VIDEOS:(\[[\s\S]*?\])/);
+    if (ytMatch) {
+      try { videos = JSON.parse(ytMatch[1]); } catch (e) { /* ignore parse errors */ }
+      finalTextResponse = finalTextResponse.replace(/YOUTUBE_VIDEOS:\[[\s\S]*?\]/g, '').trim();
+    }
+
+    // Clean verified resource / no-resource markers from response text
+    finalTextResponse = finalTextResponse.replace(/VERIFIED_RESOURCES:\n[\s\S]*?(?=\n\n|$)/g, '').trim();
+    finalTextResponse = finalTextResponse.replace(/NO_CURATED_RESOURCES:[\s\S]*?(?=\n\n|$)/g, '').trim();
+
     // Step 8: Filter response
     const vocabLevel = user.vocabulary_level || 'basic';
     let filteredResponse = vocabularyProgression.filterWithProgression(finalTextResponse, vocabLevel, userId);
@@ -1395,7 +1457,7 @@ async function processMessage(text, userId, context = {}) {
     const screenshot = getAndClearLastScreenshot();
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, screenshot: screenshot || null };
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, screenshot: screenshot || null };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };
