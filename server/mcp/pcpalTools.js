@@ -46,6 +46,7 @@ const ScamCheckEvent = require('../models/ScamCheckEvent');
 const conversationState = require('../core/conversationState');
 const userProfileManager = require('../core/userProfileManager');
 const dllKnowledge = require('../assets/dll-knowledge.json');
+const supportResourceLookup = require('../core/supportResourceLookup');
 
 function textResult(text) {
   return { content: [{ type: 'text', text: String(text) }] };
@@ -782,6 +783,7 @@ const createGuide = tool(
   {
     title: z.string().describe('Short title for the guide, e.g. "Set Up Ollama on Mac"'),
     description: z.string().optional().describe('One-sentence summary of what this guide accomplishes'),
+    source: z.string().optional().describe('Attribution for the guide content when based on official documentation, e.g. "Based on Apple Support" or "From Microsoft Support"'),
     steps: z.array(z.object({
       text: z.string().describe('What this step does in plain English'),
       command: z.string().optional().describe('Terminal command to run (shown in a code block with Copy and Run buttons)'),
@@ -821,12 +823,44 @@ const createGuide = tool(
     const guide = {
       title: args.title,
       description: args.description || null,
+      source: args.source || null,
       steps: expandedSteps,
     };
     _lastGuide = guide;
     const imageCount = expandedSteps.filter(s => s.image).length;
     console.log(`[MCP] Guide finalized: "${args.title}" (${args.steps.length} steps, ${imageCount} with images)`);
     return textResult(`Guide "${args.title}" has been created and will appear as an interactive card in the chat. Do NOT repeat the commands in your text — the user can see them in the guide card.`);
+  }
+);
+
+// ── Support resource lookup ────────────────────────────────
+
+const lookupSupportResources = tool(
+  'lookup_support_resources',
+  'Look up verified official support links for a topic. Returns curated resources from Apple Support, Microsoft Support, Google Support, Zoom Support, wikiHow, and other trusted sources. ALWAYS call this instead of generating URLs from memory — it prevents broken links.',
+  {
+    topic: z.string().describe('The topic to find resources for, e.g. "copy and paste", "connect to wifi", "send email"'),
+    os_type: z.string().optional().describe("User's OS if known: Windows, macOS, iPhone, Android"),
+    service: z.string().optional().describe('Specific service if known: gmail, outlook, yahoo, zoom, facetime'),
+  },
+  async (args) => {
+    const results = supportResourceLookup.lookupResources(
+      args.topic,
+      args.os_type || null,
+      args.service || null,
+    );
+    if (results.length === 0) {
+      return textResult(
+        'NO_CURATED_RESOURCES: No verified resources found for this topic. ' +
+        'Do NOT generate URLs from memory — instead, suggest the user search ' +
+        'on the official support site for their device (support.apple.com, ' +
+        'support.microsoft.com, support.google.com) or on wikiHow.com.'
+      );
+    }
+    const formatted = results.map((r, i) =>
+      `${i + 1}. [${r.source}] ${r.title}\n   URL: ${r.url}\n   ${r.description} (${r.time})`
+    ).join('\n');
+    return textResult(`VERIFIED_RESOURCES:\n${formatted}`);
   }
 );
 
@@ -878,6 +912,8 @@ function createPcPalMcpServer() {
       // Artifacts
       createGuide,
       createFindings,
+      // Resource grounding
+      lookupSupportResources,
     ],
   });
 }

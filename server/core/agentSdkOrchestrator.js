@@ -92,6 +92,8 @@ Only if the user says "I don't know" / "how do I pick?" should you show options 
 3. **The user's device is ${user?.os_type || 'unknown'}.** ONLY give instructions for this device. If the user's device doesn't match what diagnostic tools report (e.g., user says Android but tools show macOS), the tools are reading the SERVER, not the user's device. In that case, give instructions based on what the USER told you, not tool output. Say "Based on your ${user?.os_type || 'device'}..." and ignore contradictory tool data.
 4. **If you're unsure whether info is about the user's device or the server**, ask: "Just to make sure — are you using a [device type]?"
 5. **Don't fill gaps with assumptions.** If the user asks something you can't verify, say so and offer to help them check.
+6. **NEVER generate URLs from memory.** When you want to recommend a support article, tutorial, or official page, call \`lookup_support_resources\` first. If no curated resource exists, tell the user to visit the official support site for their device (support.apple.com, support.microsoft.com, support.google.com) or search wikiHow.com — do NOT invent a URL.
+7. **When creating guides based on official documentation**, include the \`source\` parameter to give credit, e.g. source: "Based on Apple Support" or source: "From Microsoft Support".
 
 ## How to respond
 
@@ -110,11 +112,18 @@ Call save_memory BEFORE your text response with one observation:
 - breakthrough: something they mastered
 - pattern: behavioral pattern noticed
 
-## Artifacts
+## Artifacts & Resources
 
 - **create_guide** — multi-step tasks (text just introduces: "Here's how"). **Every step that describes a button, icon, or UI element listed in AVAILABLE UI REFERENCES below MUST include "image_id": "<exact-id>" so the user sees a picture alongside the text.**
 - **create_findings** — after diagnostics (text just states the takeaway)
-- **find_youtube_videos** — videos appear automatically, don't list in text
+- **find_youtube_videos** — searches YouTube for tutorial videos. **Proactively call this when teaching any new skill** — elderly users strongly prefer watching someone do it over reading steps. You do NOT need to mention "YouTube" in your text; the videos appear automatically in the chat. Call it alongside your guide, not instead of it.
+- **lookup_support_resources** — looks up verified official support links. **Proactively call this after creating a guide** so the user also gets an official reference they can bookmark. Pass the user's OS for device-specific results. The links appear automatically in the response.
+
+### When to use resources proactively:
+1. **Every time you create a guide**, also call find_youtube_videos with a search query matching the skill (e.g. "how to copy and paste on Mac for beginners"). Videos help elderly users more than text.
+2. **Every time you teach a new skill**, also call lookup_support_resources so the user gets official links they can revisit later or share with family.
+3. **When troubleshooting**, call find_youtube_videos if the issue is common (wifi problems, slow computer, etc.) — a video walkthrough is often the fastest path to resolution.
+4. You can call create_guide, find_youtube_videos, and lookup_support_resources in the SAME turn — they work together, not as alternatives.
 ${skillImagePrompt || ''}
 
 ## SIMPLE LANGUAGE IN GUIDE STEPS (critical)
@@ -176,6 +185,8 @@ If the user explicitly abandons the first task ("forget the email"), follow thei
 When the user asks if you can see their screen, ALWAYS call take_screenshot immediately — don't just say yes or describe what you think is there.
 
 **Windows DLL diagnosis:** diagnose_missing_dll — when a user reports a missing DLL error or program that won't start on Windows, call this with the DLL name. It identifies the correct official Microsoft fix. NEVER suggest downloading individual DLL files from the internet — always use this tool.
+
+**Resource grounding:** lookup_support_resources — look up verified support links for any topic. Pass the user's OS type for device-specific results. Call alongside create_guide when teaching new skills.
 
 **Auto-call when relevant:** log_skill_started, schedule_skill_review, save_note_for_user, save_user_goal, adjust_vocabulary_level, save_memory, recall_memories
 ${screenContext || ''}
@@ -351,20 +362,40 @@ async function processMessage(text, userId, context = {}) {
       finalResponse = finalResponse.replace(/VISUAL_GUIDE:\w+/g, '').trim();
     }
 
-    // Search YouTube server-side when video skill matches (structured data, not markers)
+    // Extract YouTube videos if the agent called find_youtube_videos (MCP tool marker)
     let videos = null;
-    if (matchedSkillId === 'youtube_help' || (finalResponse.toLowerCase().includes('video') && finalResponse.toLowerCase().includes('youtube'))) {
+    const ytMarkerMatch = finalResponse.match(/YOUTUBE_VIDEOS:(\[[\s\S]*?\])/);
+    if (ytMarkerMatch) {
       try {
-        // Extract what the user actually asked about for the search query
+        videos = JSON.parse(ytMarkerMatch[1]);
+        console.log(`[agentSdkOrchestrator] YouTube videos from MCP tool: ${videos.length} results`);
+      } catch (e) {
+        console.warn('[agentSdkOrchestrator] Failed to parse YOUTUBE_VIDEOS marker');
+      }
+      finalResponse = finalResponse.replace(/YOUTUBE_VIDEOS:\[[\s\S]*?\]/g, '').trim();
+    }
+
+    // Fallback: search YouTube server-side if agent didn't call the tool but skill matches
+    if (!videos && (matchedSkillId === 'youtube_help' || (finalResponse.toLowerCase().includes('video') && finalResponse.toLowerCase().includes('youtube')))) {
+      try {
         const searchQuery = text.replace(/show me a video|find me a video|youtube|tutorial|video about|can you get me a video/gi, '').trim();
         if (searchQuery.length > 3) {
           videos = await youtubeSearch.searchVideos(searchQuery, 3);
-          console.log(`[agentSdkOrchestrator] YouTube search for "${searchQuery}": ${videos.length} results`);
+          console.log(`[agentSdkOrchestrator] YouTube fallback search for "${searchQuery}": ${videos.length} results`);
         }
       } catch (err) {
         console.error('[agentSdkOrchestrator] YouTube search failed:', err.message);
       }
     }
+
+    // Extract verified resources if the agent called lookup_support_resources (MCP tool marker)
+    const verifiedMatch = finalResponse.match(/VERIFIED_RESOURCES:\n([\s\S]*?)(?=\n\n|$)/);
+    if (verifiedMatch) {
+      // Clean the marker from the response — the links are rendered separately
+      finalResponse = finalResponse.replace(/VERIFIED_RESOURCES:\n[\s\S]*?(?=\n\n|$)/g, '').trim();
+    }
+    // Also clean NO_CURATED_RESOURCES markers from the response
+    finalResponse = finalResponse.replace(/NO_CURATED_RESOURCES:[\s\S]*?(?=\n\n|$)/g, '').trim();
 
     // Check if artifacts were created during the tool loop
     const guide = getAndClearLastGuide();
