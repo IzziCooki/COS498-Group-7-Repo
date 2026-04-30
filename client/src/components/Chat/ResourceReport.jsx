@@ -36,6 +36,7 @@ function ResourceReport({ resources }) {
                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="res-report__link">
                   {link.title || link.url}
                 </a>
+                {link.source && <span className="res-report__link-source">{link.source}</span>}
                 {link.time && <span className="res-report__link-time">{link.time}</span>}
               </div>
               {link.description && <span className="res-report__link-desc">{link.description}</span>}

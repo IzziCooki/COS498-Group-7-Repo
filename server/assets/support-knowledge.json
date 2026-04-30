@@ -1,0 +1,750 @@
+{
+  "categories": {
+    "copy-paste": {
+      "name": "Copy and Paste",
+      "skill_ids": ["copy-paste"],
+      "keywords": ["copy", "paste", "clipboard", "cut", "ctrl+c", "ctrl+v", "command+c", "command+v", "duplicate text"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Using the clipboard",
+            "url": "https://support.microsoft.com/en-us/windows/using-the-clipboard-30375039-ce71-9fe4-5b30-21b7aab6b13f",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Official Microsoft guide to copying, pasting, and using the clipboard in Windows"
+          }
+        ],
+        "mac": [
+          {
+            "title": "How to copy and paste on Mac",
+            "url": "https://support.apple.com/en-us/102553",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's official guide to copying and pasting on a Mac, with keyboard shortcuts"
+          }
+        ],
+        "general": []
+      }
+    },
+    "wifi": {
+      "name": "Connect to Wi-Fi",
+      "skill_ids": ["wifi"],
+      "keywords": ["wifi", "wi-fi", "wireless", "internet", "connect", "network", "no internet"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Connect to a Wi-Fi network in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/connect-to-a-wi-fi-network-in-windows-1f881677-b569-0cd5-010d-e3cd3579d263",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Official Microsoft guide to connecting to wireless networks on Windows"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Connect to Wi-Fi on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/111107",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's official guide to connecting your iPhone or iPad to a Wi-Fi network"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Connect to Wi-Fi on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/111107",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's official guide to connecting your devices to a Wi-Fi network"
+          }
+        ],
+        "general": []
+      }
+    },
+    "email": {
+      "name": "Send an Email",
+      "skill_ids": ["send-email"],
+      "keywords": ["email", "e-mail", "gmail", "outlook", "yahoo", "send", "compose", "inbox", "mail"],
+      "resources": {
+        "gmail": [
+          {
+            "title": "Write and send email - Gmail Help",
+            "url": "https://support.google.com/mail/answer/9259768?hl=en",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Google's official guide to composing and sending emails in Gmail"
+          }
+        ],
+        "outlook": [
+          {
+            "title": "Create and send email in Outlook",
+            "url": "https://support.microsoft.com/en-us/office/create-and-send-email-in-outlook-19c32deb-08b6-4f90-a211-02bc5f77f360",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's official guide to writing and sending emails in Outlook"
+          }
+        ],
+        "general": []
+      }
+    },
+    "attach-file": {
+      "name": "Attach a File to Email",
+      "skill_ids": ["attach-file"],
+      "keywords": ["attach", "attachment", "file", "send file", "paperclip", "add photo", "add document"],
+      "resources": {
+        "gmail": [
+          {
+            "title": "Send attachments with your Gmail message",
+            "url": "https://support.google.com/mail/answer/6584?hl=en",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Google's guide to attaching files, photos, and documents to Gmail emails"
+          }
+        ],
+        "outlook": [
+          {
+            "title": "Add pictures or attach files to emails in Outlook",
+            "url": "https://support.microsoft.com/en-us/office/add-pictures-or-attach-files-to-emails-in-outlook-bdfafef5-792a-42b1-9a7b-84512d7de7fc",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's guide to attaching files, photos, and documents in Outlook"
+          }
+        ],
+        "general": []
+      }
+    },
+    "browser": {
+      "name": "Using a Web Browser",
+      "skill_ids": ["browser"],
+      "keywords": ["browser", "internet", "web", "edge", "chrome", "safari", "firefox", "website", "search", "google", "address bar", "url", "tab"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Get to know Microsoft Edge",
+            "url": "https://support.microsoft.com/en-us/microsoft-edge/get-to-know-microsoft-edge-3f4bb0ff-58de-2188-55c0-f560b7e20bea",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's official introduction to using the Edge web browser"
+          },
+          {
+            "title": "Use Chrome at home",
+            "url": "https://support.google.com/chrome/answer/9795973?hl=en",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Google's guide to downloading and getting started with Chrome browser"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Get started with Safari on Mac",
+            "url": "https://support.apple.com/guide/safari/get-started-ibrw6fde4ee8/mac",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's official guide to using Safari — searching, bookmarks, and tabs"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Get started with Safari on iPhone",
+            "url": "https://support.apple.com/guide/iphone/get-started-with-safari-iph7384445c6/ios",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's guide to browsing the web with Safari on your iPhone"
+          }
+        ],
+        "general": [
+          {
+            "title": "Google Chrome Help",
+            "url": "https://support.google.com/chrome/?hl=en",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Google's official Chrome help center — covers basics for any device"
+          }
+        ]
+      }
+    },
+    "video-call": {
+      "name": "Video Calling",
+      "skill_ids": ["video-call"],
+      "keywords": ["video call", "zoom", "facetime", "google meet", "teams", "skype", "video chat", "meeting"],
+      "resources": {
+        "zoom": [
+          {
+            "title": "Joining a Zoom meeting",
+            "url": "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0060732",
+            "source": "Zoom Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Zoom's official guide to joining a meeting — covers link, phone, and browser methods"
+          },
+          {
+            "title": "Getting started guide for new users",
+            "url": "https://support.zoom.com/hc/en/article?id=zm_kb&sysparm_article=KB0061316",
+            "source": "Zoom Support",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Zoom's beginner guide for setting up your account and joining your first meeting"
+          }
+        ],
+        "facetime": [
+          {
+            "title": "Use FaceTime on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/105088",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's official guide to making and receiving FaceTime video calls"
+          },
+          {
+            "title": "Get started with FaceTime on iPhone",
+            "url": "https://support.apple.com/guide/iphone/get-started-with-facetime-iphc4774d8d8/ios",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's beginner guide to setting up and using FaceTime"
+          }
+        ],
+        "google-meet": [
+          {
+            "title": "Join a Google Meet meeting",
+            "url": "https://support.google.com/meet/answer/9303069?hl=en&co=GENIE.Platform%3DDesktop",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Google's official guide to joining a Meet video call on your computer"
+          },
+          {
+            "title": "Start or schedule a Google Meet video meeting",
+            "url": "https://support.google.com/meet/answer/9302870?hl=en&co=GENIE.Platform%3DDesktop",
+            "source": "Google Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Google's guide to starting your own video meeting in Google Meet"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Use FaceTime on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/105088",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's official FaceTime guide for iPhone and iPad"
+          }
+        ],
+        "general": [
+          {
+            "title": "Your Guide to Getting Started with Zoom Meetings",
+            "url": "https://support.zoom.com/hc/en/getting-started-with-meetings?id=zoom_meetings_guide",
+            "source": "Zoom Support",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Complete beginner guide to hosting and joining Zoom meetings"
+          }
+        ]
+      }
+    },
+    "text-message": {
+      "name": "Send a Text Message",
+      "skill_ids": ["text-message"],
+      "keywords": ["text", "message", "sms", "imessage", "texting", "send text", "text message"],
+      "resources": {
+        "iphone": [
+          {
+            "title": "Use Messages on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/104982",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's guide to sending text messages and iMessages on iPhone"
+          },
+          {
+            "title": "Send and reply to messages on iPhone",
+            "url": "https://support.apple.com/guide/iphone/send-and-reply-to-messages-iph82fb73ba3/ios",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Step-by-step guide to composing and sending texts on iPhone"
+          }
+        ],
+        "general": []
+      }
+    },
+    "password": {
+      "name": "Passwords and Accounts",
+      "skill_ids": ["password"],
+      "keywords": ["password", "login", "sign in", "account", "forgot password", "reset password", "change password", "lock", "unlock"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Change or reset your password in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/change-or-reset-your-password-in-windows-8271d17c-9f9e-443f-835a-8318c8f68b9c",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Official Microsoft guide to changing or resetting your Windows password"
+          }
+        ],
+        "general": []
+      }
+    },
+    "photos": {
+      "name": "Managing Photos",
+      "skill_ids": ["photos"],
+      "keywords": ["photo", "photos", "picture", "camera", "gallery", "album", "transfer", "share", "upload"],
+      "resources": {
+        "iphone": [
+          {
+            "title": "Transfer photos and videos from your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/120267",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's official guide to moving photos from iPhone to your computer"
+          }
+        ],
+        "general": []
+      }
+    },
+    "app-install": {
+      "name": "Install an App",
+      "skill_ids": ["app-install"],
+      "keywords": ["install", "download", "app", "application", "program", "software", "app store", "microsoft store", "get app"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Get apps from Microsoft Store",
+            "url": "https://support.microsoft.com/en-us/account-billing/get-apps-from-microsoft-store-on-your-windows-pc-f69412b3-3e5c-9122-1e87-820bd718058a",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's guide to finding and installing apps from the Microsoft Store"
+          },
+          {
+            "title": "How to install programs from online sources",
+            "url": "https://support.microsoft.com/en-us/windows/how-to-install-programs-from-online-sources-on-windows-a503e8b6-e45b-fd5a-f4c5-5a08c8bd9821",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's guide to safely downloading and installing programs from the web"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Download apps on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/102590",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's official guide to finding and installing apps from the App Store"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Download apps from the App Store on your Mac",
+            "url": "https://support.apple.com/en-us/111105",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's guide to installing apps on Mac from the App Store"
+          }
+        ],
+        "general": []
+      }
+    },
+    "update-device": {
+      "name": "Update Your Device",
+      "skill_ids": ["update-device"],
+      "keywords": ["update", "upgrade", "windows update", "ios update", "software update", "latest version", "out of date"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Install Windows Updates",
+            "url": "https://support.microsoft.com/en-us/windows/install-windows-updates-3c5ae7fc-9fb6-9af1-1984-b5e0412c556a",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's official guide to checking for and installing Windows updates"
+          },
+          {
+            "title": "Troubleshoot problems updating Windows",
+            "url": "https://support.microsoft.com/en-us/windows/troubleshoot-problems-updating-windows-188c2b0f-10a7-d72f-65b8-32d177eb136c",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Microsoft's troubleshooting guide when Windows updates won't install"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Update your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/118575",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's step-by-step guide to updating iOS on your iPhone or iPad"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Update macOS on Mac",
+            "url": "https://support.apple.com/en-us/108382",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's official guide to updating your Mac's operating system"
+          }
+        ],
+        "general": []
+      }
+    },
+    "text-size": {
+      "name": "Change Text Size",
+      "skill_ids": ["text-size"],
+      "keywords": ["text size", "font size", "bigger text", "larger text", "zoom", "magnify", "can't read", "too small", "display"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Change the size of text in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/change-the-size-of-text-in-windows-1d5830c3-eee3-8eaa-836b-abcc37d99b9a",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Official Microsoft guide to making text bigger on your Windows screen"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Customize the text size and zoom setting on iPhone",
+            "url": "https://support.apple.com/guide/iphone/customize-the-text-size-and-zoom-setting-iphd6804774e/ios",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's guide to making text bigger and using zoom on your iPhone"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Increase the size of what's on the Mac screen",
+            "url": "https://support.apple.com/guide/mac-help/increase-the-size-of-whats-on-your-screen-mchlbc4c53ca/mac",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's guide to making everything bigger on your Mac screen"
+          }
+        ],
+        "general": []
+      }
+    },
+    "settings": {
+      "name": "Device Settings",
+      "skill_ids": ["settings"],
+      "keywords": ["settings", "preferences", "options", "control panel", "system settings", "configure", "setup"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Exploring Windows Settings",
+            "url": "https://support.microsoft.com/en-us/windows/exploring-windows-settings-56bdfb5a-b809-4e65-9c90-4bab76745e19",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's official guide to finding and using Windows Settings"
+          },
+          {
+            "title": "Find settings in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/find-settings-in-windows-6ffbef87-e633-45ac-a1e8-b7a834578ac6",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "How to find specific settings using the Windows Settings search"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Find settings on iPhone",
+            "url": "https://support.apple.com/guide/iphone/find-settings-iph079e1fe9d/ios",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's guide to finding and changing settings on your iPhone"
+          }
+        ],
+        "general": []
+      }
+    },
+    "restart": {
+      "name": "Restart Your Device",
+      "skill_ids": ["restart"],
+      "keywords": ["restart", "reboot", "shut down", "turn off", "power off", "frozen", "stuck", "not responding"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Shut down, sleep, or hibernate your PC",
+            "url": "https://support.microsoft.com/en-us/windows/shut-down-sleep-or-hibernate-your-pc-2941d165-7d0a-a5e8-c5ad-8c972e8e6eff",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Official Microsoft guide to shutting down, restarting, and putting your PC to sleep"
+          },
+          {
+            "title": "Restart (reboot) your PC",
+            "url": "https://support.microsoft.com/en-us/windows/restart-reboot-your-pc-110262aa-fc79-1c33-7b00-c140ae3a6dac",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Microsoft's quick guide to restarting your Windows computer"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Restart your iPhone",
+            "url": "https://support.apple.com/en-us/118259",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (1 min)",
+            "description": "Apple's official guide to restarting any iPhone model"
+          }
+        ],
+        "general": []
+      }
+    },
+    "screenshot": {
+      "name": "Take a Screenshot",
+      "skill_ids": ["screenshot"],
+      "keywords": ["screenshot", "screen shot", "screen capture", "print screen", "snip", "snipping tool"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Use Snipping Tool to capture screenshots",
+            "url": "https://support.microsoft.com/en-us/windows/use-snipping-tool-to-capture-screenshots-00246869-1843-655f-f220-97299b865f6b",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Official Microsoft guide to taking screenshots with Snipping Tool"
+          }
+        ],
+        "mac": [
+          {
+            "title": "Take a screenshot on Mac",
+            "url": "https://support.apple.com/en-us/102646",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (2 min)",
+            "description": "Apple's official guide to capturing screenshots on a Mac"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Take a screenshot on your iPhone",
+            "url": "https://support.apple.com/en-us/102616",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (1 min)",
+            "description": "Apple's official guide to taking screenshots on any iPhone model"
+          }
+        ],
+        "general": []
+      }
+    },
+    "slow-computer": {
+      "name": "Slow Computer",
+      "skill_ids": ["slow-computer", "diagnose-system", "system-checkup"],
+      "keywords": ["slow", "speed up", "performance", "laggy", "freezing", "hanging", "takes forever", "running slow"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Tips to improve PC performance in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/tips-to-improve-pc-performance-in-windows-b3b3ef5b-5953-fb6a-2528-4bbed82fba96",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Microsoft's official guide to speeding up a slow Windows computer"
+          }
+        ],
+        "general": []
+      }
+    },
+    "disk-cleanup": {
+      "name": "Free Up Storage Space",
+      "skill_ids": ["disk-cleanup"],
+      "keywords": ["storage", "disk", "space", "full", "cleanup", "delete", "free up", "out of space", "not enough space"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Free up drive space in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/free-up-drive-space-in-windows-85529ccb-c365-490d-b548-831022bc9b32",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's guide to clearing storage space on your Windows computer"
+          },
+          {
+            "title": "Disk cleanup in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/disk-cleanup-in-windows-8a96ff42-5751-39ad-23d6-434b4d5b9a68",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "How to use the built-in Disk Cleanup tool to remove temporary files"
+          }
+        ],
+        "general": []
+      }
+    },
+    "network-fix": {
+      "name": "Fix Internet Problems",
+      "skill_ids": ["network-fix"],
+      "keywords": ["no internet", "wifi not working", "can't connect", "connection problem", "network", "offline", "disconnected"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Fix Wi-Fi connection issues in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/fix-wi-fi-connection-issues-in-windows-9424a1f7-6a3b-65a6-4d78-7f07eee84d2c",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Microsoft's troubleshooting guide for Wi-Fi and internet connection problems"
+          },
+          {
+            "title": "Why is my internet connection so slow?",
+            "url": "https://support.microsoft.com/en-us/windows/why-is-my-internet-connection-so-slow-c68cf021-c5cf-db6f-eade-7c9d8bd78aa1",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's guide to diagnosing and fixing slow internet speed"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "If you can't connect to Wi-Fi on your iPhone or iPad",
+            "url": "https://support.apple.com/en-us/111786",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's troubleshooting guide when your iPhone won't connect to Wi-Fi"
+          }
+        ],
+        "mac": [
+          {
+            "title": "If your Mac isn't connecting to the internet over Wi-Fi",
+            "url": "https://support.apple.com/en-us/101588",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's troubleshooting guide for Mac Wi-Fi and internet problems"
+          }
+        ],
+        "general": []
+      }
+    },
+    "battery-power": {
+      "name": "Battery and Power",
+      "skill_ids": ["battery-power"],
+      "keywords": ["battery", "charge", "charging", "power", "dying", "low battery", "battery life", "won't charge", "draining"],
+      "resources": {
+        "windows": [
+          {
+            "title": "Battery saving tips for Windows",
+            "url": "https://support.microsoft.com/en-us/windows/battery-saving-tips-for-windows-a850d64d-ee8e-c8d2-6c75-8ffe6ea3ea99",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Microsoft's tips for extending your laptop battery life"
+          },
+          {
+            "title": "Caring for your battery in Windows",
+            "url": "https://support.microsoft.com/en-us/windows/caring-for-your-battery-in-windows-2db3e37f-5e7d-488e-9086-ed15320519e4",
+            "source": "Microsoft Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Best practices for maintaining your laptop battery health over time"
+          }
+        ],
+        "iphone": [
+          {
+            "title": "Charge and maintain your iPhone battery",
+            "url": "https://support.apple.com/en-us/105105",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's guide to charging your iPhone and keeping the battery healthy"
+          },
+          {
+            "title": "If the battery in your iPhone drains too quickly",
+            "url": "https://support.apple.com/en-us/120745",
+            "source": "Apple Support",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Apple's troubleshooting guide for iPhone battery drain issues"
+          }
+        ],
+        "general": []
+      }
+    },
+    "scam-protection": {
+      "name": "Scam Protection",
+      "skill_ids": ["scam-protection", "scam-check"],
+      "keywords": ["scam", "fraud", "phishing", "suspicious", "fake", "virus", "hacked", "identity theft", "report scam"],
+      "resources": {
+        "general": [
+          {
+            "title": "Scams - How to avoid and report them",
+            "url": "https://consumer.ftc.gov/scams",
+            "source": "FTC (Federal Trade Commission)",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "The official government resource for recognizing, avoiding, and reporting scams"
+          },
+          {
+            "title": "What to do if you were scammed",
+            "url": "https://consumer.ftc.gov/articles/what-do-if-you-were-scammed",
+            "source": "FTC (Federal Trade Commission)",
+            "type": "read",
+            "time": "Read (5 min)",
+            "description": "Step-by-step guide from the FTC on what to do after being scammed"
+          },
+          {
+            "title": "How to recognize and avoid phishing scams",
+            "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+            "source": "FTC (Federal Trade Commission)",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "Official FTC guide to spotting fake emails, texts, and calls"
+          },
+          {
+            "title": "Phone scams",
+            "url": "https://consumer.ftc.gov/articles/phone-scams",
+            "source": "FTC (Federal Trade Commission)",
+            "type": "read",
+            "time": "Quick read (3 min)",
+            "description": "FTC's guide to recognizing phone scams and what to do about them"
+          }
+        ]
+      }
+    }
+  },
+  "trusted_domains": [
+    "support.microsoft.com",
+    "support.apple.com",
+    "support.google.com",
+    "support.zoom.com",
+    "consumer.ftc.gov",
+    "www.aarp.org",
+    "www.ssa.gov",
+    "www.medicare.gov"
+  ],
+  "last_verified": "2026-04-28"
+}
