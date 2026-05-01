@@ -24,7 +24,7 @@ const userProfileManager = {
   /**
    * Looks up a user by ID. If not found, creates a new user with that ID and returns it.
    * @param {string} id
-   * @returns {object} user record
+   * @returns {{ id: string, name: string|null, os_type: string|null, vocabulary_level: string, accessibility_needs: string, comfort_level: number, onboarded: number, is_anonymous: number, created_at: string, updated_at: string }}
    */
   getOrCreateUser(id) {
     if (!id) throw new Error('id is required');
@@ -37,8 +37,8 @@ const userProfileManager = {
    * Updates allowed profile fields for a user.
    * Allowed fields: name, os_type, vocabulary_level, comfort_level, accessibility_needs, onboarded
    * @param {string} id
-   * @param {object} fields
-   * @returns {object} updated user record
+   * @param {{ name?: string, os_type?: string, vocabulary_level?: string, comfort_level?: number, accessibility_needs?: string, onboarded?: number, collaboration_opt_in?: number, goal_summary?: string, invite_code?: string, model_preference?: string }} fields
+   * @returns {{ id: string, name: string|null, os_type: string|null, vocabulary_level: string, accessibility_needs: string, comfort_level: number, onboarded: number, is_anonymous: number, created_at: string, updated_at: string }}
    */
   updateProfile(id, fields) {
     const allowed = ['name', 'os_type', 'vocabulary_level', 'comfort_level', 'accessibility_needs', 'onboarded', 'collaboration_opt_in', 'goal_summary', 'invite_code', 'model_preference'];

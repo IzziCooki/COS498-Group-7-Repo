@@ -44,7 +44,7 @@ const DIFFICULTY_PRIORITY = {
  * (critical > intermediate > beginner).
  *
  * @param {string} text - the user's message
- * @returns {{ skill: object, score: number } | null}
+ * @returns {{ skill: { id: string, name: string, description: string, triggers: string[], category: string, difficulty: string, prompt: string }, score: number } | null}
  */
 function matchSkill(text) {
   if (!text) return null;
@@ -82,7 +82,7 @@ function matchSkill(text) {
  * Build a skill-specific prompt addition for the AI.
  * Injected into the Claude CLI prompt when a skill matches.
  *
- * @param {object} skill - the matched skill object
+ * @param {{ id: string, name: string, category: string, difficulty: string, prompt: string }} skill - the matched skill object
  * @returns {string}
  */
 function buildSkillPrompt(skill) {
@@ -102,7 +102,7 @@ function getSkillsSummary() {
 
 /**
  * Get all loaded skills.
- * @returns {Array}
+ * @returns {Array<{ id: string, name: string, description: string, triggers: string[], category: string, difficulty: string, prompt: string }>}
  */
 function getAllSkills() {
   return skills;

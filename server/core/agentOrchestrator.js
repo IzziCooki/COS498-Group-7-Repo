@@ -2,7 +2,6 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { anthropicApiKey } = require('../config');
 const safetyMonitor = require('./safetyMonitor');
 const conversationState = require('./conversationState');
-const vocabularyFilter = require('./vocabularyFilter');
 const vocabularyProgression = require('./vocabularyProgression');
 const userProfileManager = require('./userProfileManager');
 const taskClassifier = require('./taskClassifier');
@@ -18,7 +17,6 @@ const HelpRequest = require('../models/HelpRequest');
 const SkillReview = require('../models/SkillReview');
 const UserGoal = require('../models/UserGoal');
 const User = require('../models/User');
-const ConversationFeedback = require('../models/ConversationFeedback');
 const qualityTracker = require('./conversationQualityTracker');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
@@ -26,11 +24,12 @@ const systemDiagnostics = require('./systemDiagnostics');
 const clientInfoStore = require('./clientInfoStore');
 const skillMatcher = require('./skillMatcher');
 const youtubeSearch = require('./youtubeSearch');
-const { VALID_GUIDE_IDS, buildComfortGuidelines } = require('./sharedConstants');
+const { VALID_GUIDE_IDS, buildComfortGuidelines, VOCAB_LEVELS, RISK_LEVELS } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const ollamaClient = require('./ollamaClient');
 const screenshotAnnotator = require('./screenshotAnnotator');
-const dllKnowledge = require('../assets/dll-knowledge.json');
+const { lookupDll, formatDllDiagnosis } = require('./dllLookup');
+const { loadCoachingNotes, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
 
 // Injected from server/index.js — captures screenshot from relay agent or browser screen share
 let _requestScreenshotFn = null;
@@ -49,8 +48,6 @@ const MAX_TOOL_ROUNDS = 10;
 // Side-channel for screenshot data (same pattern as pcpalTools.js)
 let _lastScreenshot = null;
 function getAndClearLastScreenshot() { const s = _lastScreenshot; _lastScreenshot = null; return s; }
-
-// VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
 
 const tools = [
   {
@@ -141,7 +138,7 @@ const tools = [
     input_schema: {
       type: 'object',
       properties: {
-        new_level: { type: 'string', enum: ['basic', 'intermediate', 'standard'], description: 'New vocabulary level' },
+        new_level: { type: 'string', enum: VOCAB_LEVELS, description: 'New vocabulary level' },
         reason: { type: 'string', description: 'Why you are adjusting the level' },
       },
       required: ['new_level', 'reason'],
@@ -242,7 +239,7 @@ const tools = [
         },
         risk_level: {
           type: 'string',
-          enum: ['high', 'medium', 'low'],
+          enum: RISK_LEVELS,
           description: 'How likely this is a scam. Use "high" if 2+ red flags or matches a known scam pattern. Use "low" only if the situation describes a normal legitimate interaction with no red flags.',
         },
         recommended_action: { type: 'string', description: 'Clear, specific action the user should take right now' },
@@ -367,26 +364,17 @@ const tools = [
   },
 ];
 
-// buildComfortGuidelines imported from sharedConstants.js — single source of truth
-
 function buildSystemPrompt(profileString, user, classification, confusionContext, matchedSkillPrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
   const classificationContext = classification
     ? `\nCurrent task: ${classification.taskType} — ${classification.topic} (urgency: ${classification.urgency})`
     : '';
-  const urgencyNote = '';
-
   // Check if user has a buddy for collaboration tools context
-  const BuddyPair = require('../models/BuddyPair');
   let buddyContext = '';
-  try {
-    const activePairs = BuddyPair.findByUserId(user?.id);
-    if (activePairs && activePairs.length > 0) {
-      const buddyNames = activePairs.map(p => p.helper_name || p.learner_name || 'their buddy').join(', ');
-      buddyContext = `\nThis user has a learning buddy: ${buddyNames}. When they complete a skill, use share_progress_with_buddy to celebrate with their buddy. If they get stuck after multiple attempts, offer to use ask_buddy_for_help.`;
-    }
-  } catch (e) {
-    // buddy_pairs table may not exist yet during migration
+  const activePairs = BuddyPair.findByUserId(user?.id);
+  if (activePairs && activePairs.length > 0) {
+    const buddyNames = activePairs.map(p => p.helper_name || p.learner_name || 'their buddy').join(', ');
+    buddyContext = `\nThis user has a learning buddy: ${buddyNames}. When they complete a skill, use share_progress_with_buddy to celebrate with their buddy. If they get stuck after multiple attempts, offer to use ask_buddy_for_help.`;
   }
 
   // Check user's goal for context
@@ -411,7 +399,7 @@ Think of yourself as a helpful grandchild teaching a grandparent — kind, encou
 
 Here is the profile of the person you are helping:
 ${profileString}
-${classificationContext}${urgencyNote}${buddyContext}${goalContext}${confusionNote}${coachingBlock}
+${classificationContext}${buddyContext}${goalContext}${confusionNote}${coachingBlock}
 
 ## GOAL-FIRST CONVERSATION FLOW (follow this before all other rules)
 
@@ -1000,80 +988,40 @@ IMPORTANT RULES FOR YOUR RESPONSE:
     }
   // Desktop Diagnostic Tool Handlers
   } else if (name === 'get_system_info') {
-    try {
-      if (process.env.ELECTRON_MODE) {
-        result = systemDiagnostics.getSystemInfo();
+    if (process.env.ELECTRON_MODE) {
+      result = systemDiagnostics.getSystemInfo();
+    } else {
+      const browserInfo = clientInfoStore.get(userId);
+      if (browserInfo) {
+        result = clientInfoStore.formatBrowserSystemInfo(browserInfo);
       } else {
-        const browserInfo = clientInfoStore.get(userId);
-        if (browserInfo) {
-          result = clientInfoStore.formatBrowserSystemInfo(browserInfo);
-        } else {
-          result = systemDiagnostics.getSystemInfo() +
-            '\n\nNote: This is the server environment, not the user\'s computer. ' +
-            'Browser-based system detection was not available.';
-        }
+        result = systemDiagnostics.getSystemInfo() +
+          '\n\nNote: This is the server environment, not the user\'s computer. ' +
+          'Browser-based system detection was not available.';
       }
-      console.log(`[agentOrchestrator] System info retrieved for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to get system info:', err.message);
-      result = 'Unable to retrieve system information. The diagnostic tools may not be available in this environment.';
     }
+    console.log(`[agentOrchestrator] System info retrieved for user ${userId}`);
   } else if (name === 'check_network') {
-    try {
-      result = systemDiagnostics.checkNetwork();
-      console.log(`[agentOrchestrator] Network check for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to check network:', err.message);
-      result = 'Unable to check network status.';
-    }
+    result = systemDiagnostics.checkNetwork();
+    console.log(`[agentOrchestrator] Network check for user ${userId}`);
   } else if (name === 'list_running_apps') {
-    try {
-      result = systemDiagnostics.listRunningApps();
-      console.log(`[agentOrchestrator] Listed running apps for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to list running apps:', err.message);
-      result = 'Unable to list running applications.';
-    }
+    result = systemDiagnostics.listRunningApps();
+    console.log(`[agentOrchestrator] Listed running apps for user ${userId}`);
   } else if (name === 'read_error_log') {
-    try {
-      result = systemDiagnostics.readErrorLog(args.source);
-      console.log(`[agentOrchestrator] Read error log (${args.source || 'system'}) for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to read error log:', err.message);
-      result = 'Unable to read error logs.';
-    }
+    result = systemDiagnostics.readErrorLog(args.source);
+    console.log(`[agentOrchestrator] Read error log (${args.source || 'system'}) for user ${userId}`);
   } else if (name === 'run_safe_command') {
-    try {
-      console.log(`[agentOrchestrator] Safe command requested by AI for user ${userId}: "${args.command}" — Reason: ${args.reason}`);
-      result = systemDiagnostics.runSafeCommand(args.command);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to run safe command:', err.message);
-      result = 'Unable to run command.';
-    }
+    console.log(`[agentOrchestrator] Safe command requested by AI for user ${userId}: "${args.command}" — Reason: ${args.reason}`);
+    result = systemDiagnostics.runSafeCommand(args.command);
   } else if (name === 'check_disk_health') {
-    try {
-      result = systemDiagnostics.checkDiskHealth();
-      console.log(`[agentOrchestrator] Disk health check for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to check disk health:', err.message);
-      result = 'Unable to check disk health.';
-    }
+    result = systemDiagnostics.checkDiskHealth();
+    console.log(`[agentOrchestrator] Disk health check for user ${userId}`);
   } else if (name === 'check_installed_software') {
-    try {
-      result = systemDiagnostics.checkInstalledSoftware(args.search_term);
-      console.log(`[agentOrchestrator] Software check for user ${userId}: ${args.search_term || 'all'}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to check installed software:', err.message);
-      result = 'Unable to check installed software.';
-    }
+    result = systemDiagnostics.checkInstalledSoftware(args.search_term);
+    console.log(`[agentOrchestrator] Software check for user ${userId}: ${args.search_term || 'all'}`);
   } else if (name === 'get_battery_status') {
-    try {
-      result = systemDiagnostics.getBatteryStatus();
-      console.log(`[agentOrchestrator] Battery status for user ${userId}`);
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to get battery status:', err.message);
-      result = 'Unable to check battery status.';
-    }
+    result = systemDiagnostics.getBatteryStatus();
+    console.log(`[agentOrchestrator] Battery status for user ${userId}`);
   } else if (name === 'find_youtube_videos') {
     try {
       const max = Math.min(args.max_results || 3, 5);
@@ -1086,63 +1034,9 @@ IMPORTANT RULES FOR YOUR RESPONSE:
     }
   } else if (name === 'diagnose_missing_dll') {
     try {
-      const dllName = (args.dll_name || '').toLowerCase().replace(/\.dll$/i, '') + '.dll';
-      let foundFamily = null;
-      let foundFamilyId = null;
-      let foundVersion = null;
-
-      // Exact match
-      for (const [fid, fam] of Object.entries(dllKnowledge.families)) {
-        if (fam.dlls && fam.dlls.includes(dllName)) {
-          foundFamily = fam;
-          foundFamilyId = fid;
-          break;
-        }
-      }
-
-      // Prefix match
-      if (!foundFamily) {
-        const prefixes = { 'msvcp': 'vcredist', 'msvcr': 'vcredist', 'vcruntime': 'vcredist', 'mfc': 'vcredist', 'atl': 'vcredist', 'api-ms-win-crt': 'ucrt', 'd3d': 'directx', 'd3dx': 'directx', 'xinput': 'directx', 'xaudio': 'directx', 'hostfxr': 'dotnet', 'coreclr': 'dotnet' };
-        for (const [prefix, fid] of Object.entries(prefixes)) {
-          if (dllName.startsWith(prefix)) {
-            foundFamily = dllKnowledge.families[fid];
-            foundFamilyId = fid;
-            break;
-          }
-        }
-      }
-
-      // Version detection for vcredist
-      if (foundFamilyId === 'vcredist' && foundFamily.versions) {
-        const verMatch = dllName.match(/(\d{2,3})/);
-        if (verMatch) foundVersion = foundFamily.versions[verMatch[1]] || null;
-      }
-
-      const lines = [`DLL: ${args.dll_name}`];
-      if (foundFamily) {
-        lines.push(`IDENTIFIED AS: ${foundFamily.name}`, `DESCRIPTION: ${foundFamily.description}`, '');
-        if (foundVersion) {
-          lines.push(`VERSION: ${foundVersion.year} (${foundVersion.note})`);
-          if (foundVersion.download_x64) lines.push(`DOWNLOAD (64-bit): ${foundVersion.download_x64}`);
-          if (foundVersion.download_x86) lines.push(`DOWNLOAD (32-bit): ${foundVersion.download_x86}`);
-        } else if (foundFamily.download) {
-          lines.push(`DOWNLOAD: ${foundFamily.download}`);
-        }
-        if (foundFamilyId === 'vcredist' && foundFamily.install_both_note) {
-          lines.push('', `TIP: ${foundFamily.install_both_note}`);
-        }
-        lines.push('', 'FIX STEPS:');
-        foundFamily.fix_steps.forEach((s, i) => lines.push(`${i + 1}. ${s}`));
-        if (foundFamily.note) lines.push('', `NOTE: ${foundFamily.note}`);
-      } else {
-        lines.push('STATUS: Not a standard Windows/runtime DLL — likely belongs to a specific program.', '', 'RECOMMENDED FIX:');
-        lines.push(`1. Reinstall the program${args.program_name ? ` (${args.program_name})` : ''}`, '2. Install Visual C++ 2015-2022 Redistributable from Microsoft', '3. Run Windows Update');
-      }
-      lines.push('', 'SAFETY: NEVER download individual DLL files from third-party websites — they often contain malware. Only use official Microsoft installers.');
-      if (args.program_name) lines.push('', `PROGRAM: The user is trying to run "${args.program_name}".`);
-
-      console.log(`[agentOrchestrator] DLL diagnosis: ${args.dll_name} → ${foundFamily ? foundFamily.name : 'unknown'}`);
-      result = lines.join('\n');
+      const dllResult = lookupDll(args.dll_name);
+      result = formatDllDiagnosis(args.dll_name, dllResult, args.program_name);
+      console.log(`[agentOrchestrator] DLL diagnosis: ${args.dll_name} → ${dllResult.found ? dllResult.family.name : 'unknown'}`);
     } catch (err) {
       console.error('[agentOrchestrator] diagnose_missing_dll error:', err.message);
       result = 'DLL diagnosis failed: ' + err.message;
@@ -1248,13 +1142,11 @@ function hasToolUse(content) {
 
 async function processMessage(text, userId, context = {}) {
   try {
-    // Step 1: Safety check
     const safetyCheck = safetyMonitor.checkMessage(text, userId);
     if (!safetyCheck.safe) {
       return { response: safetyCheck.response, safetyAlert: { type: safetyCheck.type }, guideId: null, stepSequence: null };
     }
 
-    // Step 2: Get user
     const user = userProfileManager.getOrCreateUser(userId);
 
     // Mock mode: skip AI API, use pre-written responses (unless an Ollama model is selected)
@@ -1268,33 +1160,23 @@ async function processMessage(text, userId, context = {}) {
     // Check if the user is asking about a jargon term (resets progression)
     vocabularyProgression.checkForTermQuestions(text, userId);
 
-    // Step 3: Get/create session
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
 
-    // Step 4: Save user message
     conversationState.addMessage(sessionId, 'user', text);
 
-    // Step 5: Load history
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const messages = dbMessages.map(msg => ({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.body }));
 
-    // Step 6: Classify + build prompt in parallel
     const [profileString, classification] = await Promise.all([
       Promise.resolve(userProfileManager.getProfileForPrompt(userId)),
       taskClassifier.classifyMessage(text, user),
     ]);
 
-    try {
-      Conversation.update(sessionId, { task_type: classification.taskType });
-    } catch (err) {
-      console.error('[agentOrchestrator] Failed to update task_type:', err.message);
-    }
+    Conversation.update(sessionId, { task_type: classification.taskType });
 
-    // Get confusion state for this conversation to inject into the prompt
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
 
-    // Step 6b: Match against skill definitions for context injection
     const skillMatch = skillMatcher.matchSkill(text);
     const matchedSkillPrompt = skillMatch ? skillMatcher.buildSkillPrompt(skillMatch.skill) : null;
     const matchedSkillId = skillMatch ? skillMatch.skill.id : null;
@@ -1302,14 +1184,7 @@ async function processMessage(text, userId, context = {}) {
       console.log(`[agentOrchestrator] Skill matched: "${skillMatch.skill.name}" (score: ${skillMatch.score}) for user ${userId}`);
     }
 
-    // Close the feedback loop: inject this user's most recent AI-generated
-    // coaching notes (from past end-of-chat feedback) so the agent's
-    // behavior actually changes based on what went wrong before. Guest
-    // users (no persistent id) get an empty array and no injection.
-    const recentFeedback = user?.id ? ConversationFeedback.getRecentWithSuggestions(user.id, 3) : [];
-    const coachingNotes = recentFeedback.length > 0
-      ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
-      : '';
+    const coachingNotes = loadCoachingNotes(user?.id);
 
     // Build screen context
     let screenContext = '';
@@ -1345,11 +1220,9 @@ async function processMessage(text, userId, context = {}) {
       }
     }
 
-    // Resolve model provider
     const resolved = resolveModel(user.model_preference);
     const activeModel = resolved.model;
 
-    // Step 7: Call AI model
     let safetyAlert = null;
     let guideId = null;
     let stepSequence = null;
@@ -1412,47 +1285,20 @@ async function processMessage(text, userId, context = {}) {
       return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null };
     }
 
-    // Step 8a: Extract tool markers from response text
-    // YouTube videos from find_youtube_videos tool
-    let videos = null;
-    const ytMatch = finalTextResponse.match(/YOUTUBE_VIDEOS:(\[[\s\S]*?\])/);
-    if (ytMatch) {
-      try { videos = JSON.parse(ytMatch[1]); } catch (e) { /* ignore parse errors */ }
-      finalTextResponse = finalTextResponse.replace(/YOUTUBE_VIDEOS:\[[\s\S]*?\]/g, '').trim();
-    }
+    const cleaned = cleanResponseMarkers(finalTextResponse);
+    finalTextResponse = cleaned.text;
+    const videos = cleaned.videos;
 
-    // Clean verified resource / no-resource markers from response text
-    finalTextResponse = finalTextResponse.replace(/VERIFIED_RESOURCES:\n[\s\S]*?(?=\n\n|$)/g, '').trim();
-    finalTextResponse = finalTextResponse.replace(/NO_CURATED_RESOURCES:[\s\S]*?(?=\n\n|$)/g, '').trim();
-
-    // Step 8: Filter response
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyProgression.filterWithProgression(finalTextResponse, vocabLevel, userId);
-    filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
+    const filteredResponse = filterResponse(finalTextResponse, vocabLevel, userId);
 
     if (!filteredResponse) {
       return { response: FALLBACK_RESPONSE, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId };
     }
 
-    // Step 9: Save assistant message
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
 
-    // Step 10: Quality tracking (non-blocking — never delays response)
-    try {
-      const allMessages = conversationState.getSessionMessages(sessionId, 50);
-      const turnNumber = allMessages.filter(m => m.role === 'assistant').length;
-      qualityTracker.trackTurn({
-        userId,
-        conversationId: sessionId,
-        userMessage: text,
-        agentResponse: filteredResponse,
-        vocabLevel: user.vocabulary_level || 'basic',
-        osType: user.os_type || '',
-        turnNumber,
-      });
-    } catch (trackErr) {
-      console.error('[agentOrchestrator] Quality tracking error (non-fatal):', trackErr.message);
-    }
+    trackQuality({ userId, sessionId, userMessage: text, agentResponse: filteredResponse, user });
 
     const screenshot = getAndClearLastScreenshot();
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);

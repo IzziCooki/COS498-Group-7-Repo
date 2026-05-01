@@ -16,27 +16,13 @@ const path = require('path');
 const substitutions = require(path.join(__dirname, '../assets/vocabulary/basicSubstitutions.json'));
 const UserVocabulary = require('../models/UserVocabulary');
 const vocabularyFilter = require('./vocabularyFilter');
+const { INTERMEDIATE_KEYS, buildWordRegex } = require('./sharedConstants');
 
 // Pre-compute the reverse map: simpleTerm → jargonTerm
 // e.g. "internet app" → "browser"
 const reverseMap = {};
 for (const [jargon, simple] of Object.entries(substitutions)) {
   reverseMap[simple] = jargon;
-}
-
-// Same intermediate keys as vocabularyFilter.js
-const INTERMEDIATE_KEYS = [
-  'malware', 'phishing', 'bandwidth', 'cache', 'firewall', 'cookie',
-  'router', 'Wi-Fi', 'VPN', 'two-factor authentication', '2FA',
-  'encryption', 'sync', 'cloud', 'SSID',
-];
-
-/**
- * Build a regex that matches a term as a whole word (case-insensitive).
- */
-function buildWordRegex(term) {
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`\\b${escaped}\\b`, 'gi');
 }
 
 /**

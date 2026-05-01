@@ -5,8 +5,8 @@ import './StepSequencePanel.css';
  * StepSequencePanel — fixed panel shown when the AI is guiding the user
  * through a multi-step task sequence.
  *
- * @param {object|null} activeSequence  - { id, taskName, steps, currentIndex, completed }
- * @param {function}    onSendMessage   - callback to send a chat message
+ * @param {{ id: string, taskName: string, steps: string[], currentIndex: number, completed: boolean }|null} activeSequence
+ * @param {(text: string) => void} onSendMessage - callback to send a chat message
  */
 function StepSequencePanel({ activeSequence, onSendMessage, hasBuddy }) {
   if (!activeSequence) return null;

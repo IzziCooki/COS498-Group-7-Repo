@@ -8,15 +8,7 @@ const { WebSocketServer } = require('ws');
 const config = require('./config');
 require('./db/database');
 
-// Use Agent SDK orchestrator if available, fall back to original
-let agentOrchestrator;
-try {
-  agentOrchestrator = require('./core/agentSdkOrchestrator');
-  console.log('[server] Using Agent SDK orchestrator');
-} catch (err) {
-  console.warn('[server] Agent SDK orchestrator unavailable, using original:', err.message);
-  agentOrchestrator = require('./core/agentOrchestrator');
-}
+const agentOrchestrator = require('./core/agentSdkOrchestrator');
 const skillProgression = require('./core/skillProgression');
 const clientInfoStore = require('./core/clientInfoStore');
 const conversationState = require('./core/conversationState');
@@ -269,14 +261,15 @@ try {
   console.warn('[server] Could not inject requestScreenshot into MCP tools:', err.message);
 }
 
-// Also inject into fallback orchestrator so take_screenshot works when Agent SDK is unavailable
+// Inject into the legacy orchestrator too — it handles Ollama models
+// and serves as an error-recovery path for the Agent SDK orchestrator.
 try {
-  const fallbackOrchestrator = require('./core/agentOrchestrator');
-  if (fallbackOrchestrator.setRequestScreenshotFn) {
-    fallbackOrchestrator.setRequestScreenshotFn(requestScreenshot);
+  const legacyOrchestrator = require('./core/agentOrchestrator');
+  if (legacyOrchestrator.setRequestScreenshotFn) {
+    legacyOrchestrator.setRequestScreenshotFn(requestScreenshot);
   }
 } catch (err) {
-  console.warn('[server] Could not inject requestScreenshot into fallback orchestrator:', err.message);
+  console.warn('[server] Could not inject requestScreenshot into legacy orchestrator:', err.message);
 }
 
 wss.on('connection', (ws, req) => {
@@ -507,8 +500,7 @@ wss.on('connection', (ws, req) => {
           // Use AI only for generating a friendly summary (no URLs)
           let summary = `Here are resources related to: ${topic}`;
           try {
-            const { anthropicApiKey } = require('./config');
-            if (anthropicApiKey && process.env.MOCK_MODE !== 'true') {
+            if (config.anthropicApiKey && process.env.MOCK_MODE !== 'true') {
               const Anthropic = require('@anthropic-ai/sdk');
               const client = new Anthropic({ apiKey: anthropicApiKey });
               const aiResponse = await client.messages.create({
@@ -680,7 +672,6 @@ wss.on('connection', (ws, req) => {
 
         // Forward to buddy if they're watching
         try {
-          const BuddyPair = require('./models/BuddyPair');
           const pairs = BuddyPair.findByUserId(userId);
           if (pairs.length > 0) {
             const pair = pairs[0];

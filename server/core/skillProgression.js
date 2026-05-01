@@ -81,17 +81,12 @@ function getSkillStatus(userId) {
  */
 function getSkillsForReview(userId) {
   const SkillReview = require('../models/SkillReview');
-  try {
-    const dueReviews = SkillReview.findDueForUser(userId);
-    return dueReviews.map(r => ({
-      skillName: SKILL_NAMES[r.skill_name] || r.skill_name,
-      skillId: r.skill_name,
-      reviewId: r.id,
-    }));
-  } catch (e) {
-    // skill_reviews table may not exist yet
-    return [];
-  }
+  const dueReviews = SkillReview.findDueForUser(userId);
+  return dueReviews.map(r => ({
+    skillName: SKILL_NAMES[r.skill_name] || r.skill_name,
+    skillId: r.skill_name,
+    reviewId: r.id,
+  }));
 }
 
-module.exports = { getNextSkill, getSkillStatus, getSkillsForReview, SKILL_CHAINS, SKILL_NAMES };
+module.exports = { getNextSkill, getSkillStatus, getSkillsForReview, SKILL_NAMES };

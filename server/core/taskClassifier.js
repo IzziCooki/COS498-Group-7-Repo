@@ -1,5 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { anthropicApiKey } = require('../config');
+const { VALID_TASK_TYPES, VALID_URGENCY } = require('./sharedConstants');
 
 if (!anthropicApiKey) {
   console.warn('[taskClassifier] ANTHROPIC_API_KEY is not set — classification calls will fail. Running in degraded mode.');
@@ -8,8 +9,6 @@ if (!anthropicApiKey) {
 const client = new Anthropic({ apiKey: anthropicApiKey });
 
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
-const VALID_TASK_TYPES = ['learn_skill', 'troubleshoot', 'follow_up', 'accessibility', 'unknown'];
-const VALID_URGENCY = ['low', 'medium', 'high'];
 
 async function classifyMessage(text, userProfile) {
   const profileSummary = userProfile

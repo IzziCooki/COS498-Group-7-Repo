@@ -4,6 +4,7 @@ import CommandGuide from './CommandGuide';
 import DiagnosticFindings from './DiagnosticFindings';
 import YouTubeEmbed from './YouTubeEmbed';
 import PracticeMode from './PracticeMode';
+import { getArtifactLabel } from './artifactUtils';
 
 function ResourcesContent({ resources }) {
   const { summary, videos, links } = resources;
@@ -47,15 +48,6 @@ function ResourcesContent({ resources }) {
   );
 }
 
-/** Get a display title for an artifact */
-function spArtifactTitle(artifact) {
-  if (artifact.practice) return 'Practice Mode';
-  if (artifact.guide) return artifact.guide.title || 'Guide';
-  if (artifact.resources) return artifact.resources.topic ? `Resources: ${artifact.resources.topic}` : 'Resources';
-  if (artifact.findings) return artifact.findings.title || 'Diagnostic Details';
-  if (artifact.videos) return 'Video Tutorials';
-  return 'Artifact';
-}
 
 /**
  * SidePanel — renders all parts of an artifact (findings + guide + videos + resources)
@@ -79,7 +71,7 @@ function SidePanel({ artifact, artifacts, activeIndex, onNavigate, onClose, onMo
           <span className="side-panel__nav-label">{activeIndex + 1} / {total}</span>
           <button className="side-panel__nav-btn" onClick={() => onNavigate(activeIndex + 1)} disabled={!canNext} aria-label="Next">&#9654;</button>
         </div>
-        <span className="side-panel__title">{spArtifactTitle(artifact)}</span>
+        <span className="side-panel__title">{getArtifactLabel(artifact)}</span>
         <div className="side-panel__actions">
           <button className="side-panel__inline-btn" onClick={onMoveToInline}>Inline</button>
           <button className="side-panel__close" onClick={onClose}>Close</button>

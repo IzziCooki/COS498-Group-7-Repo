@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const db = require('../db/database');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
@@ -101,7 +102,7 @@ function exportConversation(conversationId) {
  * @returns {string[]} array of exported file paths
  */
 function exportAll() {
-  const allConversations = require('../db/database')
+  const allConversations = db
     .prepare("SELECT id FROM conversations WHERE status IN ('completed', 'closed', 'abandoned')")
     .all();
 
@@ -119,7 +120,7 @@ function exportAll() {
 }
 
 function exportAllForUser(userId) {
-  const rows = require('../db/database')
+  const rows = db
     .prepare("SELECT id FROM conversations WHERE user_id = ? AND status IN ('completed', 'closed', 'abandoned')")
     .all(userId);
 

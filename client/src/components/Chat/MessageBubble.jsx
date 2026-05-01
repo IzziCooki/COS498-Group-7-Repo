@@ -4,6 +4,7 @@ import YouTubeEmbed from './YouTubeEmbed';
 import CommandGuide from './CommandGuide';
 import DiagnosticFindings from './DiagnosticFindings';
 import ResourceReport from './ResourceReport';
+import { getArtifactLabel } from './artifactUtils';
 
 function formatMessage(text) {
   if (!text) return null;
@@ -35,15 +36,6 @@ function renderInline(text) {
   });
 }
 
-/** Get a short label for an artifact type */
-function artifactLabel(msg) {
-  if (msg.practice) return 'Practice Mode';
-  if (msg.guide) return msg.guide.title || 'Guide';
-  if (msg.resources) return msg.resources.topic ? `Resources: ${msg.resources.topic}` : 'Resources';
-  if (msg.findings) return msg.findings.title || 'Diagnostic Details';
-  if (msg.videos) return 'Video Tutorials';
-  return null;
-}
 
 /**
  * MessageBubble — displays a single chat message.
@@ -56,7 +48,7 @@ function MessageBubble({ message, onRunCommand, inlineMode, onMoveToSide, onClic
   const { role, text, timestamp, safetyAlert, images, videos, guide, commandResults, findings, resources, practice, buddyTerminal, screenshot } = message;
   const isUser = role === 'user';
   const hasArtifact = !isUser && (guide || resources || findings || videos || practice);
-  const label = hasArtifact ? artifactLabel(message) : null;
+  const label = hasArtifact ? getArtifactLabel(message) : null;
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

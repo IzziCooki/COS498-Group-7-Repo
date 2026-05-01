@@ -9,7 +9,7 @@
 const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
-const { VALID_GUIDE_IDS } = require('../core/sharedConstants');
+const { VALID_GUIDE_IDS, VOCAB_LEVELS, MEMORY_TYPES, RISK_LEVELS, FINDING_STATUSES } = require('../core/sharedConstants');
 const uiReferenceLibrary = require('../core/uiReferenceLibrary');
 
 // Active user context — set by the orchestrator before each query()
@@ -45,7 +45,6 @@ const SkillReview = require('../models/SkillReview');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const conversationState = require('../core/conversationState');
 const userProfileManager = require('../core/userProfileManager');
-const dllKnowledge = require('../assets/dll-knowledge.json');
 const supportResourceLookup = require('../core/supportResourceLookup');
 
 function textResult(text) {
@@ -283,12 +282,8 @@ const logSkillStarted = tool(
   'Log that the user started learning a new skill.',
   { skill_name: z.string().describe('Name of the skill') },
   async (args) => {
-    try {
-      SkillEvent.create({ user_id: getUserId(), skill_name: args.skill_name, status: 'started' });
-      return textResult(`Logged skill started: ${args.skill_name}`);
-    } catch (err) {
-      return textResult(`Failed: ${err.message}`);
-    }
+    SkillEvent.create({ user_id: getUserId(), skill_name: args.skill_name, status: 'started' });
+    return textResult(`Logged skill started: ${args.skill_name}`);
   }
 );
 
@@ -384,7 +379,7 @@ const analyzeScamSituation = tool(
     situation_summary: z.string().describe('What the user described'),
     claimed_organization: z.string().optional().describe('Company/agency the caller claims to be from'),
     red_flags_found: z.array(z.string()).describe('Specific red flags detected'),
-    risk_level: z.enum(['high', 'medium', 'low']).describe('How likely this is a scam'),
+    risk_level: z.enum(RISK_LEVELS).describe('How likely this is a scam'),
     recommended_action: z.string().describe('What the user should do right now'),
     verification_contact: z.string().optional().describe('Official number/website to verify'),
   },
@@ -454,7 +449,7 @@ const adjustVocabularyLevel = tool(
   'adjust_vocabulary_level',
   'Change the vocabulary simplification level if user seems confused or confident.',
   {
-    new_level: z.enum(['basic', 'intermediate', 'standard']).describe('New level'),
+    new_level: z.enum(VOCAB_LEVELS).describe('New level'),
     reason: z.string().describe('Why adjusting'),
   },
   async (args) => {
@@ -512,8 +507,6 @@ const askBuddyForHelp = tool(
 
 // Visual Guide Tool
 
-// VALID_GUIDE_IDS imported from sharedConstants.js — single source of truth
-
 const showVisualGuide = tool(
   'show_visual_guide',
   `Display a visual step-by-step guide card. Valid IDs: ${VALID_GUIDE_IDS.join(', ')}`,
@@ -550,7 +543,7 @@ const saveMemory = tool(
   'save_memory',
   "Save an observation about the user for future sessions. Use this to remember their preferences, things they struggle with, breakthroughs they've had, personal context they share, or patterns you notice. These memories persist across sessions and help you personalize future interactions. Be specific and concise.",
   {
-    type: z.enum(['preference', 'struggle', 'breakthrough', 'context', 'pattern']).describe(
+    type: z.enum(MEMORY_TYPES).describe(
       'preference: how they like to learn. struggle: what confuses them. breakthrough: skills mastered. context: personal details they share. pattern: behavioral patterns you notice.'
     ),
     content: z.string().describe('The observation — one specific sentence, e.g. "Gets confused by right-click vs left-click" or "Grandson Tom lives in Portland"'),
@@ -634,7 +627,7 @@ const createFindings = tool(
     findings: z.array(z.object({
       label: z.string().describe('What was checked, e.g. "Memory"'),
       value: z.string().describe('What was found, e.g. "17.6 GB of 18 GB used (98%)"'),
-      status: z.enum(['good', 'warning', 'bad']).describe('Assessment: good, warning, or bad'),
+      status: z.enum(FINDING_STATUSES).describe('Assessment: good, warning, or bad'),
     })).describe('List of diagnostic findings'),
   },
   async (args) => {
@@ -647,50 +640,7 @@ const createFindings = tool(
 
 // Missing DLL Diagnosis Tool
 
-/**
- * Look up a DLL name in the knowledge base and return the fix.
- * Handles partial matches, version extraction, and family detection.
- */
-function lookupDll(dllName) {
-  const name = dllName.toLowerCase().replace(/\.dll$/i, '') + '.dll';
-
-  for (const [familyId, family] of Object.entries(dllKnowledge.families)) {
-    if (family.dlls && family.dlls.includes(name)) {
-      // Determine version for vcredist
-      let version = null;
-      if (familyId === 'vcredist' && family.versions) {
-        const verMatch = name.match(/(\d{2,3})/);
-        if (verMatch) {
-          version = family.versions[verMatch[1]] || null;
-        }
-      }
-      return { found: true, familyId, family, version, dll: name };
-    }
-  }
-
-  // Fuzzy match: check if the DLL starts with a known prefix
-  const prefixes = {
-    'msvcp': 'vcredist', 'msvcr': 'vcredist', 'vcruntime': 'vcredist',
-    'mfc': 'vcredist', 'atl': 'vcredist', 'concrt': 'vcredist', 'vcomp': 'vcredist',
-    'api-ms-win-crt': 'ucrt',
-    'd3d': 'directx', 'd3dx': 'directx', 'xinput': 'directx', 'xaudio': 'directx', 'x3daudio': 'directx',
-    'hostfxr': 'dotnet', 'hostpolicy': 'dotnet', 'coreclr': 'dotnet',
-  };
-
-  for (const [prefix, familyId] of Object.entries(prefixes)) {
-    if (name.startsWith(prefix)) {
-      const family = dllKnowledge.families[familyId];
-      let version = null;
-      if (familyId === 'vcredist' && family.versions) {
-        const verMatch = name.match(/(\d{2,3})/);
-        if (verMatch) version = family.versions[verMatch[1]] || null;
-      }
-      return { found: true, familyId, family, version, dll: name, fuzzy: true };
-    }
-  }
-
-  return { found: false, dll: name };
-}
+const { lookupDll, formatDllDiagnosis } = require('../core/dllLookup');
 
 const diagnoseMissingDll = tool(
   'diagnose_missing_dll',
@@ -702,76 +652,11 @@ const diagnoseMissingDll = tool(
   },
   async (args) => {
     const result = lookupDll(args.dll_name);
-
-    if (!result.found) {
-      // Unknown DLL — likely app-specific
-      const lines = [
-        `DLL: ${args.dll_name}`,
-        `STATUS: Not a standard Windows/runtime DLL — likely belongs to a specific program.`,
-        '',
-        'RECOMMENDED FIX:',
-        `1. Reinstall the program${args.program_name ? ` (${args.program_name})` : ''} — this will restore its missing files`,
-        '2. If reinstalling does not work, also install the Visual C++ 2015-2022 Redistributable from Microsoft',
-        '3. Run Windows Update to make sure your system is current',
-        '',
-        'SAFETY WARNING:',
-        ...dllKnowledge.safety_rules.map(r => `- ${r}`),
-      ];
-      return textResult(lines.join('\n'));
+    const diagnosis = formatDllDiagnosis(args.dll_name, result, args.program_name);
+    if (result.found) {
+      console.log(`[MCP] DLL diagnosis: ${args.dll_name} → ${result.family.name} (${result.familyId})`);
     }
-
-    const { family, version, familyId } = result;
-    const lines = [
-      `DLL: ${args.dll_name}`,
-      `IDENTIFIED AS: ${family.name}`,
-      `DESCRIPTION: ${family.description}`,
-      '',
-    ];
-
-    // Download links
-    if (version) {
-      lines.push(`VERSION: ${version.year} (${version.note})`);
-      if (version.download_x64) lines.push(`DOWNLOAD (64-bit): ${version.download_x64}`);
-      if (version.download_x86) lines.push(`DOWNLOAD (32-bit): ${version.download_x86}`);
-      if (version.download) lines.push(`DOWNLOAD: ${version.download}`);
-    } else if (family.download) {
-      lines.push(`DOWNLOAD: ${family.download}`);
-    } else if (familyId === 'ucrt' && family.download_standalone) {
-      lines.push(`DOWNLOAD: ${family.download_standalone}`);
-    } else if (familyId === 'dotnet') {
-      lines.push('DOWNLOAD: https://dotnet.microsoft.com/en-us/download');
-    }
-
-    // Install-both note for vcredist
-    if (familyId === 'vcredist' && family.install_both_note) {
-      lines.push('');
-      lines.push(`TIP: ${family.install_both_note}`);
-    }
-
-    lines.push('');
-    lines.push('FIX STEPS:');
-    family.fix_steps.forEach((step, i) => {
-      lines.push(`${i + 1}. ${step}`);
-    });
-
-    if (family.note) {
-      lines.push('');
-      lines.push(`NOTE: ${family.note}`);
-    }
-
-    lines.push('');
-    lines.push('SAFETY WARNING:');
-    lines.push('- NEVER download individual DLL files from third-party websites — they often contain malware');
-    lines.push('- Only use official Microsoft installers or reinstall the program');
-
-    // If the program is known, add context
-    if (args.program_name) {
-      lines.push('');
-      lines.push(`PROGRAM CONTEXT: The user is trying to run "${args.program_name}". After installing the fix above, they should try opening it again.`);
-    }
-
-    console.log(`[MCP] DLL diagnosis: ${args.dll_name} → ${family.name} (${familyId})`);
-    return textResult(lines.join('\n'));
+    return textResult(diagnosis);
   }
 );
 

@@ -1,7 +1,8 @@
 const db = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
+const { MEMORY_TYPES } = require('../core/sharedConstants');
 
-const VALID_TYPES = ['preference', 'struggle', 'breakthrough', 'context', 'pattern'];
+const VALID_TYPES = MEMORY_TYPES;
 
 const UserMemory = {
   create(data) {

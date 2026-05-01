@@ -5,6 +5,14 @@
  * - VALID_GUIDE_IDS (visual guide task IDs)
  * - BLOCKED_PATTERNS (dangerous command patterns)
  * - buildComfortGuidelines (comfort-level text)
+ * - VOCAB_LEVELS (vocabulary simplification levels)
+ * - VALID_TASK_TYPES (message classification types)
+ * - VALID_URGENCY (urgency levels)
+ * - MEMORY_TYPES (user memory observation types)
+ * - RISK_LEVELS (scam risk assessment levels)
+ * - FINDING_STATUSES (diagnostic finding statuses)
+ * - INTERMEDIATE_KEYS (jargon terms for intermediate vocab filtering)
+ * - buildWordRegex (word-boundary regex builder for vocab matching)
  */
 
 // ─── Visual Guide IDs ─────────────────────────────────────────────
@@ -71,8 +79,71 @@ function buildComfortGuidelines(comfortLevel) {
   }
 }
 
+// ─── Vocabulary Levels ───────────────────────────────────────────
+// Used by vocabularyFilter, vocabularyProgression, agentOrchestrator, pcpalTools
+
+const VOCAB_LEVELS = ['basic', 'intermediate', 'standard'];
+
+// ─── Task Classification ─────────────────────────────────────────
+// Used by taskClassifier and agentOrchestrator
+
+const VALID_TASK_TYPES = ['learn_skill', 'troubleshoot', 'follow_up', 'accessibility', 'unknown'];
+const VALID_URGENCY = ['low', 'medium', 'high'];
+
+// ─── Memory Types ────────────────────────────────────────────────
+// Used by UserMemory model and pcpalTools (save_memory tool)
+
+const MEMORY_TYPES = ['preference', 'struggle', 'breakthrough', 'context', 'pattern'];
+
+// ─── Risk / Status Enums ─────────────────────────────────────────
+// Used by pcpalTools (analyze_scam_situation, create_findings) and agentOrchestrator
+
+const RISK_LEVELS = ['high', 'medium', 'low'];
+const FINDING_STATUSES = ['good', 'warning', 'bad'];
+
+// ─── Intermediate Vocabulary Keys ────────────────────────────────
+// Subset of jargon terms applied at the 'intermediate' level.
+// Used by vocabularyFilter and vocabularyProgression.
+
+const INTERMEDIATE_KEYS = [
+  'malware',
+  'phishing',
+  'bandwidth',
+  'cache',
+  'firewall',
+  'cookie',
+  'router',
+  'Wi-Fi',
+  'VPN',
+  'two-factor authentication',
+  '2FA',
+  'encryption',
+  'sync',
+  'cloud',
+  'SSID',
+];
+
+// ─── Shared Helpers ──────────────────────────────────────────────
+
+/**
+ * Build a regex that matches a term as a whole word (case-insensitive).
+ * Handles special regex characters in the term.
+ */
+function buildWordRegex(term) {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`, 'gi');
+}
+
 module.exports = {
   VALID_GUIDE_IDS,
   BLOCKED_PATTERNS,
   buildComfortGuidelines,
+  VOCAB_LEVELS,
+  VALID_TASK_TYPES,
+  VALID_URGENCY,
+  MEMORY_TYPES,
+  RISK_LEVELS,
+  FINDING_STATUSES,
+  INTERMEDIATE_KEYS,
+  buildWordRegex,
 };

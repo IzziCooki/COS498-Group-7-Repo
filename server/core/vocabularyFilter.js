@@ -1,34 +1,6 @@
 const path = require('path');
 const substitutions = require(path.join(__dirname, '../assets/vocabulary/basicSubstitutions.json'));
-
-// Keys that are considered "intermediate" complexity — a subset of all substitutions.
-// These are the most confusing tech terms even for intermediate users.
-const INTERMEDIATE_KEYS = [
-  'malware',
-  'phishing',
-  'bandwidth',
-  'cache',
-  'firewall',
-  'cookie',
-  'router',
-  'Wi-Fi',
-  'VPN',
-  'two-factor authentication',
-  '2FA',
-  'encryption',
-  'sync',
-  'cloud',
-  'SSID',
-];
-
-/**
- * Build a regex that matches a term as a whole word (case-insensitive).
- * Handles special regex characters in the term.
- */
-function buildWordRegex(term) {
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`\\b${escaped}\\b`, 'gi');
-}
+const { INTERMEDIATE_KEYS, buildWordRegex } = require('./sharedConstants');
 
 /**
  * Apply vocabulary substitutions to text.

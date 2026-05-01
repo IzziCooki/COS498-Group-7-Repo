@@ -5,9 +5,9 @@ import './WelcomeBackBanner.css';
  * WelcomeBackBanner — shown at the top of the chat when the user returns
  * and has skills due for review or buddy help replies.
  *
- * @param {object} welcomeData - { reviewSkills, pendingHelp }
- * @param {function} onSendMessage - callback to send a chat message
- * @param {function} onDismiss - callback to close the banner
+ * @param {{ reviewSkills: Array<{ skillId?: string, skillName: string }>, pendingHelp: Array<{ buddyName: string, question: string, response: string }> }} welcomeData
+ * @param {(text: string) => void} onSendMessage - callback to send a chat message
+ * @param {() => void} onDismiss - callback to close the banner
  */
 function WelcomeBackBanner({ welcomeData, onSendMessage, onDismiss }) {
   if (!welcomeData) return null;

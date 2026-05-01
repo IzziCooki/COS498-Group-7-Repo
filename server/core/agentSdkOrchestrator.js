@@ -1,21 +1,16 @@
 /**
  * Agent SDK Orchestrator
  *
- * Replaces the manual tool-use loop with the Claude Agent SDK.
- * Custom tools are exposed via an in-process MCP server.
- * Built-in tools (Bash, Read, WebSearch) are available when needed.
- *
- * Falls back to the original agentOrchestrator.js if the Agent SDK
- * is not available or ANTHROPIC_API_KEY is missing.
+ * Primary orchestrator using the Claude Agent SDK with MCP tools.
+ * Delegates to agentOrchestrator.js for Ollama models and as an
+ * error-recovery path when the Agent SDK call fails.
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext } = require('../mcp/pcpalTools');
 const safetyMonitor = require('./safetyMonitor');
 const UserMemory = require('../models/UserMemory');
-const ConversationFeedback = require('../models/ConversationFeedback');
 const conversationState = require('./conversationState');
-const vocabularyFilter = require('./vocabularyFilter');
 const userProfileManager = require('./userProfileManager');
 const taskClassifier = require('./taskClassifier');
 const skillMatcher = require('./skillMatcher');
@@ -25,6 +20,7 @@ const youtubeSearch = require('./youtubeSearch');
 const { buildComfortGuidelines } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const vocabularyProgression = require('./vocabularyProgression');
+const { loadCoachingNotes, buildScreenContext, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -36,8 +32,6 @@ try {
 } catch (err) {
   console.error('[agentSdkOrchestrator] Failed to create MCP server:', err.message);
 }
-
-// buildComfortGuidelines imported from sharedConstants.js — single source of truth
 
 function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext) {
   const comfortGuidelines = buildComfortGuidelines(user?.comfort_level);
@@ -286,25 +280,11 @@ async function processMessage(text, userId, context = {}) {
     }
     const confusionCtx = qualityTracker.getConfusionState(sessionId);
 
-    // Load persistent memories for this user
     const memorySummary = UserMemory.buildMemorySummary(userId);
 
-    // Close the feedback loop: inject this user's most recent AI-generated
-    // coaching notes (from past end-of-chat feedback) so the agent's
-    // behavior actually changes based on what went wrong before. Guest
-    // users (no persistent id) get an empty array and no injection.
-    const recentFeedback = user?.id ? ConversationFeedback.getRecentWithSuggestions(user.id, 3) : [];
-    const coachingNotes = recentFeedback.length > 0
-      ? recentFeedback.map(f => `- (${f.rating}★) ${f.ai_suggestion}`).join('\n')
-      : '';
+    const coachingNotes = loadCoachingNotes(user?.id);
 
-    // Build screen context for the system prompt
-    let screenContext = '';
-    if (context.screenShareActive) {
-      screenContext = `\n## SCREEN SHARING IS ACTIVE\nThe user is sharing their screen with you right now. You can see their screen — call take_screenshot to capture and analyze what's on their screen. When they ask "can you see my screen?" or want help finding something, call take_screenshot FIRST before responding — do NOT guess or give generic instructions.\n`;
-    } else if (context.relayAgentConnected) {
-      screenContext = `\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.\n`;
-    }
+    const screenContext = buildScreenContext(context);
 
     const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext);
 
@@ -355,25 +335,15 @@ async function processMessage(text, userId, context = {}) {
       }
     }
 
-    // Extract structured data from response
     const guideMatch = finalResponse.match(/VISUAL_GUIDE:(\w+)/);
     if (guideMatch) {
       guideId = guideMatch[1];
       finalResponse = finalResponse.replace(/VISUAL_GUIDE:\w+/g, '').trim();
     }
 
-    // Extract YouTube videos if the agent called find_youtube_videos (MCP tool marker)
-    let videos = null;
-    const ytMarkerMatch = finalResponse.match(/YOUTUBE_VIDEOS:(\[[\s\S]*?\])/);
-    if (ytMarkerMatch) {
-      try {
-        videos = JSON.parse(ytMarkerMatch[1]);
-        console.log(`[agentSdkOrchestrator] YouTube videos from MCP tool: ${videos.length} results`);
-      } catch (e) {
-        console.warn('[agentSdkOrchestrator] Failed to parse YOUTUBE_VIDEOS marker');
-      }
-      finalResponse = finalResponse.replace(/YOUTUBE_VIDEOS:\[[\s\S]*?\]/g, '').trim();
-    }
+    const cleaned = cleanResponseMarkers(finalResponse);
+    finalResponse = cleaned.text;
+    let videos = cleaned.videos;
 
     // Fallback: search YouTube server-side if agent didn't call the tool but skill matches
     if (!videos && (matchedSkillId === 'youtube_help' || (finalResponse.toLowerCase().includes('video') && finalResponse.toLowerCase().includes('youtube')))) {
@@ -388,16 +358,6 @@ async function processMessage(text, userId, context = {}) {
       }
     }
 
-    // Extract verified resources if the agent called lookup_support_resources (MCP tool marker)
-    const verifiedMatch = finalResponse.match(/VERIFIED_RESOURCES:\n([\s\S]*?)(?=\n\n|$)/);
-    if (verifiedMatch) {
-      // Clean the marker from the response — the links are rendered separately
-      finalResponse = finalResponse.replace(/VERIFIED_RESOURCES:\n[\s\S]*?(?=\n\n|$)/g, '').trim();
-    }
-    // Also clean NO_CURATED_RESOURCES markers from the response
-    finalResponse = finalResponse.replace(/NO_CURATED_RESOURCES:[\s\S]*?(?=\n\n|$)/g, '').trim();
-
-    // Check if artifacts were created during the tool loop
     const guide = getAndClearLastGuide();
     const findings = getAndClearLastFindings();
     const practice = getAndClearLastPractice();
@@ -408,30 +368,14 @@ async function processMessage(text, userId, context = {}) {
     if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
     const vocabLevel = user.vocabulary_level || 'basic';
-    let filteredResponse = vocabularyProgression.filterWithProgression(finalResponse, vocabLevel, userId);
-    filteredResponse = vocabularyFilter.enforceReadability(filteredResponse);
+    const filteredResponse = filterResponse(finalResponse, vocabLevel, userId);
 
     if (!filteredResponse) {
       return { response: FALLBACK_RESPONSE, safetyAlert, guideId, stepSequence, conversationId: sessionId };
     }
 
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
-
-    try {
-      const allMessages = conversationState.getSessionMessages(sessionId, 50);
-      const turnNumber = allMessages.filter(m => m.role === 'assistant').length;
-      qualityTracker.trackTurn({
-        userId,
-        conversationId: sessionId,
-        userMessage: text,
-        agentResponse: filteredResponse,
-        vocabLevel: user.vocabulary_level || 'basic',
-        osType: user.os_type || '',
-        turnNumber,
-      });
-    } catch (trackErr) {
-      console.error('[agentSdkOrchestrator] Quality tracking error:', trackErr.message);
-    }
+    trackQuality({ userId, sessionId, userMessage: text, agentResponse: filteredResponse, user });
 
     return {
       response: filteredResponse,

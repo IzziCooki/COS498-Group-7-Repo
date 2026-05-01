@@ -49,7 +49,7 @@ function scoreCategory(category, topic) {
  * @param {string} topic - The topic to search for (e.g. "copy and paste", "wifi")
  * @param {string|null} osType - User's OS (e.g. "Windows", "macOS", "iPhone")
  * @param {string|null} service - Specific service (e.g. "gmail", "zoom")
- * @returns {Array} Array of resource objects, up to 5
+ * @returns {Array<{ title: string, url: string, source: string, type: string, time: string, description: string }>} Array of resource objects, up to 5
  */
 function lookupResources(topic, osType, service) {
   if (!topic) return [];
@@ -123,7 +123,7 @@ function lookupResources(topic, osType, service) {
  * Look up resources by skill ID directly.
  * @param {string} skillId - e.g. "copy-paste", "wifi"
  * @param {string|null} osType - User's OS
- * @returns {Array} Array of resource objects
+ * @returns {Array<{ title: string, url: string, source: string, type: string, time: string, description: string }>} Array of resource objects
  */
 function lookupBySkillId(skillId, osType) {
   if (!skillId) return [];

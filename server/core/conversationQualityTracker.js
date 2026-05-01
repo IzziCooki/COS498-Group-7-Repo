@@ -55,8 +55,6 @@ const DEVICE_VERB_VIOLATIONS = {
 // In-memory confusion state per conversation (reset on server restart)
 const confusionState = new Map();
 
-// Core tracking function — called on every turn
-
 /**
  * Analyze one complete turn (user input + agent response) and log quality events.
  *
@@ -164,11 +162,7 @@ function trackTurn({ userId, conversationId, userMessage, agentResponse, vocabLe
   }
 
   // Update summary record
-  try {
-    updateSummary(conversationId, userId, events, turnNumber);
-  } catch (err) {
-    console.error('[qualityTracker] Failed to update summary:', err.message);
-  }
+  updateSummary(conversationId, userId, events, turnNumber);
 }
 
 /**

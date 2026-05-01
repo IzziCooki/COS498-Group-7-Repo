@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const USER_ID_KEY = 'pcpal_userId';
-const USER_PROFILE_KEY = 'pcpal_profile';
-
 /**
  * useUser — user profile + auth state for PC Pal.
  *
@@ -24,26 +21,10 @@ export function useUser() {
   const applyUser = useCallback((data) => {
     setUser(data);
     setIsOnboarded(Boolean(data && (data.onboarded ?? data.is_onboarded ?? data.isOnboarded)));
-    if (data && data.id) {
-      // Keep legacy local markers in sync so anything still reading them
-      // sees the same id. Nothing security-sensitive lives here.
-      localStorage.setItem(USER_ID_KEY, data.id);
-      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({
-        name: data.name,
-        os_type: data.os_type,
-        comfort_level: data.comfort_level,
-        vocabulary_level: data.vocabulary_level,
-        is_onboarded: Boolean(data.onboarded ?? data.is_onboarded ?? data.isOnboarded),
-      }));
-    } else {
-      localStorage.removeItem(USER_ID_KEY);
-      localStorage.removeItem(USER_PROFILE_KEY);
-    }
   }, []);
 
   // On mount: ask the server who we are. The session cookie is the
-  // authoritative source of identity; localStorage is only used as a hint
-  // for pre-cookie clients.
+  // authoritative source of identity.
   useEffect(() => {
     let cancelled = false;
     async function bootstrap() {

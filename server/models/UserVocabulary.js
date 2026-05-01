@@ -4,7 +4,7 @@ const UserVocabulary = {
   /**
    * Get all vocabulary term records for a user.
    * @param {string} userId
-   * @returns {object[]} array of { user_id, term, encounter_count, last_seen_at }
+   * @returns {Array<{ user_id: string, term: string, encounter_count: number, last_seen_at: string }>}
    */
   getTerms(userId) {
     return db.prepare('SELECT * FROM user_vocabulary WHERE user_id = ?').all(userId);
@@ -14,7 +14,7 @@ const UserVocabulary = {
    * Get a single term record for a user.
    * @param {string} userId
    * @param {string} term
-   * @returns {object|null}
+   * @returns {{ user_id: string, term: string, encounter_count: number, last_seen_at: string }|null}
    */
   getTerm(userId, term) {
     return db.prepare('SELECT * FROM user_vocabulary WHERE user_id = ? AND term = ?').get(userId, term) || null;
@@ -24,7 +24,7 @@ const UserVocabulary = {
    * Increment the encounter count for a term (upsert).
    * @param {string} userId
    * @param {string} term
-   * @returns {object} updated record
+   * @returns {{ user_id: string, term: string, encounter_count: number, last_seen_at: string }|null}
    */
   incrementTerm(userId, term) {
     const now = new Date().toISOString();

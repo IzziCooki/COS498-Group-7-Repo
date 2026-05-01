@@ -24,47 +24,42 @@ function gatherDiagnosticContext(skill) {
 
   const sections = [];
 
-  try {
-    switch (skill.id) {
-      case 'slow_computer':
-        sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
-        sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
-        break;
-      case 'network_fix':
+  switch (skill.id) {
+    case 'slow_computer':
+      sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
+      sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
+      break;
+    case 'network_fix':
+      sections.push('=== NETWORK STATUS ===\n' + systemDiagnostics.checkNetwork());
+      break;
+    case 'diagnose_system':
+      sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
+      sections.push('=== RECENT ERRORS ===\n' + systemDiagnostics.readErrorLog('system'));
+      break;
+    case 'disk_cleanup':
+      sections.push('=== DISK HEALTH ===\n' + systemDiagnostics.checkDiskHealth());
+      break;
+    case 'app_troubleshoot':
+      sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
+      sections.push('=== INSTALLED SOFTWARE ===\n' + systemDiagnostics.checkInstalledSoftware());
+      break;
+    case 'battery_power':
+      sections.push('=== BATTERY STATUS ===\n' + systemDiagnostics.getBatteryStatus());
+      sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
+      break;
+    case 'system_checkup':
+      sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
+      sections.push('=== NETWORK STATUS ===\n' + systemDiagnostics.checkNetwork());
+      sections.push('=== DISK HEALTH ===\n' + systemDiagnostics.checkDiskHealth());
+      sections.push('=== BATTERY STATUS ===\n' + systemDiagnostics.getBatteryStatus());
+      sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
+      break;
+    default:
+      // For wifi skill and others that mention check_network in their prompt
+      if (skill.prompt && skill.prompt.includes('check_network')) {
         sections.push('=== NETWORK STATUS ===\n' + systemDiagnostics.checkNetwork());
-        break;
-      case 'diagnose_system':
-        sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
-        sections.push('=== RECENT ERRORS ===\n' + systemDiagnostics.readErrorLog('system'));
-        break;
-      case 'disk_cleanup':
-        sections.push('=== DISK HEALTH ===\n' + systemDiagnostics.checkDiskHealth());
-        break;
-      case 'app_troubleshoot':
-        sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
-        sections.push('=== INSTALLED SOFTWARE ===\n' + systemDiagnostics.checkInstalledSoftware());
-        break;
-      case 'battery_power':
-        sections.push('=== BATTERY STATUS ===\n' + systemDiagnostics.getBatteryStatus());
-        sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
-        break;
-      case 'system_checkup':
-        sections.push('=== SYSTEM INFO ===\n' + systemDiagnostics.getSystemInfo());
-        sections.push('=== NETWORK STATUS ===\n' + systemDiagnostics.checkNetwork());
-        sections.push('=== DISK HEALTH ===\n' + systemDiagnostics.checkDiskHealth());
-        sections.push('=== BATTERY STATUS ===\n' + systemDiagnostics.getBatteryStatus());
-        sections.push('=== RUNNING APPS ===\n' + systemDiagnostics.listRunningApps());
-        break;
-      default:
-        // For wifi skill and others that mention check_network in their prompt
-        if (skill.prompt && skill.prompt.includes('check_network')) {
-          sections.push('=== NETWORK STATUS ===\n' + systemDiagnostics.checkNetwork());
-        }
-        break;
-    }
-  } catch (err) {
-    console.error('[mockResponder] Diagnostic data gathering failed:', err.message);
-    sections.push('(Diagnostic tools unavailable in this environment)');
+      }
+      break;
   }
 
   if (sections.length === 0) return '';
@@ -73,9 +68,6 @@ function gatherDiagnosticContext(skill) {
     sections.join('\n\n');
 }
 
-/**
- * Main responder.
- */
 function respond(text, userId, sessionId) {
   const user = userProfileManager.getOrCreateUser(userId);
   const vocabLevel = user.vocabulary_level || 'basic';
@@ -119,9 +111,6 @@ function respond(text, userId, sessionId) {
   };
 }
 
-/**
- * Call the claude CLI with automatic skill injection.
- */
 function askClaudeCli(text, user, history, skill, diagnosticContext) {
   const name = user?.name || 'friend';
   const os = user?.os_type || 'a computer';

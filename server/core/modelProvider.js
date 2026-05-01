@@ -23,7 +23,7 @@ const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 
 /**
  * List all available models (Claude + any running Ollama models).
- * @returns {Promise<object[]>} array of { id, name, provider }
+ * @returns {Promise<Array<{ id: string, name: string, provider: string }>>}
  */
 async function listAvailableModels() {
   const models = [];
@@ -68,4 +68,4 @@ function resolveModel(modelPref) {
   return { provider: 'anthropic', model: modelPref };
 }
 
-module.exports = { listAvailableModels, resolveModel, DEFAULT_MODEL, CLAUDE_MODELS };
+module.exports = { listAvailableModels, resolveModel, DEFAULT_MODEL };

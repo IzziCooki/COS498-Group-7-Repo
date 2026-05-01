@@ -8,7 +8,7 @@ import { collectBrowserSystemInfo } from '../utils/collectBrowserSystemInfo';
  * sends an init message, and manages message state.
  *
  * @param {string|null} userId
- * @returns {object} chat state + callbacks (see destructured return below)
+ * @returns {{ messages: Array, sendMessage: (text: string) => void, gatherResources: (extraText: string) => void, pairAgent: (code: string, callback: Function) => void, agentConnected: boolean, runCommand: (command: string) => void, isConnected: boolean, isTyping: boolean, connectionFailed: boolean, activeSequence: object|null, welcomeBack: { reviewSkills: Array, pendingHelp: Array }|null, dismissWelcomeBack: () => void, conversationId: string|null, feedbackPrompt: { conversationId: string }|null, startNewChat: () => void, endChat: () => void, submitFeedback: (payload: { rating: number, comment?: string }) => Promise<{ ok: boolean, error?: string }>, skipFeedback: () => Promise<void>, terminalHistory: Array, terminalCwd: string|null, sendTerminalCommand: (command: string) => void, buddySession: object|null, buddyObserving: { buddyName: string }|null, joinBuddySession: (learnerId: string) => void, leaveBuddySession: (learnerId: string) => void, sendBuddyCommand: (learnerId: string, command: string) => void, sendScreenFrame: (imageBase64: string) => void, wsRef: React.MutableRefObject<WebSocket|null> }}
  */
 export function useChat(userId) {
   const [messages, setMessages] = useState([]);

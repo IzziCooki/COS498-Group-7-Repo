@@ -87,38 +87,34 @@ async function searchVideos(query, maxResults = 3) {
 function extractVideosFromData(data, maxResults) {
   const videos = [];
 
-  try {
-    const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents
-      ?.sectionListRenderer?.contents;
+  const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents
+    ?.sectionListRenderer?.contents;
 
-    if (!contents) return [];
+  if (!contents) return [];
 
-    for (const section of contents) {
-      const items = section?.itemSectionRenderer?.contents;
-      if (!items) continue;
+  for (const section of contents) {
+    const items = section?.itemSectionRenderer?.contents;
+    if (!items) continue;
 
-      for (const item of items) {
-        const renderer = item?.videoRenderer;
-        if (!renderer || !renderer.videoId) continue;
+    for (const item of items) {
+      const renderer = item?.videoRenderer;
+      if (!renderer || !renderer.videoId) continue;
 
-        const videoId = renderer.videoId;
-        const title = renderer.title?.runs?.[0]?.text || 'Untitled video';
-        const channel = renderer.ownerText?.runs?.[0]?.text || 'Unknown channel';
+      const videoId = renderer.videoId;
+      const title = renderer.title?.runs?.[0]?.text || 'Untitled video';
+      const channel = renderer.ownerText?.runs?.[0]?.text || 'Unknown channel';
 
-        videos.push({
-          id: videoId,
-          title,
-          url: `https://www.youtube.com/watch?v=${videoId}`,
-          thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-          channel,
-        });
+      videos.push({
+        id: videoId,
+        title,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+        thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+        channel,
+      });
 
-        if (videos.length >= maxResults) break;
-      }
       if (videos.length >= maxResults) break;
     }
-  } catch (err) {
-    console.error('[youtubeSearch] Error parsing ytInitialData:', err.message);
+    if (videos.length >= maxResults) break;
   }
 
   return videos;

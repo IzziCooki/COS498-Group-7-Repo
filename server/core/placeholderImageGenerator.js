@@ -117,4 +117,4 @@ function generateMissing() {
   return { generated, skipped };
 }
 
-module.exports = { generateMissing, generatePlaceholder };
+module.exports = { generateMissing };

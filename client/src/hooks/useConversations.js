@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
  * useConversations — fetches the conversation list for a user.
  *
  * @param {string|null} userId
- * @returns {{ conversations: object[], refresh: () => void, isLoading: boolean }}
+ * @returns {{ conversations: Array<{ id: string, user_id: string, status: string, created_at: string, updated_at: string }>, refresh: () => void, isLoading: boolean }}
  */
 export function useConversations(userId) {
   const [conversations, setConversations] = useState([]);

@@ -30,8 +30,6 @@ const { BLOCKED_PATTERNS } = require('../server/core/sharedConstants');
 const DEFAULT_SERVER = 'ws://localhost:3001/ws';
 const serverUrl = process.argv[2] || process.env.PCPAL_SERVER || DEFAULT_SERVER;
 
-// BLOCKED_PATTERNS imported from sharedConstants.js
-
 function isSafe(cmd) {
   return !BLOCKED_PATTERNS.some(p => p.test(cmd));
 }

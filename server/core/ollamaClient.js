@@ -2,7 +2,7 @@
  * Ollama Client — calls Ollama's OpenAI-compatible chat completions API.
  *
  * Ollama exposes an OpenAI-compatible endpoint at /v1/chat/completions.
- * This client wraps that API for use by the fallback orchestrator.
+ * This client wraps that API for use by agentOrchestrator.js (Ollama path).
  */
 
 const config = require('../config');
@@ -12,7 +12,7 @@ const config = require('../config');
  *
  * @param {string} model       Ollama model name (e.g. "llama3.2", "mistral")
  * @param {string} systemPrompt
- * @param {object[]} messages  Array of { role, content } messages
+ * @param {Array<{ role: string, content: string|object }>} messages  Array of chat messages
  * @returns {Promise<string>}  The assistant's text response
  */
 async function chat(model, systemPrompt, messages) {
