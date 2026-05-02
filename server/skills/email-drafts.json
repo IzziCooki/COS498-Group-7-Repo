@@ -1,0 +1,18 @@
+{
+  "id": "email-drafts",
+  "name": "Save and Resume an Email Draft",
+  "description": "Help the user save an email they're not ready to send and finish it later",
+  "triggers": [
+    "save draft", "save a draft", "save my draft", "save email draft",
+    "email draft", "email drafts", "drafts folder", "drafts", "draft",
+    "finish email later", "finish an email later", "finish my email later", "finish writing later",
+    "resume draft", "resume my draft", "resume the draft",
+    "unfinished email", "unfinished", "unfinished emails",
+    "continue email", "continue my email", "continue writing email",
+    "saved email", "saved emails", "saved draft", "saved drafts",
+    "go back to my email", "come back to email"
+  ],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to save an email and finish it later, or come back to one they already saved. Reassurance to share first: Gmail saves drafts **automatically** every few seconds while they type — they don't have to do anything special. Closing the compose window does not throw the email away.\n\nVISUAL GUIDE — SAVING + RESUMING A DRAFT (Gmail): 5 steps.\n\n  Step 1: image_id `gmail-illustrated-step-4`. Text: \"While you're writing an email, Gmail is already saving it for you in the background — you'll see the words 'Saving...' or 'Draft saved' near the bottom of the compose window.\"\n  Step 2: image_id `gmail-illustrated-step-5`. Text: \"When you want to stop and come back later, just click the small X in the top-right corner of the compose window. The email is safely tucked away.\"\n  Step 3: image_id `gmail-drafts-folder`. Text: \"To find your saved email later, look at the left sidebar in Gmail and click **Drafts**. Every email you started but didn't send lives here.\"\n  Step 4: image_id `gmail-resume-draft`. Text: \"Click the draft you want to finish. The compose window opens back up with everything you'd already typed still there.\"\n  Step 5: image_id `email-send-button`. Text: \"Finish writing, then click the blue **Send** button when you're ready. 🎉\"\n\nIf the user worries they lost a draft, walk them through opening the Drafts folder. Drafts only get deleted if the user explicitly throws them away."
+}
