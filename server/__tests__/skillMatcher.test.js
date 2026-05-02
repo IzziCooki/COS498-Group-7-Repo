@@ -233,6 +233,75 @@ describe('skillMatcher', () => {
     });
   });
 
+  describe('matchSkill — "is not working" routing fix', () => {
+    // Bug class: app_troubleshoot used to have a bare "not working" trigger
+    // that stole every "X is not working" phrase from the proper specific
+    // skill. Fix replaces it with specific compounds in app_troubleshoot
+    // and adds parallel compounds to network_fix and diagnose_system.
+
+    it('"my wifi is not working" routes to network_fix (fixed)', () => {
+      const match = matchSkill('my wifi is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('network_fix');
+    });
+
+    it('"my wi-fi is not working" routes to network_fix (fixed)', () => {
+      const match = matchSkill('my wi-fi is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('network_fix');
+    });
+
+    it('"the internet is not working" routes to network_fix (fixed)', () => {
+      const match = matchSkill('the internet is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('network_fix');
+    });
+
+    it('"having an internet problem" routes to network_fix', () => {
+      const match = matchSkill('I am having an internet problem');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('network_fix');
+    });
+
+    it('"my printer is not working" routes to print (fixed side-effect)', () => {
+      const match = matchSkill('my printer is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('print');
+    });
+
+    it('"my computer is not working" routes to diagnose_system', () => {
+      const match = matchSkill('my computer is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('diagnose_system');
+    });
+
+    // Preservation regressions: app phrases still route to app_troubleshoot
+    it('"my app is not working" still routes to app_troubleshoot', () => {
+      const match = matchSkill('my app is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('app_troubleshoot');
+    });
+
+    it('"my program is not working" still routes to app_troubleshoot', () => {
+      const match = matchSkill('my program is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('app_troubleshoot');
+    });
+
+    it('"my browser is not working" still routes to app_troubleshoot', () => {
+      const match = matchSkill('my browser is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('app_troubleshoot');
+    });
+
+    // network_fix must not steal connect-tutorial phrasings from wifi
+    it('"set up my wifi" still routes to wifi (no-steal regression)', () => {
+      const match = matchSkill('I want to set up my wifi');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('wifi');
+    });
+  });
+
   describe('matchSkill — priority tie-breaking', () => {
     it('prioritizes critical skills (scam) over beginner skills on tie', () => {
       const match = matchSkill('is this email a scam');
