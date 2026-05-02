@@ -175,6 +175,64 @@ describe('skillMatcher', () => {
     });
   });
 
+  describe('matchSkill — universal troubleshooter (catch-all)', () => {
+    it('matches "I do not know what is wrong" to universal-troubleshooter', () => {
+      const match = matchSkill("I don't know what's wrong");
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('universal-troubleshooter');
+    });
+
+    it('matches "please help me with my computer" to universal-troubleshooter', () => {
+      const match = matchSkill('please help me with my computer');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('universal-troubleshooter');
+    });
+
+    it('matches "I am stuck and need help" to universal-troubleshooter', () => {
+      const match = matchSkill("I'm stuck and I need your help");
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('universal-troubleshooter');
+    });
+
+    it('matches "can you walk me through this" to universal-troubleshooter', () => {
+      const match = matchSkill('can you walk me through this');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('universal-troubleshooter');
+    });
+
+    it('matches "I am having trouble with my computer" to universal-troubleshooter', () => {
+      const match = matchSkill("I'm having trouble with my computer");
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('universal-troubleshooter');
+    });
+
+    it('does NOT steal "something is wrong" from diagnose_system', () => {
+      const match = matchSkill('something is wrong with my computer');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).not.toBe('universal-troubleshooter');
+      expect(match.skill.id).toBe('diagnose_system');
+    });
+
+    it('does NOT steal an "app not working" phrase from a more specific skill', () => {
+      const match = matchSkill('my app is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).not.toBe('universal-troubleshooter');
+    });
+
+    it('does NOT steal a "wifi not working" phrase from a more specific skill', () => {
+      const match = matchSkill('my wifi is not working');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).not.toBe('universal-troubleshooter');
+    });
+
+    it('does NOT steal "check my computer" from system_checkup', () => {
+      const match = matchSkill('can you check my computer');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).not.toBe('universal-troubleshooter');
+      expect(match.skill.id).toBe('system_checkup');
+    });
+  });
+
   describe('matchSkill — "is not working" routing fix', () => {
     // Bug class: app_troubleshoot used to have a bare "not working" trigger
     // that stole every "X is not working" phrase from the proper specific
