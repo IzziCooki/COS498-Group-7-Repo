@@ -113,6 +113,68 @@ describe('skillMatcher', () => {
     });
   });
 
+  describe('matchSkill — advanced Gmail skills', () => {
+    it('matches "how do I check my inbox" to read-email', () => {
+      const match = matchSkill('how do I check my inbox');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('read-email');
+    });
+
+    it('matches "any new emails for me" to read-email', () => {
+      const match = matchSkill('any new emails for me');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('read-email');
+    });
+
+    it('matches "how do I reply to this email" to reply-forward', () => {
+      const match = matchSkill('how do I reply to this email');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('reply-forward');
+    });
+
+    it('matches "I want to forward this email to my son" to reply-forward', () => {
+      const match = matchSkill('I want to forward this email to my son');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('reply-forward');
+    });
+
+    it('matches "find an old email from my doctor" to search-email', () => {
+      const match = matchSkill('find an old email from my doctor');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('search-email');
+    });
+
+    it('matches "how do I delete this email" to email-organize', () => {
+      const match = matchSkill('how do I delete this email');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('email-organize');
+    });
+
+    it('matches "I want to archive this email" to email-organize', () => {
+      const match = matchSkill('I want to archive this email');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('email-organize');
+    });
+
+    it('matches "how do I save a draft" to email-drafts', () => {
+      const match = matchSkill('how do I save a draft');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('email-drafts');
+    });
+
+    it('matches "where is my unfinished email" to email-drafts', () => {
+      const match = matchSkill('where is my unfinished email');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('email-drafts');
+    });
+
+    it('does NOT route "how do I send an email" to a new Gmail skill (regression check)', () => {
+      const match = matchSkill('how do I send an email');
+      expect(match).not.toBeNull();
+      expect(match.skill.id).toBe('send-email');
+    });
+  });
+
   describe('matchSkill — priority tie-breaking', () => {
     it('prioritizes critical skills (scam) over beginner skills on tie', () => {
       const match = matchSkill('is this email a scam');

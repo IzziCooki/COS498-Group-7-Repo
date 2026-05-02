@@ -228,6 +228,118 @@ const LIBRARY = {
     skills: ['send-email'],
   },
 
+  // Advanced Gmail flows beyond send-email: reading, replying & forwarding,
+  // searching, organizing (star/label/archive/delete), and resuming drafts.
+  // Same warm-cartoon style as the gmail-illustrated-step-* assets so the
+  // skills feel consistent. Each entry's `skills` field tags the new skill
+  // that uses it; some are reused across multiple skills.
+  'gmail-read-email-demo': {
+    file: 'email/gmail-read-email-demo.gif',
+    alt: 'Short demo: opening Gmail, finding an unread message, opening it, and reading it',
+    category: 'email',
+    skills: ['read-email'],
+  },
+  'gmail-inbox-overview': {
+    file: 'email/gmail-inbox-overview.png',
+    alt: 'The Gmail inbox layout — left sidebar with folders, list of messages in the middle, search bar at the top',
+    category: 'email',
+    skills: ['read-email'],
+  },
+  'gmail-unread-message': {
+    file: 'email/gmail-unread-message.png',
+    alt: 'A bold unread message in the inbox list with an arrow pointing to it',
+    category: 'email',
+    skills: ['read-email', 'reply-forward', 'email-organize'],
+  },
+  'gmail-open-message-view': {
+    file: 'email/gmail-open-message-view.png',
+    alt: 'An opened email showing the sender, subject, and full message body',
+    category: 'email',
+    skills: ['read-email', 'email-organize'],
+  },
+  'gmail-back-to-inbox': {
+    file: 'email/gmail-back-to-inbox.png',
+    alt: 'The back arrow at the top-left of an opened message — click to return to the inbox',
+    category: 'email',
+    skills: ['read-email'],
+  },
+
+  'gmail-reply-button': {
+    file: 'email/gmail-reply-button.png',
+    alt: 'The Reply button under an opened email message',
+    category: 'email',
+    skills: ['reply-forward'],
+  },
+  'gmail-reply-all-button': {
+    file: 'email/gmail-reply-all-button.png',
+    alt: 'The Reply All button next to Reply, for replying to everyone on the email',
+    category: 'email',
+    skills: ['reply-forward'],
+  },
+  'gmail-forward-button': {
+    file: 'email/gmail-forward-button.png',
+    alt: 'The Forward button under an opened email message — sends the email to someone else',
+    category: 'email',
+    skills: ['reply-forward'],
+  },
+  'gmail-reply-compose-window': {
+    file: 'email/gmail-reply-compose-window.png',
+    alt: 'The inline reply compose box that opens underneath an email — ready to type a response',
+    category: 'email',
+    skills: ['reply-forward'],
+  },
+
+  'gmail-search-bar': {
+    file: 'email/gmail-search-bar.png',
+    alt: 'The search box at the top of Gmail — type a name or word to find old emails',
+    category: 'email',
+    skills: ['search-email'],
+  },
+  'gmail-search-results': {
+    file: 'email/gmail-search-results.png',
+    alt: 'A list of search results in Gmail showing every email that matches what was typed',
+    category: 'email',
+    skills: ['search-email'],
+  },
+
+  'gmail-star-icon': {
+    file: 'email/gmail-star-icon.png',
+    alt: 'The star icon at the left of an email row — click to mark the email as starred (turns yellow)',
+    category: 'email',
+    skills: ['email-organize'],
+  },
+  'gmail-label-menu': {
+    file: 'email/gmail-label-menu.png',
+    alt: 'The Labels dropdown opened, showing checkboxes next to each label name',
+    category: 'email',
+    skills: ['email-organize'],
+  },
+  'gmail-archive-button': {
+    file: 'email/gmail-archive-button.png',
+    alt: 'The Archive icon in the Gmail toolbar (a small box with a downward arrow) — hides the email from the inbox without deleting it',
+    category: 'email',
+    skills: ['email-organize'],
+  },
+  'gmail-delete-button': {
+    file: 'email/gmail-delete-button.png',
+    alt: 'The Trash icon in the Gmail toolbar — moves the email to Trash for 30 days',
+    category: 'email',
+    skills: ['email-organize'],
+  },
+
+  'gmail-drafts-folder': {
+    file: 'email/gmail-drafts-folder.png',
+    alt: 'The Drafts link in the Gmail left sidebar — every email started but not sent lives here',
+    category: 'email',
+    skills: ['email-drafts'],
+  },
+  'gmail-resume-draft': {
+    file: 'email/gmail-resume-draft.png',
+    alt: 'A saved draft opened back up in the compose window, ready to finish writing',
+    category: 'email',
+    skills: ['email-drafts'],
+  },
+
   // --- Video call (6) ---
   'zoom-join-meeting': {
     file: 'video-call/zoom-join-meeting.png',

@@ -1,0 +1,17 @@
+{
+  "id": "search-email",
+  "name": "Search Your Email",
+  "description": "Help the user find an old email by searching for a name, word, or subject",
+  "triggers": [
+    "search email", "search for email", "search for an email", "search for the email", "search emails", "search for emails",
+    "search inbox", "search my inbox", "search my email", "search my emails",
+    "find email", "find an email", "find the email", "find emails", "find old email", "find an old email", "find old emails", "find a old email",
+    "look for email", "look for an email", "look for the email", "look for an old email", "look for old email",
+    "where is that email", "where is the email", "where is my email", "where is my old email",
+    "lost email", "lost an email", "missing email", "missing an email", "missed email",
+    "old email", "old emails"
+  ],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to find an old email. FIRST reassure them: searching never deletes or moves anything — it just shows them the matching messages. Ask what they remember about the email (the sender's name, a word in the subject, or a topic). Assume Gmail unless they say otherwise.\n\nVISUAL GUIDE — SEARCHING GMAIL: 4 steps.\n\n  Step 1: image_id `gmail-illustrated-step-1`. Text: \"Open Gmail in your browser as you normally do.\"\n  Step 2: image_id `gmail-search-bar`. Text: \"At the very top of the page is a long white search box. Click inside it.\"\n  Step 3: image_id `gmail-search-bar`. Text: \"Type a name, word, or anything you remember about the email — for example the sender's first name. Then press Enter on your keyboard.\"\n  Step 4: image_id `gmail-search-results`. Text: \"Gmail shows every email that matches. Click the one you want to read. To go back to your full inbox, click the **Inbox** link on the left side. 🎉\"\n\nIf they don't find it, suggest trying a different word, or just the sender's first name. Mention that emails older than a few years may take a moment to load."
+}

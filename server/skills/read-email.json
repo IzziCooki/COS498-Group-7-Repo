@@ -1,0 +1,16 @@
+{
+  "id": "read-email",
+  "name": "Read an Email",
+  "description": "Help the user open their inbox, find new messages, and read them",
+  "triggers": [
+    "check inbox", "check my inbox", "open inbox", "open my inbox", "view inbox", "see inbox", "inbox",
+    "see new emails", "any new emails", "any new email", "got new emails", "got new email", "new emails", "new email",
+    "read my mail", "check my mail", "open my mail",
+    "unread emails", "unread email", "unread messages", "unread",
+    "read message", "read messages", "read my messages", "read the messages",
+    "read email", "open email", "check my email", "open a email", "open an email"
+  ],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to read their email. FIRST ask which email service they use (Gmail, Outlook, Yahoo, AOL) if not already known from memory. Reassure them that opening and reading emails never deletes anything — they are just looking. The visual guide below is for Gmail; if the user is on a different service, walk them through the same steps with text only (no images), since the layout is similar.\n\nVISUAL GUIDE — READING GMAIL: build the guide as exactly 7 steps using the illustrated assets. Each step's text must match what its image actually shows.\n\n  Step 1 (animated overview): image_id `gmail-read-email-demo`. Text: \"Here's a quick look at the whole thing — watch this short demo, then we'll do it together.\"\n  Step 2: image_id `gmail-illustrated-step-1`. Text: \"Open your internet browser (the colorful circle on your taskbar).\"\n  Step 3: image_id `gmail-illustrated-step-2`. Text: \"Click in the long white box at the top of the browser, type gmail.com, and press Enter on your keyboard.\"\n  Step 4: image_id `gmail-illustrated-step-3`. Text: \"Sign in to your account by typing your email and password, then click Sign in.\"\n  Step 5: image_id `gmail-inbox-overview`. Text: \"This is your inbox. Each row is one email — the sender's name is on the left, the subject in the middle, and the date on the right.\"\n  Step 6: image_id `gmail-unread-message`. Text: \"Unread emails are in **bold**. Find one you want to read and click anywhere on its row.\"\n  Step 7: image_id `gmail-open-message-view`. Text: \"The full email opens up. Read it at your own pace. When you're done, click the back arrow at the top-left to return to your inbox.\"\n\nIf the user asks how to get back to the inbox, mention the back arrow shown in `gmail-back-to-inbox`. Reassure throughout that nothing they click in this flow can delete or send anything by accident."
+}

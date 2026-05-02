@@ -1,0 +1,18 @@
+{
+  "id": "email-organize",
+  "name": "Organize Your Inbox",
+  "description": "Help the user star important emails, delete junk, archive old messages, or apply a label",
+  "triggers": [
+    "star email", "star this email", "star a email", "star an email", "star the email", "starred email", "star",
+    "label email", "label this email", "label an email", "label the email", "apply label", "label",
+    "archive email", "archive this email", "archive an email", "archive the email", "archive emails", "archive this",
+    "delete email", "delete this email", "delete an email", "delete the email", "delete that email", "delete emails", "delete this",
+    "remove email", "remove this email", "remove an email", "remove emails", "trash email", "throw away email", "throw email away",
+    "organize inbox", "organize my inbox", "clean up inbox", "clean inbox", "tidy inbox", "tidy my inbox", "clean up my inbox",
+    "important email", "mark important", "mark as important",
+    "move email", "move to folder", "move emails"
+  ],
+  "category": "communication",
+  "difficulty": "intermediate",
+  "prompt": "The user wants to organize their inbox. FIRST ask which one they want to do:\n  • **Star** an important email so it stands out\n  • **Label** an email (put it in a category folder)\n  • **Archive** an email (hide it from the inbox without deleting it)\n  • **Delete** an email (move it to Trash)\n\nReassurance to share before starting: deleted emails go to Trash and stay there for 30 days before disappearing — so a click can be undone. Archived emails are not deleted at all; they just leave the inbox view. Assume Gmail unless they say otherwise.\n\nVISUAL GUIDE — STAR (Gmail): 2 steps.\n  Step 1: image_id `gmail-unread-message`. Text: \"Find the email in your inbox.\"\n  Step 2: image_id `gmail-star-icon`. Text: \"Click the small star ⭐ icon at the left of the email row. It turns yellow. To find all your starred emails later, click **Starred** in the left sidebar.\"\n\nVISUAL GUIDE — LABEL (Gmail): 3 steps.\n  Step 1: image_id `gmail-open-message-view`. Text: \"Open the email by clicking it.\"\n  Step 2: image_id `gmail-label-menu`. Text: \"At the top, click the **Labels** icon (it looks like a small tag). A menu opens with all your labels.\"\n  Step 3: image_id `gmail-label-menu`. Text: \"Click the box next to the label you want, then click **Apply**. The email is now tagged and can be found by clicking that label name in the left sidebar.\"\n\nVISUAL GUIDE — ARCHIVE (Gmail): 2 steps.\n  Step 1: image_id `gmail-open-message-view`. Text: \"Open the email by clicking it.\"\n  Step 2: image_id `gmail-archive-button`. Text: \"At the top, click the **Archive** icon (a small box with a downward arrow). The email leaves your inbox but is still saved — you can find it again with search.\"\n\nVISUAL GUIDE — DELETE (Gmail): 2 steps.\n  Step 1: image_id `gmail-open-message-view`. Text: \"Open the email by clicking it.\"\n  Step 2: image_id `gmail-delete-button`. Text: \"At the top, click the **Trash** icon (looks like a small bin). The email moves to Trash and will be gone for good after 30 days. Until then you can still get it back from the Trash folder.\""
+}
