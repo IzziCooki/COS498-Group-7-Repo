@@ -1,149 +1,578 @@
-/* VideoCall — elderly-friendly video calling */
+/* ==========================================================================
+   VideoCall -- Responsive video calling (Phase 7)
+   Full-screen on phone, floating overlay on desktop.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
 
-.video-call {
+/* ---- Base Container ---- */
+.pcp-video-call {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: #0f172a;
-  border-radius: 16px;
+  background: #000;
   overflow: hidden;
+  font-family: var(--font-family-base);
 }
 
-.video-call__header {
+/* Full-screen on phone (default): replaces entire viewport including tab bar */
+.pcp-video-call--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  width: 100%;
+  height: 100dvh;
+  height: 100vh; /* fallback */
+}
+
+/* Desktop: floating overlay (fixed position, not draggable yet) */
+@media (min-width: 1025px) {
+  .pcp-video-call--fullscreen.pcp-video-call--active {
+    position: fixed;
+    inset: auto;
+    bottom: var(--space-5);
+    right: var(--space-5);
+    width: 480px;
+    height: 360px;
+    min-width: 320px;
+    min-height: 240px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-modal);
+    z-index: var(--z-overlay);
+  }
+}
+
+/* ---- Top Bar ---- */
+.pcp-video-call__top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: #1e293b;
+  padding: var(--space-4);
+  padding-top: calc(var(--safe-top) + var(--space-4));
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+  z-index: var(--z-content);
+  transition: opacity var(--duration-base) var(--easing-standard),
+              transform var(--duration-base) var(--easing-standard);
 }
 
-.video-call__title {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
+.pcp-video-call__top-bar--hidden {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
 }
 
-.video-call__close {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #475569;
-  color: white;
-  font-size: 16px;
+.pcp-video-call__top-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+}
+
+.pcp-video-call__top-timer {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Connection Banners ---- */
+.pcp-video-call__banner {
+  position: absolute;
+  top: calc(var(--safe-top) + 56px);
+  left: var(--space-4);
+  right: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  z-index: var(--z-banner);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcp-video-call__banner--warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.pcp-video-call__banner--info {
+  background: var(--color-primary-soft);
+  color: var(--color-text-1);
+}
+
+.pcp-video-call__banner-action {
+  min-height: var(--tap-comfort);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
-.video-call__close:hover { background: #64748b; }
+/* ---- Connecting Overlay (spinner) ---- */
+.pcp-video-call__connecting-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  z-index: var(--z-content);
+}
 
-/* Video screens */
-.video-call__screens {
+.pcp-video-call__spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: pcp-video-spin 1s linear infinite;
+}
+
+@keyframes pcp-video-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pcp-video-call__connecting-text {
+  font-size: var(--font-size-lg);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- Remote Video Feed ---- */
+.pcp-video-call__remote-feed {
   flex: 1;
   position: relative;
-  min-height: 300px;
+  min-height: 0;
+  background: #000;
 }
 
-.video-call__remote {
-  width: 100%;
-  height: 100%;
-}
-
-.video-call__video {
+.pcp-video-call__video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.video-call__placeholder {
+/* ---- Self Preview ---- */
+.pcp-video-call__self-preview {
+  position: absolute;
+  width: 96px;
+  height: 128px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-overlay);
+  z-index: var(--z-content);
+  cursor: pointer;
+  padding: 0;
+  background: #000;
+  /* snap animation */
+  transition: top var(--duration-base) var(--easing-standard),
+              bottom var(--duration-base) var(--easing-standard),
+              left var(--duration-base) var(--easing-standard),
+              right var(--duration-base) var(--easing-standard);
+}
+
+.pcp-video-call__self-video {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror for natural feel */
+  display: block;
+}
+
+/* ---- Control Bar ---- */
+.pcp-video-call__controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-5) var(--space-4);
+  padding-bottom: calc(var(--safe-bottom) + var(--space-5));
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-content);
+  transition: opacity var(--duration-base) var(--easing-standard),
+              transform var(--duration-base) var(--easing-standard);
+}
+
+.pcp-video-call__controls--hidden {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+.pcp-video-call__controls-inner {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Individual control button: 72x72 */
+.pcp-video-call__ctrl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  padding: var(--space-2);
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-video-call__ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.pcp-video-call__ctrl-btn--active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.pcp-video-call__ctrl-btn--end {
+  background: var(--color-danger);
+  /* End button is the largest target */
+  width: 96px;
+  min-width: 96px;
+  min-height: 72px;
+}
+
+.pcp-video-call__ctrl-btn--end:hover {
+  background: var(--color-danger-hover);
+}
+
+.pcp-video-call__ctrl-icon {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  line-height: 1;
+}
+
+.pcp-video-call__ctrl-label {
+  font-size: var(--font-size-xs); /* 14px per spec */
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+/* ---- Incoming Call Screen ---- */
+.pcp-video-call__incoming {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-code-bg);
+}
+
+.pcp-video-call__incoming-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 20px;
-  padding: 24px;
-  line-height: 1.5;
-}
-
-.video-call__placeholder--error {
-  color: #fca5a5;
-}
-
-/* Local video — small overlay in corner */
-.video-call__local {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  width: 120px;
-  height: 90px;
-  border-radius: 10px;
   overflow: hidden;
-  border: 2px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.video-call__video--local {
+.pcp-video-call__incoming-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1); /* mirror so it feels natural */
 }
 
-/* Controls — big buttons for elderly users */
-.video-call__controls {
+.pcp-video-call__incoming-avatar-initials {
+  font-size: 4rem;
+  font-weight: var(--font-weight-heavy);
+  color: var(--color-primary);
+}
+
+.pcp-video-call__incoming-name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  text-align: center;
+}
+
+.pcp-video-call__incoming-relation {
+  font-size: var(--font-size-md);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.pcp-video-call__incoming-actions {
   display: flex;
+  gap: var(--space-7);
+  margin-top: var(--space-6);
+}
+
+/* Answer / Decline buttons: 96x96 per spec */
+.pcp-video-call__incoming-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 20px;
-  background: #1e293b;
-}
-
-.video-call__call-btn {
-  padding: 16px 48px;
-  font-size: 22px;
-  font-weight: 700;
-  background: #16a34a;
-  color: white;
+  gap: var(--space-3);
+  width: var(--tap-call);
+  height: var(--tap-call);
+  min-width: var(--tap-call);
+  min-height: var(--tap-call);
+  border-radius: 50%;
   border: none;
-  border-radius: 50px;
   cursor: pointer;
-  min-height: 60px;
+  transition: transform var(--duration-quick);
+  padding: 0;
 }
 
-.video-call__call-btn:hover { background: #15803d; }
+.pcp-video-call__incoming-btn:active {
+  transform: scale(0.95);
+}
 
-.video-call__hangup-btn {
-  padding: 16px 36px;
-  font-size: 20px;
-  font-weight: 700;
-  background: #dc2626;
-  color: white;
+.pcp-video-call__incoming-btn--answer {
+  background: var(--color-success);
+}
+
+.pcp-video-call__incoming-btn--answer:hover {
+  background: #276749; /* slightly darker success */
+}
+
+.pcp-video-call__incoming-btn--decline {
+  background: var(--color-danger);
+}
+
+.pcp-video-call__incoming-btn--decline:hover {
+  background: var(--color-danger-hover);
+}
+
+.pcp-video-call__incoming-btn-icon {
+  font-size: var(--font-size-2xl);
+  color: #fff;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.pcp-video-call__incoming-btn-label {
+  font-size: var(--font-size-md);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- Failed State ---- */
+.pcp-video-call__failed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-code-bg);
+}
+
+.pcp-video-call__failed-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-heavy);
+}
+
+.pcp-video-call__failed-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  text-align: center;
+}
+
+.pcp-video-call__failed-text {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  max-width: 320px;
+  margin: 0;
+}
+
+.pcp-video-call__failed-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 320px;
+}
+
+.pcp-video-call__failed-actions .pcp-btn {
+  width: 100%;
+}
+
+/* ---- Pre-call (idle) State ---- */
+.pcp-video-call__precall {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--color-code-bg);
+}
+
+.pcp-video-call__precall-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pcp-video-call__precall-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pcp-video-call__precall-avatar-initials {
+  font-size: 3rem;
+  font-weight: var(--font-weight-heavy);
+  color: var(--color-primary);
+}
+
+.pcp-video-call__precall-name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  text-align: center;
+}
+
+.pcp-video-call__error-banner {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text-soft);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.pcp-video-call__start-btn {
+  min-height: var(--tap-hero);
+  min-width: var(--tap-hero);
+  padding: var(--space-4) var(--space-7);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-heavy);
+  background: var(--color-success);
+  color: #fff;
   border: none;
-  border-radius: 50px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  min-height: 60px;
+  transition: background-color var(--duration-quick);
 }
 
-.video-call__hangup-btn:hover { background: #b91c1c; }
+.pcp-video-call__start-btn:hover {
+  background: #276749;
+}
 
-.video-call__ctrl-btn {
-  padding: 14px 24px;
-  font-size: 17px;
-  font-weight: 600;
-  background: #334155;
-  color: white;
-  border: none;
-  border-radius: 50px;
+.pcp-video-call__close-precall {
+  min-height: var(--tap-comfort);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  min-height: 60px;
 }
 
-.video-call__ctrl-btn:hover { background: #475569; }
-
-.video-call__ctrl-btn--off {
-  background: #7c3aed;
+.pcp-video-call__close-precall:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.video-call__ctrl-btn--off:hover { background: #6d28d9; }
+/* ==========================================================================
+   RESPONSIVE: phone (<640px) stays full-screen (default).
+   Desktop (>1024px) floats as overlay during active call.
+   ========================================================================== */
+
+/* On phone the control buttons get a bit tighter to fit 5 */
+@media (max-width: 639px) {
+  .pcp-video-call__controls-inner {
+    gap: var(--space-2);
+  }
+
+  .pcp-video-call__ctrl-btn {
+    width: 60px;
+    min-width: 60px;
+    min-height: 60px;
+  }
+
+  .pcp-video-call__ctrl-btn--end {
+    width: 76px;
+    min-width: 76px;
+  }
+
+  .pcp-video-call__self-preview {
+    width: 80px;
+    height: 106px;
+  }
+}
+
+/* Tablet in-between */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .pcp-video-call__controls-inner {
+    gap: var(--space-4);
+  }
+}
+
+/* Desktop floating dimensions for active state already handled above */
+
+/* ==========================================================================
+   REDUCED MOTION
+   Control bar appears/disappears instantly (no slide).
+   Self-preview corner snap is instant.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-video-call__top-bar,
+  .pcp-video-call__controls,
+  .pcp-video-call__self-preview {
+    transition: none;
+  }
+
+  .pcp-video-call__top-bar--hidden {
+    transform: none;
+    /* just opacity 0 */
+  }
+
+  .pcp-video-call__controls--hidden {
+    transform: none;
+    /* just opacity 0 */
+  }
+
+  .pcp-video-call__spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+}

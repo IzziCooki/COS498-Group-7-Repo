@@ -8,8 +8,8 @@
   gap: 12px;
   padding: 16px 24px;
   background-color: var(--color-primary);
-  color: var(--color-white);
-  box-shadow: 0 2px 8px var(--color-shadow);
+  color: var(--color-surface);
+  box-shadow: 0 2px 8px var(--shadow-card);
   flex-shrink: 0;
 }
 
@@ -23,7 +23,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   color: var(--color-primary);
   font-size: 16px;
   font-weight: 900;
@@ -37,7 +37,7 @@
 .app-header__title {
   font-size: 26px;
   font-weight: 800;
-  color: var(--color-white);
+  color: var(--color-surface);
   margin: 0;
   line-height: 1.2;
 }
@@ -59,7 +59,7 @@
   cursor: pointer;
   padding: 6px 14px;
   border-radius: var(--radius-md);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--duration-quick) var(--easing-standard), border-color var(--duration-quick) var(--easing-standard);
 }
 
 .app-header__user::after {
@@ -78,14 +78,14 @@
 
 .app-header__user-greeting {
   font-size: 18px;
-  color: var(--color-white);
+  color: var(--color-surface);
 }
 
 .app-header__user-os {
   font-size: 14px;
-  color: var(--color-white);
+  color: var(--color-surface);
   background-color: rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   padding: 2px 10px;
 }
 
@@ -100,9 +100,9 @@
   min-height: 48px;
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.15);
-  color: var(--color-white);
+  color: var(--color-surface);
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
@@ -122,9 +122,9 @@
   min-height: 44px;
   padding: 8px 16px;
   background: transparent;
-  color: var(--color-white);
+  color: var(--color-surface);
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -141,13 +141,13 @@
   min-height: 48px;
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.2);
-  color: var(--color-white);
+  color: var(--color-surface);
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--duration-quick) var(--easing-standard);
 }
 
 .app-header__buddy-btn:hover {
@@ -162,7 +162,7 @@
   height: 24px;
   border-radius: 50%;
   background: var(--color-danger);
-  color: var(--color-white);
+  color: var(--color-surface);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -202,13 +202,13 @@
   padding: 32px;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 8px 32px var(--color-shadow);
+  box-shadow: 0 8px 32px var(--shadow-card);
 }
 
 .profile-edit__title {
   font-size: var(--font-size-lg);
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin: 0 0 20px;
   text-align: center;
 }
@@ -217,7 +217,7 @@
   display: block;
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin-bottom: 16px;
 }
 
@@ -228,7 +228,7 @@
   margin-top: 6px;
   padding: 12px 14px;
   font-size: var(--font-size-base);
-  color: var(--color-text);
+  color: var(--color-text-1);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -238,7 +238,7 @@
 .profile-edit__select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .profile-edit__checkbox {
@@ -247,7 +247,7 @@
   gap: 10px;
   margin-bottom: 16px;
   font-size: var(--font-size-sm);
-  color: var(--color-text);
+  color: var(--color-text-1);
   cursor: pointer;
 }
 
@@ -266,7 +266,7 @@
 .profile-edit__error {
   margin-top: 8px;
   padding: 10px 12px;
-  background: var(--color-danger-light);
+  background: var(--color-danger-soft);
   color: var(--color-danger);
   border: 2px solid var(--color-danger);
   border-radius: var(--radius-md);
@@ -296,14 +296,14 @@
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  color: var(--color-text);
+  color: var(--color-text-1);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition: background var(--duration-base) var(--easing-standard), border-color var(--duration-base) var(--easing-standard);
 }
 
 .profile-edit__cancel:hover {
-  background: var(--color-surface-alt);
-  border-color: var(--color-text-light);
+  background: var(--color-surface-3);
+  border-color: var(--color-text-2);
 }
 
 .profile-edit__memories-btn {

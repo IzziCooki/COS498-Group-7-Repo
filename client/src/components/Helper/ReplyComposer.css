@@ -1,0 +1,219 @@
+/* ==========================================================================
+   ReplyComposer — Helper answering a learner's question (D5 section 4)
+   ========================================================================== */
+
+.pcp-reply-composer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.pcp-reply-composer__header {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-reply-composer__cancel {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+}
+
+.pcp-reply-composer__cancel:hover {
+  color: var(--color-text-1);
+}
+
+/* ── Body ───────���──────────────────────────────���───────────────────────── */
+
+.pcp-reply-composer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcp-reply-composer__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+/* ── Question Echo ─────────────────────────────────────────────────────── */
+
+.pcp-reply-composer__echo {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.pcp-reply-composer__echo-header {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-reply-composer__echo-text {
+  font-size: var(--font-size-base);
+  font-style: italic;
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-reply-composer__echo-context {
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  margin-top: var(--space-3);
+}
+
+/* ── Reply Textarea ────────────��───────────────────────────────────────── */
+
+.pcp-reply-composer__reply-label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-reply-composer__textarea {
+  width: 100%;
+  min-height: calc(var(--font-size-md) * var(--line-height-base) * 5 + var(--space-3) * 2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  resize: vertical;
+}
+
+.pcp-reply-composer__textarea::placeholder {
+  color: var(--color-text-3);
+}
+
+.pcp-reply-composer__textarea:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-shadow);
+  outline-offset: 0;
+}
+
+/* ── Action Buttons Row ────────────��───────────────────────────────────── */
+
+.pcp-reply-composer__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pcp-reply-composer__action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-comfort);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  cursor: pointer;
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-reply-composer__action-btn:hover {
+  background: var(--color-surface-3);
+}
+
+/* ── AI Toggle ──────���──────────────────────────────────────────────────── */
+
+.pcp-reply-composer__toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  gap: var(--space-3);
+}
+
+.pcp-reply-composer__toggle-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  flex: 1;
+}
+
+.pcp-reply-composer__toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.pcp-reply-composer__toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.pcp-reply-composer__toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--duration-quick);
+  cursor: pointer;
+}
+
+.pcp-reply-composer__toggle-input:checked + .pcp-reply-composer__toggle-track {
+  background: var(--color-primary);
+}
+
+.pcp-reply-composer__toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  transition: transform var(--duration-quick) var(--easing-standard);
+  box-shadow: var(--shadow-card);
+}
+
+.pcp-reply-composer__toggle-input:checked + .pcp-reply-composer__toggle-track::after {
+  transform: translateX(20px);
+}
+
+.pcp-reply-composer__toggle-input:focus-visible + .pcp-reply-composer__toggle-track {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ── Send Button (sticky footer) ───────────────────────────────────────── */
+
+.pcp-reply-composer__footer {
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: calc(var(--space-3) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.pcp-reply-composer__send-btn {
+  width: 100%;
+}

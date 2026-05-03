@@ -1,0 +1,76 @@
+/* ==========================================================================
+   HowToUseGuide — Simple content page (full-screen overlay).
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-how-to-use {
+  padding: var(--space-5);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+.pcp-how-to-use__intro {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  margin-bottom: var(--space-6);
+}
+
+/* ── Section ── */
+.pcp-how-to-use__section {
+  margin-bottom: var(--space-6);
+}
+
+.pcp-how-to-use__section-title {
+  font-size: var(--font-size-lg);         /* 24px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-3);
+  line-height: var(--line-height-tight);
+}
+
+/* ── Content card ── */
+.pcp-how-to-use__card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-how-to-use__card-icon {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.pcp-how-to-use__card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-how-to-use__card-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  margin: 0;
+}
+
+/* ── Tip banner ── */
+.pcp-how-to-use__tip {
+  background: var(--color-primary-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.pcp-how-to-use__tip-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-loose);
+  margin: 0;
+}

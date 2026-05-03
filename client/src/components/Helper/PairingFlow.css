@@ -1,0 +1,141 @@
+/* ==========================================================================
+   PairingFlow — Enter buddy code to pair (D5 section 10)
+   6-box code input with auto-advance.
+   ========================================================================== */
+
+.pcp-pairing-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--space-6);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  width: 100%;
+  gap: var(--space-5);
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pcp-pairing-flow__back-btn {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+}
+
+.pcp-pairing-flow__back-btn:hover {
+  color: var(--color-text-1);
+}
+
+/* ── Icon ──────────────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  color: var(--color-primary);
+}
+
+/* ── Title & Text ──────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  text-align: center;
+}
+
+.pcp-pairing-flow__text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  text-align: center;
+  max-width: 320px;
+}
+
+/* ── Code Input Boxes ──────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__code-row {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.pcp-pairing-flow__code-box {
+  width: 56px;
+  height: 56px;
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  text-transform: uppercase;
+  caret-color: var(--color-primary);
+  transition: border-color var(--duration-quick);
+}
+
+.pcp-pairing-flow__code-box:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-shadow);
+  outline-offset: 0;
+}
+
+.pcp-pairing-flow__code-box--filled {
+  border-color: var(--color-primary);
+}
+
+/* ── Error ──────────────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__error {
+  font-size: var(--font-size-base);
+  color: var(--color-danger);
+  text-align: center;
+  min-height: 1.5em;
+}
+
+/* ── Connect Button ────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__connect-btn {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* ── No Code Link ──────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__no-code {
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: var(--space-2);
+}
+
+.pcp-pairing-flow__no-code:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ── Loading ───────────────────────────────────────────────────────────── */
+
+.pcp-pairing-flow__loading {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  text-align: center;
+}

@@ -1,0 +1,132 @@
+/* ==========================================================================
+   GuideCompletionStep -- Celebration + review checklist (D3 S4)
+   ========================================================================== */
+
+.pcp-completion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) 0;
+  text-align: center;
+}
+
+/* ── Celebration ── */
+
+.pcp-completion__celebration {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcp-completion__emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+/* ── Heading ── */
+
+.pcp-completion__heading {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+}
+
+/* ── Body ── */
+
+.pcp-completion__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  max-width: 40ch;
+  margin: 0;
+}
+
+/* ── Checklist ── */
+
+.pcp-completion__checklist {
+  width: 100%;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: left;
+}
+
+.pcp-completion__checklist-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  margin: 0 0 var(--space-3);
+}
+
+.pcp-completion__checklist-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-completion__checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-completion__check {
+  font-size: var(--font-size-lg);
+  color: var(--color-success);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── Practice offer ── */
+
+.pcp-completion__practice-btn {
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: transparent;
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pcp-completion__practice-btn:hover {
+  background: var(--color-primary-soft);
+}
+
+.pcp-completion__practice-sub {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  font-weight: var(--font-weight-regular);
+}
+
+/* ── Done button ── */
+
+.pcp-completion__done-area {
+  width: 100%;
+  padding-top: var(--space-3);
+}
+
+.pcp-completion__done-btn {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-md);
+}

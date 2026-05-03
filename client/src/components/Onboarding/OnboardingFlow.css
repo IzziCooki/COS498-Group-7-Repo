@@ -2,7 +2,8 @@
 
 /* Full-screen backdrop */
 .onboarding-backdrop {
-  min-height: 100vh;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +13,7 @@
 
 /* Card container */
 .onboarding-card {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(26, 26, 46, 0.15);
   padding: 40px 36px;
@@ -42,7 +43,7 @@
   height: 14px;
   border-radius: 50%;
   background-color: var(--color-border);
-  transition: background-color var(--transition), transform var(--transition);
+  transition: background-color var(--duration-base) var(--easing-standard), transform var(--duration-base) var(--easing-standard);
 }
 
 .onboarding-progress__dot--active {
@@ -52,7 +53,7 @@
 
 .onboarding-progress__label {
   font-size: 16px;
-  color: var(--color-text-light);
+  color: var(--color-text-2);
   margin-left: auto;
 }
 
@@ -60,14 +61,14 @@
 .onboarding-heading {
   font-size: 30px;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin-bottom: 10px;
   line-height: 1.25;
 }
 
 .onboarding-intro {
   font-size: 20px;
-  color: var(--color-text-light);
+  color: var(--color-text-2);
   margin-bottom: 20px;
 }
 
@@ -76,7 +77,7 @@
   display: block;
   font-size: 22px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin-bottom: 12px;
 }
 
@@ -88,15 +89,15 @@
   border-radius: var(--radius-md);
   border: 2px solid var(--color-border);
   width: 100%;
-  color: var(--color-text);
-  background-color: var(--color-white);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  color: var(--color-text-1);
+  background-color: var(--color-surface);
+  transition: border-color var(--duration-base) var(--easing-standard), box-shadow var(--duration-base) var(--easing-standard);
 }
 
 .onboarding-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 /* OS selection grid */
@@ -110,31 +111,31 @@
   min-height: 80px;
   font-size: 22px;
   font-weight: 700;
-  background-color: var(--color-surface-alt);
-  color: var(--color-text);
+  background-color: var(--color-surface-3);
+  color: var(--color-text-1);
   border: 3px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--transition), border-color var(--transition),
-    transform var(--transition);
+  transition: background-color var(--duration-base) var(--easing-standard), border-color var(--duration-base) var(--easing-standard),
+    transform var(--duration-base) var(--easing-standard);
 }
 
 .os-btn:hover:not(:disabled) {
   border-color: var(--color-primary);
-  background-color: var(--color-primary-light);
-  color: var(--color-primary-dark);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary-hover);
 }
 
 .os-btn--selected {
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .os-btn--selected:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 /* Comfort level scale */
@@ -150,24 +151,24 @@
   gap: 16px;
   min-height: 64px;
   padding: 12px 20px;
-  background-color: var(--color-surface-alt);
-  color: var(--color-text);
+  background-color: var(--color-surface-3);
+  color: var(--color-text-1);
   border: 3px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: left;
-  transition: background-color var(--transition), border-color var(--transition);
+  transition: background-color var(--duration-base) var(--easing-standard), border-color var(--duration-base) var(--easing-standard);
   justify-content: flex-start;
 }
 
 .comfort-btn:hover:not(:disabled) {
   border-color: var(--color-primary);
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary-soft);
 }
 
 .comfort-btn--selected {
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   border-color: var(--color-primary);
   box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
 }
@@ -196,7 +197,7 @@
 
 /* Error message */
 .onboarding-error {
-  background-color: var(--color-danger-light);
+  background-color: var(--color-danger-soft);
   border: 2px solid var(--color-danger);
   color: var(--color-danger);
   border-radius: var(--radius-md);
@@ -230,7 +231,7 @@
 /* Hint text below labels */
 .onboarding-hint {
   font-size: 17px;
-  color: var(--color-text-light);
+  color: var(--color-text-2);
   margin-bottom: 16px;
   line-height: 1.5;
   font-style: italic;
@@ -255,7 +256,7 @@
 
 .onboarding-invite-label {
   font-size: 18px;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin: 0 0 12px;
   font-weight: 600;
 }
@@ -265,11 +266,13 @@
   font-weight: 800;
   letter-spacing: 6px;
   color: var(--color-primary);
-  background: var(--color-white);
+  background: var(--color-surface);
   padding: 16px 24px;
   border-radius: var(--radius-md);
   border: 2px dashed var(--color-primary);
   font-family: monospace;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 /* Capabilities grid (step 1 — what PC Pal can do) */
@@ -293,7 +296,7 @@
   gap: 6px;
   padding: 18px 18px;
   min-height: 140px;
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary-soft);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -307,19 +310,19 @@
 .capability-card__title {
   font-size: 20px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-1);
   line-height: 1.2;
 }
 
 .capability-card__desc {
   font-size: 16px;
-  color: var(--color-text-light);
+  color: var(--color-text-2);
   line-height: 1.4;
 }
 
 /* "A few things I can't do" block */
 .capability-cannot {
-  background-color: var(--color-surface-alt);
+  background-color: var(--color-surface-3);
   border-left: 4px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 16px 20px;
@@ -328,13 +331,13 @@
 .capability-cannot__label {
   font-size: 18px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-1);
   margin: 0 0 8px;
 }
 
 .capability-cannot__list {
   font-size: 17px;
-  color: var(--color-text);
+  color: var(--color-text-1);
   line-height: 1.6;
   margin: 0;
   padding-left: 20px;
@@ -342,4 +345,16 @@
 
 .capability-cannot__list li {
   margin-bottom: 4px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-progress__dot {
+    transition: none;
+  }
+  .os-btn,
+  .comfort-btn,
+  .onboarding-input {
+    transition: none;
+  }
 }

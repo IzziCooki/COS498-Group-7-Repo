@@ -1,0 +1,176 @@
+/* ==========================================================================
+   ResourcesViewer -- Categorized links: Watch/Read/Try
+   Full-screen overlay on phone.
+   ========================================================================== */
+
+.pcp-resources {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-surface);
+}
+
+/* ── Title section ── */
+
+.pcp-resources__title-section {
+  flex-shrink: 0;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-resources__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+}
+
+.pcp-resources__summary {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: var(--space-2) 0 0;
+}
+
+/* ── Filter tabs ── */
+
+.pcp-resources__tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.pcp-resources__tab {
+  min-height: var(--tap-comfort);
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--duration-quick),
+              border-color var(--duration-quick),
+              color var(--duration-quick);
+}
+
+.pcp-resources__tab:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.pcp-resources__tab--active {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-primary);
+}
+
+.pcp-resources__tab--active:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-text-on-primary);
+}
+
+/* ── Content ── */
+
+.pcp-resources__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.pcp-resources__empty {
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.pcp-resources__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ── Resource item ── */
+
+.pcp-resources__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  min-height: var(--tap-primary);
+  transition: border-color var(--duration-quick),
+              background-color var(--duration-quick);
+}
+
+.pcp-resources__link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-resources__link-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-resources__link-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-resources__link-source {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-3);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.pcp-resources__link-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+}
+
+.pcp-resources__link-external {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+/* ── Footer ── */
+
+.pcp-resources__footer {
+  flex-shrink: 0;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.pcp-resources__done-btn {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-md);
+}

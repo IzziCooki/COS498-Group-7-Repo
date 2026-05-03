@@ -1,0 +1,199 @@
+/* ==========================================================================
+   WatchView — Live observation of learner's chat (D5 section 5)
+   Read-only chat stream with nudge bar.
+   ========================================================================== */
+
+.pcp-watch-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Watch Header ──────────────────────────────────────────────────────── */
+
+.pcp-watch-view__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-helper-soft);
+  min-height: var(--layout-top-bar-h);
+}
+
+.pcp-watch-view__live-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-watch-view__live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pcp-watch-view__live-dot {
+    animation: watchPulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes watchPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pcp-watch-view__stop-btn {
+  font-size: var(--font-size-base);
+  color: var(--color-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-2) var(--space-3);
+}
+
+.pcp-watch-view__stop-btn:hover {
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* ── Connection Bar ────────────────────────────────────────────────────── */
+
+.pcp-watch-view__connection {
+  text-align: center;
+  padding: var(--space-1) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Chat Stream ───────────────────────────────────────────────────────── */
+
+.pcp-watch-view__stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface-2);
+}
+
+/* Desaturated bubbles per spec */
+.pcp-watch-view__bubble {
+  max-width: 85%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  opacity: 0.85;
+}
+
+.pcp-watch-view__bubble--ai {
+  align-self: flex-start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-1);
+}
+
+.pcp-watch-view__bubble--learner {
+  align-self: flex-end;
+  background: var(--color-primary-soft);
+  color: var(--color-text-1);
+}
+
+.pcp-watch-view__bubble-sender {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-3);
+  margin-bottom: var(--space-1);
+}
+
+.pcp-watch-view__thinking {
+  align-self: flex-start;
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  font-style: italic;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* ── Nudge Bar ─────────────────────────────────────────────────────────── */
+
+.pcp-watch-view__nudge {
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: calc(var(--space-3) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-watch-view__nudge-input-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.pcp-watch-view__nudge-input {
+  flex: 1;
+  min-height: var(--tap-comfort);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+}
+
+.pcp-watch-view__nudge-input::placeholder {
+  color: var(--color-text-3);
+}
+
+.pcp-watch-view__nudge-send {
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-watch-view__nudge-send:hover {
+  background: var(--color-primary-hover);
+}
+
+.pcp-watch-view__nudge-send:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* ── Action Buttons ────────────────────────────────────────────────────── */
+
+.pcp-watch-view__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pcp-watch-view__actions .pcp-btn {
+  flex: 1;
+}

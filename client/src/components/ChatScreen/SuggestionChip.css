@@ -1,0 +1,49 @@
+/* ==========================================================================
+   SuggestionChip — Empty-state tap targets (D2 S3.1)
+   56px tall, full-width, surface-2 bg, 12px radius
+   ========================================================================== */
+
+.pcp-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-primary);       /* 56px */
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);       /* 12px */
+  font-size: var(--font-size-base);      /* 18px */
+  color: var(--color-text-1);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-chip:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-primary);
+}
+
+.pcp-chip:active {
+  transform: scale(0.98);
+}
+
+.pcp-chip__icon {
+  font-size: var(--font-size-lg);        /* 24px emoji */
+  flex-shrink: 0;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.pcp-chip__label {
+  flex: 1;
+  line-height: var(--line-height-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-chip:active {
+    transform: none;
+  }
+}

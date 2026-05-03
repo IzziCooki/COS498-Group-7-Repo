@@ -1,0 +1,67 @@
+/* ==========================================================================
+   MessageThread — Scrollable message list (D2 S2)
+   Takes up remaining vertical space between top bar and input area.
+   ========================================================================== */
+
+.pcp-thread {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-4) 0;
+  background: var(--color-surface-2);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-thread {
+    scroll-behavior: auto;
+  }
+}
+
+.pcp-thread__inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* Push messages to bottom when thread is short */
+.pcp-thread__spacer {
+  flex: 1;
+}
+
+/* Connection lost banner */
+.pcp-thread__connection {
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  background: var(--color-surface-3);
+  margin: 0 var(--space-4) var(--space-3);
+  border-radius: var(--radius-md);
+  overflow-wrap: break-word;
+}
+
+/* Slow AI response warning (>30s) */
+.pcp-thread__slow-response {
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-warning-text);
+  background: var(--color-warning-soft);
+  margin: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-warning);
+  overflow-wrap: break-word;
+}
+
+/* Past conversation read-only banner */
+.pcp-thread__readonly {
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  background: var(--color-surface-3);
+  border-radius: var(--radius-md);
+  margin: var(--space-3) var(--space-4);
+}

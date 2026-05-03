@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Banner — Polymorphic inline banner (safety, welcome, watch, info).
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-left: 4px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  animation: pcp-banner-in var(--duration-base) var(--easing-decel) both;
+}
+
+@keyframes pcp-banner-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Variant: safety (red, sticky, assertive) ── */
+.pcp-banner--safety {
+  background: var(--color-danger-soft);
+  border-left-color: var(--color-danger);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-banner);
+}
+
+/* ── Variant: welcome (primary tint, scrolls with content) ── */
+.pcp-banner--welcome {
+  background: var(--color-primary-soft);
+  border-left-color: var(--color-primary);
+}
+
+/* ── Variant: watch (helper tint, persistent) ── */
+.pcp-banner--watch {
+  background: var(--color-helper-soft);
+  border-left-color: var(--color-helper);
+}
+
+/* ── Variant: info (neutral) ── */
+.pcp-banner--info {
+  background: var(--color-surface-2);
+  border-left-color: var(--color-border-strong);
+}
+
+/* ── Content area ── */
+.pcp-banner__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-banner__title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0 0 var(--space-1);
+  line-height: var(--line-height-tight);
+}
+
+/* Safety variant title uses danger text */
+.pcp-banner--safety .pcp-banner__title {
+  color: var(--color-danger-text);
+}
+
+.pcp-banner__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin: 0;
+  line-height: var(--line-height-base);
+}
+
+.pcp-banner--safety .pcp-banner__body {
+  color: var(--color-danger-text);
+}
+
+/* ── Action button ── */
+.pcp-banner__action {
+  flex-shrink: 0;
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--duration-quick),
+              transform var(--duration-quick);
+  align-self: center;
+}
+
+.pcp-banner__action:active {
+  transform: scale(0.98);
+}
+
+/* Safety action: danger button */
+.pcp-banner--safety .pcp-banner__action {
+  background: var(--color-danger);
+  color: var(--color-text-on-danger);
+}
+
+.pcp-banner--safety .pcp-banner__action:hover {
+  background: var(--color-danger-hover);
+}
+
+/* Welcome action: primary button */
+.pcp-banner--welcome .pcp-banner__action {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.pcp-banner--welcome .pcp-banner__action:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Watch action: helper button */
+.pcp-banner--watch .pcp-banner__action {
+  background: var(--color-helper);
+  color: var(--color-helper-text);
+}
+
+.pcp-banner--watch .pcp-banner__action:hover {
+  background: var(--color-helper-hover);
+}
+
+/* Info action: ghost style */
+.pcp-banner--info .pcp-banner__action {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.pcp-banner--info .pcp-banner__action:hover {
+  background: var(--color-primary-soft);
+}
+
+/* ── Dismiss button ── */
+.pcp-banner__dismiss {
+  flex-shrink: 0;
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.pcp-banner__dismiss:hover {
+  color: var(--color-text-1);
+  background: var(--color-surface-3);
+}
+
+.pcp-banner--safety .pcp-banner__dismiss {
+  color: var(--color-danger-text);
+}
+
+.pcp-banner--safety .pcp-banner__dismiss:hover {
+  background: var(--color-danger-soft);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pcp-banner {
+    animation: none;
+  }
+}

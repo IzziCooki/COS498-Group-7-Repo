@@ -8,14 +8,15 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  padding-bottom: max(20px, var(--safe-bottom));
   z-index: 1000;
 }
 
 .feedback-modal {
-  background-color: var(--color-white);
-  color: var(--color-text);
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px var(--color-shadow);
+  box-shadow: 0 10px 30px var(--shadow-modal);
   padding: 28px 28px 24px;
   width: 100%;
   max-width: 480px;
@@ -28,13 +29,13 @@
   margin: 0;
   font-size: 24px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-1);
 }
 
 .feedback-modal__subtitle {
   margin: 0;
   font-size: 16px;
-  color: var(--color-text-light);
+  color: var(--color-text-2);
 }
 
 .feedback-modal__stars {
@@ -63,7 +64,7 @@
 }
 
 .feedback-modal__star:focus-visible {
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .feedback-modal__star--filled {
@@ -73,7 +74,7 @@
 .feedback-modal__label {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-1);
 }
 
 .feedback-modal__textarea {
@@ -81,8 +82,8 @@
   resize: vertical;
   min-height: 80px;
   font: inherit;
-  color: var(--color-text);
-  background-color: var(--color-white);
+  color: var(--color-text-1);
+  background-color: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 10px 12px;
@@ -92,7 +93,7 @@
 .feedback-modal__textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .feedback-modal__error {
@@ -119,8 +120,8 @@
 }
 
 .feedback-modal__skip {
-  background-color: var(--color-white);
-  color: var(--color-text);
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
   border: 2px solid var(--color-border);
 }
 
@@ -130,13 +131,13 @@
 
 .feedback-modal__submit {
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   border: 2px solid var(--color-primary);
 }
 
 .feedback-modal__submit:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 .feedback-modal__submit:disabled,

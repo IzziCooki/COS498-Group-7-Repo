@@ -1,0 +1,94 @@
+/* ==========================================================================
+   SafetyBanner — Critical safety alert (D2 S3.2)
+   Sticky below top bar, danger-soft bg, 4px danger left border.
+   Cannot be dismissed by tap outside.
+   ========================================================================== */
+
+.pcp-safety {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-banner);
+  background: var(--color-danger-soft);
+  border-left: 4px solid var(--color-danger);
+  padding: var(--space-4);
+  animation: pcp-safety-enter var(--duration-base) var(--easing-standard);
+}
+
+@keyframes pcp-safety-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-safety {
+    animation: none;
+  }
+}
+
+.pcp-safety__heading {
+  font-size: var(--font-size-xl);           /* 28px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-danger-text);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcp-safety__body {
+  font-size: var(--font-size-base);          /* 18px */
+  color: var(--color-danger-text);
+  line-height: var(--line-height-base);
+  margin-bottom: var(--space-4);
+  overflow-wrap: break-word;
+}
+
+.pcp-safety__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pcp-safety__action-btn {
+  flex: 1;
+  min-height: var(--tap-primary);            /* 56px */
+  background: var(--color-danger);
+  color: var(--color-text-on-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-safety__action-btn:hover {
+  background: var(--color-danger-hover);
+}
+
+.pcp-safety__dismiss-btn {
+  width: var(--tap-comfort);                 /* 48px */
+  height: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger-text);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-safety__dismiss-btn:hover {
+  background: rgba(197, 48, 48, 0.1);
+}

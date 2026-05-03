@@ -1,0 +1,175 @@
+/* ==========================================================================
+   OnboardingScreen — chassis for each onboarding screen
+   Full-screen sheet on phone. No tab bar during onboarding.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+/* ── Screen chassis ─────────────────────────────────────────────────────── */
+.pcp-onboarding-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
+  background: var(--color-surface);
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── Top bar (back + progress dots) ─────────────────────────────────────── */
+.pcp-onboarding-screen__top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--layout-top-bar-h);
+  padding: var(--space-2) var(--space-4);
+  flex-shrink: 0;
+}
+
+.pcp-onboarding-screen__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-comfort);
+  min-height: var(--tap-comfort);
+  background: none;
+  border: none;
+  color: var(--color-text-1);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.pcp-onboarding-screen__back:hover {
+  background: var(--color-surface-2);
+}
+
+.pcp-onboarding-screen__back--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Scrollable content area ────────────────────────────────────────────── */
+.pcp-onboarding-screen__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Bottom CTA area (pinned to bottom) ─────────────────────────────────── */
+.pcp-onboarding-screen__footer {
+  flex-shrink: 0;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Primary CTA button */
+.pcp-onboarding-screen__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-xl);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              transform var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-onboarding-screen__cta:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.pcp-onboarding-screen__cta:active:not(:disabled) {
+  background: var(--color-primary-active);
+  transform: scale(0.98);
+}
+
+.pcp-onboarding-screen__cta:disabled,
+.pcp-onboarding-screen__cta[aria-disabled="true"] {
+  background: var(--color-surface-3);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Hero size variant (buddy screen) */
+.pcp-onboarding-screen__cta--hero {
+  min-height: var(--tap-hero);
+  font-size: var(--font-size-lg);
+}
+
+/* Ghost / skip button */
+.pcp-onboarding-screen__skip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-comfort);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  color: var(--color-text-1);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-onboarding-screen__skip:hover {
+  background: var(--color-primary-soft);
+}
+
+/* ── Slide animation ────────────────────────────────────────────────────── */
+@keyframes pcp-onboarding-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pcp-onboarding-slide-in-reverse {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pcp-onboarding-screen--animate-forward .pcp-onboarding-screen__content {
+  animation: pcp-onboarding-slide-in var(--duration-page) var(--easing-decel) forwards;
+}
+
+.pcp-onboarding-screen--animate-back .pcp-onboarding-screen__content {
+  animation: pcp-onboarding-slide-in-reverse var(--duration-page) var(--easing-decel) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-onboarding-screen--animate-forward .pcp-onboarding-screen__content,
+  .pcp-onboarding-screen--animate-back .pcp-onboarding-screen__content {
+    animation: none;
+  }
+  .pcp-onboarding-screen__cta:active:not(:disabled) {
+    transform: none;
+  }
+}

@@ -1,0 +1,209 @@
+/* ==========================================================================
+   MessageBubble — User vs AI variants (D2 S2)
+   AI: left-aligned, white bubble with border, 32x32 mascot avatar
+   User: right-aligned, primary blue bubble, white text, no avatar
+   ========================================================================== */
+
+.pcp-message {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  max-width: 75%;
+  animation: pcp-msg-enter var(--duration-base) var(--easing-decel);
+}
+
+@keyframes pcp-msg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-message {
+    animation: none;
+  }
+}
+
+/* User messages: right-aligned, no avatar */
+.pcp-message--user {
+  margin-left: auto;
+  margin-right: var(--space-4);
+  flex-direction: row-reverse;
+}
+
+/* AI messages: left-aligned with avatar */
+.pcp-message--ai {
+  margin-right: auto;
+  margin-left: var(--space-4);
+}
+
+/* Avatar circle: 32x32, primary-soft bg */
+.pcp-message__avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);           /* 14px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+
+.pcp-message__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Bubble styles */
+.pcp-message__bubble {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);          /* 16px */
+  font-size: var(--font-size-base);         /* 18px */
+  line-height: var(--line-height-base);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* AI bubble: white/surface bg with border */
+.pcp-message--ai .pcp-message__bubble {
+  background: var(--color-surface);
+  color: var(--color-text-1);
+  border: 1px solid var(--color-border);
+}
+
+/* User bubble: primary bg, white text */
+.pcp-message--user .pcp-message__bubble {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+/* Timestamp: 14px, text-2, 4px gap below bubble */
+.pcp-message__timestamp {
+  font-size: var(--font-size-xs);           /* 14px */
+  color: var(--color-text-2);
+  margin-top: var(--space-1);
+}
+
+.pcp-message--user .pcp-message__timestamp {
+  text-align: right;
+}
+
+/* Text formatting inside AI bubbles */
+.pcp-message__formatted p {
+  margin: 0 0 var(--space-2);
+}
+
+.pcp-message__formatted p:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-message__step {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-message__step-num {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  flex-shrink: 0;
+  min-width: 1.5em;
+}
+
+.pcp-message__bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Screenshot cards inside messages */
+.pcp-message__screenshots {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-message__screenshot-card {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.pcp-message__screenshot-img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pcp-message__screenshot-caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  padding: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+/* Buddy terminal result inline */
+.pcp-message__buddy-terminal {
+  margin-top: var(--space-3);
+  background: var(--color-code-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-family: var(--font-family-mono);
+}
+
+.pcp-message__buddy-header {
+  font-size: var(--font-size-sm);
+  color: var(--color-code-comment);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-message__buddy-cmd {
+  font-size: var(--font-size-sm);
+  color: var(--color-code-text);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-message__buddy-output {
+  font-size: var(--font-size-sm);
+  color: var(--color-code-text);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.pcp-message__buddy-output--err {
+  color: var(--color-code-error);
+}
+
+/* Large phones: tighter max-width */
+@media (min-width: 414px) and (max-width: 639px) {
+  .pcp-message {
+    max-width: 70%;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 359px) {
+  .pcp-message {
+    margin-left: var(--space-2);
+    margin-right: var(--space-2);
+  }
+  .pcp-message--user {
+    margin-right: var(--space-2);
+  }
+  .pcp-message--ai {
+    margin-left: var(--space-2);
+  }
+}

@@ -1,0 +1,143 @@
+/* ==========================================================================
+   ConfirmDialog — Simple two-button confirmation modal.
+   Always centered, even on phone (it's short enough).
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+/* ── Backdrop ── */
+.pcp-confirm__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: pcp-confirm-backdrop-in var(--duration-base) var(--easing-decel) both;
+}
+
+.pcp-confirm__backdrop--closing {
+  animation: pcp-confirm-backdrop-out var(--duration-base) var(--easing-accel) both;
+}
+
+@keyframes pcp-confirm-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pcp-confirm-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Card ── */
+.pcp-confirm__card {
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-modal);
+  max-width: 380px;
+  width: 100%;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  animation: pcp-confirm-card-in var(--duration-base) var(--easing-decel) both;
+}
+
+.pcp-confirm__backdrop--closing .pcp-confirm__card {
+  animation: pcp-confirm-card-out var(--duration-base) var(--easing-accel) both;
+}
+
+@keyframes pcp-confirm-card-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pcp-confirm-card-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.95); }
+}
+
+/* ── Title ── */
+.pcp-confirm__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0 0 var(--space-3);
+  text-align: center;
+}
+
+/* ── Body text ── */
+.pcp-confirm__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0 0 var(--space-5);
+  text-align: center;
+}
+
+/* ── Actions row ── */
+.pcp-confirm__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pcp-confirm__btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-primary);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--duration-quick),
+              transform var(--duration-quick);
+}
+
+.pcp-confirm__btn:active {
+  transform: scale(0.98);
+}
+
+/* Cancel */
+.pcp-confirm__btn--cancel {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-1);
+}
+
+.pcp-confirm__btn--cancel:hover {
+  background: var(--color-surface-3);
+}
+
+/* Confirm (default / primary) */
+.pcp-confirm__btn--confirm {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.pcp-confirm__btn--confirm:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Confirm (destructive variant) */
+.pcp-confirm__btn--destructive {
+  background: var(--color-danger);
+  color: var(--color-text-on-danger);
+}
+
+.pcp-confirm__btn--destructive:hover {
+  background: var(--color-danger-hover);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pcp-confirm__backdrop,
+  .pcp-confirm__backdrop--closing,
+  .pcp-confirm__card,
+  .pcp-confirm__backdrop--closing .pcp-confirm__card {
+    animation: none;
+  }
+}

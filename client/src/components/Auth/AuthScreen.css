@@ -1,10 +1,11 @@
 .auth-screen {
-  min-height: 100vh;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: var(--color-bg, #f8fafc);
+  background: var(--color-surface-2, #f8fafc);
 }
 
 .auth-card {

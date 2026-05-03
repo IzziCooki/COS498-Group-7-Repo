@@ -88,7 +88,7 @@
 .sp-videos__player { position: relative; width: 100%; padding-top: 56.25%; }
 .sp-videos__iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 .sp-videos__info { padding: 8px 12px; }
-.sp-videos__title { font-size: 15px; font-weight: 600; color: var(--color-text, #1e293b); text-decoration: none; display: block; line-height: 1.4; }
+.sp-videos__title { font-size: 15px; font-weight: 600; color: var(--color-text-1, #1e293b); text-decoration: none; display: block; line-height: 1.4; }
 .sp-videos__title:hover { color: var(--color-primary, #2563eb); text-decoration: underline; }
 .sp-videos__channel { font-size: 13px; color: #64748b; display: block; margin-top: 2px; }
 .sp-videos__external-link { display: block; text-align: center; font-size: 13px; color: #64748b; padding: 6px; text-decoration: underline; }

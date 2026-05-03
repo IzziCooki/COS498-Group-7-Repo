@@ -24,7 +24,7 @@
   height: 40px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   font-size: 16px;
   font-weight: 700;
   display: flex;
@@ -43,16 +43,16 @@
 
 .bubble--user {
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   border-bottom-right-radius: 4px;
 }
 
 .bubble--assistant {
-  background-color: var(--color-white);
-  color: var(--color-text);
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
   border: 1px solid var(--color-border);
   border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 4px var(--color-shadow);
+  box-shadow: 0 1px 4px var(--shadow-card);
 }
 
 /* User message — plain text */
@@ -107,7 +107,7 @@
   height: 38px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: var(--color-white);
+  color: var(--color-surface);
   font-size: 20px;
   font-weight: 800;
   display: flex;
@@ -177,7 +177,7 @@
 
 .bubble__screenshot-caption {
   font-size: 15px;
-  color: var(--color-text-light, #666);
+  color: var(--color-text-2, #666);
   text-align: center;
   padding: 8px 10px;
   margin: 0;
@@ -249,12 +249,12 @@
 }
 
 .bubble--user .bubble__time {
-  color: var(--color-white);
+  color: var(--color-surface);
   text-align: right;
 }
 
 .bubble--assistant .bubble__time {
-  color: var(--color-text-light);
+  color: var(--color-text-2);
 }
 
 /* Safety alert banner */
@@ -262,7 +262,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background-color: var(--color-danger-light);
+  background-color: var(--color-danger-soft);
   border: 2px solid var(--color-danger);
   border-radius: var(--radius-md);
   color: var(--color-danger);
@@ -281,7 +281,7 @@
   height: 28px;
   border-radius: 50%;
   background-color: var(--color-danger);
-  color: var(--color-white);
+  color: var(--color-surface);
   font-size: 16px;
   font-weight: 900;
   display: flex;
@@ -309,7 +309,7 @@
   color: #94a3b8;
   font-size: 12px;
   font-weight: 600;
-  font-family: var(--font-family);
+  font-family: var(--font-family-base);
   border-bottom: 1px solid #334155;
 }
 
