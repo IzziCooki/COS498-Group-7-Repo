@@ -67,7 +67,7 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate }) {
               onClick={() => { onSelect(c.id); navigate('/'); }}
             >
               <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
-                {c.context_summary || c.task_type || 'Chat session'}
+                {c.context_summary || c.preview || c.task_type || 'Chat session'}
               </div>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{formatDate(c.started_at || c.created_at)}</span>
@@ -128,7 +128,7 @@ function AppContent() {
 
   const buddySessionTarget = null;
   const [buddySessionActive, setBuddySessionActive] = useState(false);
-  const viewingConversationId = null;
+  const [viewingConversationId, setViewingConversationId] = useState(null);
 
   // ── Helper-specific state ──
   const [replyQuestion, setReplyQuestion] = useState(null);
@@ -137,6 +137,20 @@ function AppContent() {
   const [toolsHistory, setToolsHistory] = useState([]);
 
   const { conversations, refresh: refreshConversations } = useConversations(user?.id);
+
+  // Auto-refresh conversations when switching to history tab
+  const prevViewRef = useRef(view);
+  useEffect(() => {
+    if (view === 'history' && prevViewRef.current !== 'history') {
+      refreshConversations();
+    }
+    prevViewRef.current = view;
+  }, [view, refreshConversations]);
+
+  // Also refresh when chat gets a new conversation or sends a message
+  useEffect(() => {
+    if (chatData.conversationId) refreshConversations();
+  }, [chatData.conversationId, refreshConversations]);
 
   const chatWindowRef = useRef(null);
 
@@ -321,10 +335,12 @@ function AppContent() {
         {view === 'history' && (
           <HistoryScreen
             conversations={conversations}
-            onSelect={() => {
+            onSelect={(convId) => {
+              setViewingConversationId(convId);
               navigate('/');
             }}
             onNewChat={() => {
+              setViewingConversationId(null);
               if (chatData.startNewChat) chatData.startNewChat();
               refreshConversations();
             }}

@@ -116,7 +116,7 @@ function ChatScreen({
       return;
     }
     queueMicrotask(() => setLoadingPast(true));
-    fetch(`/api/conversations/${viewingConversationId}/messages`)
+    fetch(`/api/conversations/${viewingConversationId}/messages`, { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => {
         const formatted = data.map((m, i) => ({

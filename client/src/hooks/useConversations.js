@@ -14,7 +14,7 @@ export function useConversations(userId) {
     if (!userId) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/users/${userId}/conversations`);
+      const res = await fetch(`/api/users/${userId}/conversations`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
