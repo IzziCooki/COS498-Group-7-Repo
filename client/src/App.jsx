@@ -11,7 +11,7 @@ import Onboarding from './components/Onboarding/Onboarding';
 import AuthScreen from './components/Auth/AuthScreen';
 import ChatScreen from './components/ChatScreen/ChatScreen';
 import AdminFeedback from './components/Admin/AdminFeedback';
-import { ToastProvider } from './hooks/useToast';
+import { ToastProvider, useToast } from './hooks/useToast';
 import ToastHost from './components/Overlays/ToastHost';
 
 /* ── Helper components (Phase 6) ─────────────────────────────────── */
@@ -28,7 +28,7 @@ import MeScreen from './components/Profile/MeScreen';
 
 /* ── Placeholder components for views not yet built ────────────── */
 
-function HistoryScreen({ conversations, onSelect, onNewChat, navigate }) {
+function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation }) {
   const formatDate = (d) => {
     if (!d) return '';
     const date = new Date(d);
@@ -59,23 +59,45 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '0 var(--space-4)' }}>
           {conversations.map((c) => (
-            <button
+            <div
               key={c.id}
-              type="button"
               className="pcp-card pcp-card--interactive"
-              style={{ textAlign: 'left', width: '100%', cursor: 'pointer' }}
-              onClick={() => { onSelect(c.id); navigate('/'); }}
+              style={{ textAlign: 'left', width: '100%' }}
             >
-              <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
-                {c.context_summary || c.preview || c.task_type || 'Chat session'}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
-                <span>{formatDate(c.started_at || c.created_at)}</span>
-                <span style={{ color: c.status === 'active' ? 'var(--color-success)' : 'var(--color-text-3)' }}>
-                  {c.status === 'active' ? '● Active' : 'Ended'}
-                </span>
-              </div>
-            </button>
+              <button
+                type="button"
+                style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}
+                onClick={() => { onSelect(c.id); navigate('/'); }}
+              >
+                <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
+                  {c.context_summary || c.preview || c.task_type || 'Chat session'}
+                </div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{formatDate(c.started_at || c.created_at)}</span>
+                  <span style={{ color: c.status === 'active' ? 'var(--color-success)' : 'var(--color-text-3)' }}>
+                    {c.status === 'active' ? '\u25CF Active' : 'Ended'}
+                  </span>
+                </div>
+              </button>
+              <button
+                type="button"
+                className="pcp-btn pcp-btn--ghost"
+                style={{
+                  marginTop: 'var(--space-2)',
+                  fontSize: 'var(--font-size-xs)',
+                  padding: 'var(--space-1) var(--space-2)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                }}
+                onClick={(e) => { e.stopPropagation(); onCopyConversation(c.id); }}
+                aria-label={`Copy conversation: ${c.context_summary || c.preview || 'Chat session'}`}
+              >
+                Copy conversation
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -125,6 +147,26 @@ function AppContent() {
   const { role, activeLearner, detectAndApplyRole } = useRole();
   // Chat hook lifted to App level so WebSocket stays alive across tab switches
   const chatData = useChat(user?.id);
+  const { toast } = useToast() || {};
+
+  // ── Copy conversation to clipboard ──
+  const handleCopyConversation = useCallback(async (convId) => {
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to load messages');
+      const messages = await res.json();
+      const text = messages
+        .map((m) => `${m.role === 'user' ? 'You' : 'PC Pal'}: ${m.body}`)
+        .join('\n\n');
+      await navigator.clipboard.writeText(text);
+      toast?.({ kind: 'success', text: 'Conversation copied!' });
+    } catch (err) {
+      console.error('Copy failed:', err);
+      toast?.({ kind: 'error', text: 'Could not copy conversation.' });
+    }
+  }, [toast]);
 
   const buddySessionTarget = null;
   const [buddySessionActive, setBuddySessionActive] = useState(false);
@@ -354,6 +396,7 @@ function AppContent() {
               refreshConversations();
             }}
             navigate={navigate}
+            onCopyConversation={handleCopyConversation}
           />
         )}
         {view === 'helper' && <HelperPlaceholder />}
@@ -364,6 +407,7 @@ function AppContent() {
             hasBuddy={buddyData.hasBuddy}
             helperName={activeLearner?.name || buddyData.buddyPair?.helper_name || 'your helper'}
             onLogout={logout}
+            onSendMessage={chatData.sendMessage}
           />
         )}
 

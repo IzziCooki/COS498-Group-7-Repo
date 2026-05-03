@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import SettingsRow from './SettingsRow';
 import EditProfile from './EditProfile';
 import MemoryViewer from './MemoryViewer';
+import SkillProgress from './SkillProgress';
 import AuditTimeline from './AuditTimeline';
 import Settings from './Settings';
 import TextSizePicker from './TextSizePicker';
@@ -47,10 +48,11 @@ const COMFORT_LABELS = {
   confident: 'Confident',
 };
 
-function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout }) {
+function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout, onSendMessage }) {
   // Sub-screen visibility state
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showMemories, setShowMemories] = useState(false);
+  const [showSkills, setShowSkills] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showTextSize, setShowTextSize] = useState(false);
@@ -104,6 +106,11 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout }) {
           icon={'\uD83E\uDDE0'}
           label="What PC Pal remembers"
           onClick={() => setShowMemories(true)}
+        />
+        <SettingsRow
+          icon={'\uD83D\uDCDA'}
+          label="My learning progress"
+          onClick={() => setShowSkills(true)}
         />
         <SettingsRow
           icon={'\uD83D\uDD24'}
@@ -172,6 +179,13 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout }) {
         open={showMemories}
         onClose={() => setShowMemories(false)}
         userId={user?.id}
+      />
+
+      <SkillProgress
+        open={showSkills}
+        onClose={() => setShowSkills(false)}
+        userId={user?.id}
+        onSendMessage={onSendMessage}
       />
 
       {hasBuddy && (

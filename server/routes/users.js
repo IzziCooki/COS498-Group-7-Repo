@@ -99,6 +99,76 @@ router.get('/:id/memories', requireSelf('id'), (req, res) => {
   }
 });
 
+// DELETE /api/users/:id/memories/:memoryId — forget a single memory
+router.delete('/:id/memories/:memoryId', requireSelf('id'), (req, res) => {
+  try {
+    const UserMemory = require('../models/UserMemory');
+    const mem = UserMemory.findById(req.params.memoryId);
+    if (!mem || mem.user_id !== req.params.id) {
+      return res.status(404).json({ error: 'Memory not found.' });
+    }
+    UserMemory.delete(req.params.memoryId);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[users] DELETE /:id/memories/:memoryId error:', err.message);
+    res.status(500).json({ error: 'Failed to delete memory.' });
+  }
+});
+
+// GET /api/users/:id/skills — get user's skill progress
+router.get('/:id/skills', requireSelf('id'), (req, res) => {
+  try {
+    const db = require('../db/database');
+
+    // Get skill events grouped by skill_name
+    const skills = db.prepare(`
+      SELECT skill_name,
+             MAX(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+             MAX(CASE WHEN status = 'started' THEN 1 ELSE 0 END) AS started,
+             MAX(practiced_at) AS last_practiced,
+             MIN(practiced_at) AS first_practiced
+      FROM skill_events
+      WHERE user_id = ?
+      GROUP BY skill_name
+      ORDER BY MAX(practiced_at) DESC
+    `).all(req.params.id);
+
+    // Get pending reviews
+    const reviews = db.prepare(`
+      SELECT skill_name, review_due_at
+      FROM skill_reviews
+      WHERE user_id = ? AND completed = 0
+      ORDER BY review_due_at ASC
+    `).all(req.params.id);
+
+    // Build a map of due reviews
+    const reviewMap = {};
+    for (const r of reviews) {
+      reviewMap[r.skill_name] = r.review_due_at;
+    }
+
+    const now = new Date().toISOString();
+    const result = skills.map((s) => {
+      const dueAt = reviewMap[s.skill_name];
+      let status = 'in-progress';
+      if (s.completed) status = 'completed';
+      if (dueAt && dueAt <= now) status = 'due';
+      return {
+        skill_name: s.skill_name,
+        status,
+        last_practiced: s.last_practiced,
+        first_practiced: s.first_practiced,
+        review_due_at: dueAt || null,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('[users] GET /:id/skills error:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve skills.' });
+  }
+});
+
 // GET /api/users/:id/conversations — list conversations with preview
 router.get('/:id/conversations', requireSelf('id'), (req, res) => {
   try {
