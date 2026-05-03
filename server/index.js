@@ -26,6 +26,9 @@ const { attachUser } = require('./middleware/auth');
 
 const app = express();
 
+// Trust Railway's reverse proxy so req.secure works correctly for cookies
+app.set('trust proxy', 1);
+
 app.use(cors({ credentials: true, origin: (origin, cb) => cb(null, origin || true) }));
 app.use(express.json());
 app.use(cookieParser());
