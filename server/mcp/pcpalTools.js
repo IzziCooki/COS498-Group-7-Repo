@@ -698,7 +698,14 @@ const createGuide = tool(
         const img = uiReferenceLibrary.getById(step.image_id);
         if (img) {
           out.image = img;
-          console.log(`[MCP]   ✓ Resolved "${step.image_id}" → ${img.url}`);
+          // Transform hotspots array → single hotspot object for client GuideStep
+          if (img.hotspots && img.hotspots.length > 0) {
+            out.hotspot = {
+              xPercent: img.hotspots[0].x,
+              yPercent: img.hotspots[0].y,
+            };
+          }
+          console.log(`[MCP]   ✓ Resolved "${step.image_id}" → ${img.url}${out.hotspot ? ' (with hotspot)' : ''}`);
         } else {
           console.warn(`[MCP]   ✗ Unknown image_id "${step.image_id}" — dropped from guide step.`);
         }
