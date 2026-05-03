@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ScreenWelcome from './ScreenWelcome';
+import ScreenCapabilities from './ScreenCapabilities';
 import ScreenNameDevice from './ScreenNameDevice';
 import ScreenComfort from './ScreenComfort';
 import ScreenGoal from './ScreenGoal';
 import ScreenBuddy from './ScreenBuddy';
 import './Onboarding.css';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 const STORAGE_KEY = 'pcpal-onboarding-state';
 const EXPIRY_DAYS = 7;
 
@@ -60,7 +61,7 @@ function clearState() {
 }
 
 /**
- * Onboarding — orchestrator managing the 5-screen onboarding flow.
+ * Onboarding — orchestrator managing the 6-screen onboarding flow.
  *
  * Props:
  *   createUser         — async fn to create/update user profile
@@ -172,7 +173,7 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
     [name, device, comfort, goal, existingUser, createUser, completeOnboarding, onBuddyCode]
   );
 
-  // Screen 5 handlers
+  // Screen 6 handlers
   const handleGetCode = useCallback(() => {
     handleComplete(true);
   }, [handleComplete]);
@@ -181,11 +182,11 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
     handleComplete(false);
   }, [handleComplete]);
 
-  // Screen 4 skip handler (goal = null)
+  // Screen 5 skip handler (goal = null)
   const handleGoalSkip = useCallback(() => {
     setGoal('');
     setDirection('forward');
-    setStep(5);
+    setStep(6);
   }, []);
 
   // Show submitting overlay
@@ -253,6 +254,14 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
       );
     case 2:
       return (
+        <ScreenCapabilities
+          onNext={goForward}
+          onBack={goBack}
+          direction={direction}
+        />
+      );
+    case 3:
+      return (
         <ScreenNameDevice
           name={name}
           onNameChange={setName}
@@ -263,7 +272,7 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
           direction={direction}
         />
       );
-    case 3:
+    case 4:
       return (
         <ScreenComfort
           comfort={comfort}
@@ -273,7 +282,7 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
           direction={direction}
         />
       );
-    case 4:
+    case 5:
       return (
         <ScreenGoal
           goal={goal}
@@ -284,7 +293,7 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
           direction={direction}
         />
       );
-    case 5:
+    case 6:
       return (
         <ScreenBuddy
           onGetCode={handleGetCode}

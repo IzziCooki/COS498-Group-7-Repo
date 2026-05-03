@@ -12,8 +12,8 @@ import OnboardingScreen from './OnboardingScreen';
 function ScreenBuddy({ onGetCode, onSkip, onBack, direction }) {
   return (
     <OnboardingScreen
-      step={5}
-      totalSteps={5}
+      step={6}
+      totalSteps={6}
       showTopBar={true}
       onBack={onBack}
       headingId="pcp-buddy-heading"

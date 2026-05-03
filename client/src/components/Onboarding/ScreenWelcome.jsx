@@ -11,7 +11,7 @@ function ScreenWelcome({ onNext, direction }) {
   return (
     <OnboardingScreen
       step={1}
-      totalSteps={5}
+      totalSteps={6}
       showTopBar={false}
       headingId="pcp-welcome-heading"
       direction={direction}

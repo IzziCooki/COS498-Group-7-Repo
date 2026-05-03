@@ -187,6 +187,17 @@
   color: var(--color-code-error);
 }
 
+/* Confidence badge: shown when AI response is off-library */
+.pcp-message__confidence-badge {
+  font-size: var(--font-size-xs, 0.8rem);
+  color: var(--color-warning-text, #7B341E);
+  background: var(--color-warning-soft, #FEEBC8);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  margin-bottom: var(--space-2, 8px);
+  line-height: 1.4;
+}
+
 /* Large phones: tighter max-width */
 @media (min-width: 414px) and (max-width: 639px) {
   .pcp-message {

@@ -47,8 +47,8 @@ function ScreenGoal({ goal, onGoalChange, onNext, onSkip, onBack, direction }) {
 
   return (
     <OnboardingScreen
-      step={4}
-      totalSteps={5}
+      step={5}
+      totalSteps={6}
       showTopBar={true}
       onBack={onBack}
       headingId="pcp-goal-heading"

@@ -52,8 +52,8 @@ function ScreenNameDevice({
 
   return (
     <OnboardingScreen
-      step={2}
-      totalSteps={5}
+      step={3}
+      totalSteps={6}
       showTopBar={true}
       onBack={onBack}
       headingId="pcp-name-device-heading"

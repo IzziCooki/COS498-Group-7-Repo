@@ -46,8 +46,8 @@ function ScreenComfort({ comfort, onComfortChange, onNext, onBack, direction }) 
 
   return (
     <OnboardingScreen
-      step={3}
-      totalSteps={5}
+      step={4}
+      totalSteps={6}
       showTopBar={true}
       onBack={onBack}
       headingId="pcp-comfort-heading"

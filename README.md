@@ -186,6 +186,18 @@ PC Pal monitors every message for:
 - **Emergency keywords** (e.g., "I've fallen", "chest pain", "911") — displays an alert with emergency guidance
 - **Scam patterns** (e.g., gift card requests, wire transfers, IRS impersonation) — warns you and explains the scam
 
+### Source Hierarchy — How PC Pal Grounds Its Answers
+
+PC Pal uses a strict tier ordering to avoid confabulation (making up instructions with confidence):
+
+1. **Curated skill library** (`server/skills/*.json`) — 36 skill definitions with tested prompts, triggers, and step-by-step guides. Highest confidence.
+2. **Verified support knowledge base** (`server/assets/support-knowledge.json`) — 59 curated URLs from official support sites (Microsoft, Apple, Google, Zoom, FTC). The agent calls `lookup_support_resources` to search this and cites sources inline.
+3. **Honest escalation** — If no curated skill or verified source matches, the agent tells the user plainly and suggests double-checking before making changes.
+
+The agent is instructed to **never use model knowledge alone for system-modifying tasks** (changing settings, editing the registry, running commands) and to **never generate URLs from memory**.
+
+When a response is off-library (doesn't match a curated skill), the UI shows a "less sure about this one" badge so the user knows to proceed cautiously.
+
 ## Agent Tools
 
 PC Pal's AI agent has 25 tools it can use during conversations:

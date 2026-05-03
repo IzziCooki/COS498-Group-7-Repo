@@ -80,6 +80,19 @@ All terminal commands pass through a two-layer filter in `systemDiagnostics.js`:
 
 The agent's built-in tools (`get_system_info`, `check_network`, etc.) run hardcoded commands — not user input. The "Run" button in guide artifacts also goes through the same sandbox. See `SECURITY.md` for the full breakdown.
 
+### Source hierarchy (strict order)
+When answering a user's question, the agent must follow this tier order and never skip ahead:
+
+1. **Curated skill library** (`server/skills/*.json`) — If the question matches a skill, use its prompt and steps. These are our highest-confidence answers.
+2. **Verified support knowledge base** (`server/assets/support-knowledge.json`) — Call `lookup_support_resources` to find official URLs from Microsoft, Apple, Google, Zoom, and FTC support. Cite the source inline ("According to Microsoft Support...").
+3. **Honest escalation** — If neither tier produces an answer, tell the user plainly: "I'm not sure about this on your specific setup. Here's what I'd try, but please double-check before changing anything."
+
+**Rules:**
+- NEVER use model knowledge alone for system-modifying tasks (changing settings, editing the registry, running commands). Always ground in a curated skill or verified source first.
+- NEVER generate URLs from memory. Only use URLs returned by `lookup_support_resources`.
+- Always restate the user's goal before starting a step sequence: "To [goal], here's what we'll do."
+- If the query doesn't match a curated skill, flag the response as low-confidence so the UI shows a disclaimer badge.
+
 ### Other safety rules
 - Safety monitor checks every message for emergencies before AI sees it
 - Never show raw command output to users — always translate to plain English

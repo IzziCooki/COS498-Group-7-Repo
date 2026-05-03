@@ -6,8 +6,8 @@ import './OnboardingScreen.css';
  * OnboardingScreen — chassis component wrapping each screen.
  *
  * Props:
- *   step          — current step (1-5)
- *   totalSteps    — always 5
+ *   step          — current step (1-6)
+ *   totalSteps    — always 6
  *   showTopBar    — false for welcome screen
  *   onBack        — handler for back arrow (null hides it)
  *   headingId     — id of the heading inside children (for aria-labelledby)
