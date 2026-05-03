@@ -74,9 +74,9 @@ const ARTIFACT_TYPES = {
  * ArtifactCard -- Inline preview card for artifacts in chat thread.
  * Same chassis for all types; variant prop controls icon and styling.
  *
- * @param {{ type: string, data: any, onTap: () => void }} props
+ * @param {{ type: string, data: any, onTap: () => void, onShowInline?: () => void }} props
  */
-function ArtifactCard({ type, data, onTap }) {
+function ArtifactCard({ type, data, onTap, onShowInline }) {
   const config = ARTIFACT_TYPES[type] || ARTIFACT_TYPES.guide;
   const icon = config.getStatusIcon ? config.getStatusIcon(data) : config.icon;
   const title = config.getTitle(data);
@@ -87,22 +87,34 @@ function ArtifactCard({ type, data, onTap }) {
   const ariaLabel = `Open ${type}: ${title}, ${meta}`;
 
   return (
-    <button
-      type="button"
-      className={`pcp-artifact-card ${modifier}`.trim()}
-      onClick={onTap}
-      role="button"
-      aria-label={ariaLabel}
-    >
-      <div className={`pcp-artifact-card__icon ${iconMod}`.trim()} aria-hidden="true">
-        {icon}
-      </div>
-      <div className="pcp-artifact-card__content">
-        <div className="pcp-artifact-card__title">{title}</div>
-        <div className="pcp-artifact-card__meta">{meta}</div>
-      </div>
-      <span className="pcp-artifact-card__chevron" aria-hidden="true">&#x25B8;</span>
-    </button>
+    <div className={`pcp-artifact-card-wrap ${modifier}`.trim()}>
+      <button
+        type="button"
+        className={`pcp-artifact-card ${modifier}`.trim()}
+        onClick={onTap}
+        role="button"
+        aria-label={ariaLabel}
+      >
+        <div className={`pcp-artifact-card__icon ${iconMod}`.trim()} aria-hidden="true">
+          {icon}
+        </div>
+        <div className="pcp-artifact-card__content">
+          <div className="pcp-artifact-card__title">{title}</div>
+          <div className="pcp-artifact-card__meta">{meta}</div>
+        </div>
+        <span className="pcp-artifact-card__chevron" aria-hidden="true">&#x25B8;</span>
+      </button>
+      {onShowInline && (
+        <button
+          type="button"
+          className="pcp-artifact-card__inline-btn"
+          onClick={(e) => { e.stopPropagation(); onShowInline(); }}
+          aria-label={`Show ${type} inline`}
+        >
+          Show inline
+        </button>
+      )}
+    </div>
   );
 }
 

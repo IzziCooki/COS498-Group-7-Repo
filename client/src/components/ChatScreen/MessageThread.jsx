@@ -129,6 +129,7 @@ function MessageThread({
             message={msg}
             onArtifactTap={onArtifactTap}
             onLongPress={onLongPress}
+            onSendMessage={onSendMessage}
           />
         ))}
 

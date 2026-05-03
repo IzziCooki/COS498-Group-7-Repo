@@ -20,11 +20,14 @@ import './ShellLayout.css';
  * The breakpoint hook is only used for conditional rendering of shell
  * sub-components (tab bar vs side rail), not for layout itself.
  */
-function ShellLayout({ children, title, onBack, navigate, currentView }) {
+function ShellLayout({
+  children, title, onBack, navigate, currentView,
+  artifact, onArtifactClose, onSendMessage, onMoveArtifactInline,
+}) {
   const breakpoint = useBreakpoint();
   const { role, activeLearner, learners, switchLearner } = useRole();
   const [railExpanded, setRailExpanded] = useState(breakpoint === 'desktop');
-  const [artifactOpen] = useState(false); // Will be connected in Phase 4
+  const artifactOpen = artifact != null;
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -77,7 +80,12 @@ function ShellLayout({ children, title, onBack, navigate, currentView }) {
 
       {breakpoint === 'desktop' && (
         <div className="pcp-shell__artifact">
-          <ArtifactPanel isOpen={artifactOpen} />
+          <ArtifactPanel
+            artifact={artifact}
+            onClose={onArtifactClose}
+            onSendMessage={onSendMessage}
+            onMoveInline={onMoveArtifactInline}
+          />
         </div>
       )}
 

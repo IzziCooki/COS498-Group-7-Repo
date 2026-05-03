@@ -130,6 +130,10 @@ function AppContent() {
   const [buddySessionActive, setBuddySessionActive] = useState(false);
   const [viewingConversationId, setViewingConversationId] = useState(null);
 
+  // ── Lifted artifact state (shared between ChatScreen + ArtifactPanel) ──
+  const [activeArtifact, setActiveArtifact] = useState(null);
+  const handleArtifactClose = useCallback(() => setActiveArtifact(null), []);
+
   // ── Helper-specific state ──
   const [replyQuestion, setReplyQuestion] = useState(null);
   const [watchActive, setWatchActive] = useState(false);
@@ -316,6 +320,10 @@ function AppContent() {
         onBack={onBack}
         navigate={navigate}
         currentView={view}
+        artifact={activeArtifact}
+        onArtifactClose={handleArtifactClose}
+        onSendMessage={chatData.sendMessage}
+        onMoveArtifactInline={handleArtifactClose}
       >
         {view === 'chat' && user && (
           <ChatScreen
@@ -329,6 +337,7 @@ function AppContent() {
             navigate={navigate}
             onLogout={logout}
             chatData={chatData}
+            onArtifactOpen={setActiveArtifact}
           />
         )}
 

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ArtifactPanel — Desktop-only right panel (480px, controlled by grid)
+   ArtifactPanel -- Desktop-only right panel (480px, controlled by grid)
    ========================================================================== */
 
 .pcp-artifact-panel {
@@ -8,9 +8,33 @@
   height: 100%;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
+  animation: pcp-artifact-panel-in var(--duration-base) var(--easing-decel) both;
 }
 
-.pcp-artifact-panel__empty {
+@keyframes pcp-artifact-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-artifact-panel {
+    animation: none;
+  }
+}
+
+/* -- Empty state --------------------------------------------------------- */
+
+.pcp-artifact-panel--empty {
+  animation: none;
+}
+
+.pcp-artifact-panel__placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,23 +44,73 @@
   text-align: center;
 }
 
-.pcp-artifact-panel__empty-icon {
+.pcp-artifact-panel__placeholder-icon {
   width: 48px;
   height: 48px;
   color: var(--color-text-3);
   margin-bottom: var(--space-4);
 }
 
-.pcp-artifact-panel__empty-text {
+.pcp-artifact-panel__placeholder-text {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-2);
   margin: 0 0 var(--space-2);
 }
 
-.pcp-artifact-panel__empty-hint {
+.pcp-artifact-panel__placeholder-hint {
   font-size: var(--font-size-sm);
   color: var(--color-text-3);
   margin: 0;
   max-width: 240px;
+}
+
+/* -- Header with close + inline buttons ---------------------------------- */
+
+.pcp-artifact-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.pcp-artifact-panel__header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-2);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-artifact-panel__header-btn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-1);
+}
+
+.pcp-artifact-panel__header-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* -- Content area: renders artifact viewers ------------------------------ */
+
+.pcp-artifact-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Artifact viewers rendered inside the panel need to fill it properly */
+.pcp-artifact-panel__content > * {
+  height: 100%;
 }

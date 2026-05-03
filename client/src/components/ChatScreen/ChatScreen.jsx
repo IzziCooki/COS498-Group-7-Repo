@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useBreakpoint } from '../../hooks/useBreakpoint';
 import ChatTopBar from './ChatTopBar';
 import MessageThread from './MessageThread';
 import InputArea from './InputArea';
@@ -47,7 +48,9 @@ function ChatScreen({
   navigate,
   onLogout,
   chatData,
+  onArtifactOpen,
 }) {
+  const breakpoint = useBreakpoint();
   const {
     messages: liveMessages,
     sendMessage,
@@ -173,10 +176,14 @@ function ChatScreen({
     }
   }, [messages, dismissedAlerts]);
 
-  // ── Artifact tap handler (Phase 4: full overlay) ──
+  // ── Artifact tap handler: desktop → side panel, phone/tablet → overlay ──
   const handleArtifactTap = useCallback((type, data) => {
-    setOpenArtifact({ type, data });
-  }, []);
+    if (breakpoint === 'desktop' && onArtifactOpen) {
+      onArtifactOpen({ type, data });
+    } else {
+      setOpenArtifact({ type, data });
+    }
+  }, [breakpoint, onArtifactOpen]);
 
   const handleArtifactClose = useCallback(() => {
     setOpenArtifact(null);

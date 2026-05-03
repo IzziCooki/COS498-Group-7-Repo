@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import ArtifactCard from './ArtifactCard';
+import GuideViewer from '../Artifacts/GuideViewer/GuideViewer';
+import VideoPlayer from '../Artifacts/VideoPlayer';
+import DiagnosticFindings from '../Artifacts/DiagnosticFindings';
+import ResourcesViewer from '../Artifacts/ResourcesViewer';
+import PracticeMode from '../Artifacts/PracticeMode/PracticeMode';
 import './MessageBubble.css';
 
 /* ── Text formatting helpers ─────────────────────────────────── */
@@ -36,59 +41,84 @@ function formatMessage(text) {
 
 /* ── Helper: determine artifact types present in a message ──── */
 
-function getArtifactCards(message, onArtifactTap) {
-  const cards = [];
-  if (message.guide) {
-    cards.push(
-      <ArtifactCard
-        key="guide"
-        type="guide"
-        data={message.guide}
-        onTap={() => onArtifactTap('guide', message.guide)}
-      />
-    );
-  }
-  if (message.findings) {
-    cards.push(
-      <ArtifactCard
-        key="diagnostic"
-        type="diagnostic"
-        data={message.findings}
-        onTap={() => onArtifactTap('diagnostic', message.findings)}
-      />
-    );
-  }
-  if (message.videos) {
-    cards.push(
-      <ArtifactCard
-        key="video"
-        type="video"
-        data={message.videos}
-        onTap={() => onArtifactTap('video', message.videos)}
-      />
-    );
-  }
-  if (message.resources) {
-    cards.push(
-      <ArtifactCard
-        key="resources"
-        type="resources"
-        data={message.resources}
-        onTap={() => onArtifactTap('resources', message.resources)}
-      />
-    );
-  }
-  if (message.practice) {
-    cards.push(
-      <ArtifactCard
-        key="practice"
-        type="practice"
-        data={message.practice}
-        onTap={() => onArtifactTap('practice', message.practice)}
-      />
-    );
-  }
-  return cards;
+function getArtifactEntries(message) {
+  const entries = [];
+  if (message.guide) entries.push({ key: 'guide', type: 'guide', data: message.guide });
+  if (message.findings) entries.push({ key: 'diagnostic', type: 'diagnostic', data: message.findings });
+  if (message.videos) entries.push({ key: 'video', type: 'video', data: message.videos });
+  if (message.resources) entries.push({ key: 'resources', type: 'resources', data: message.resources });
+  if (message.practice) entries.push({ key: 'practice', type: 'practice', data: message.practice });
+  return entries;
+}
+
+/* ── Inline artifact renderer ──────────────────────────────── */
+
+function InlineArtifact({ type, data, onClose, onSendMessage, onOpenInPanel }) {
+  const titleId = `pcp-inline-artifact-${type}`;
+  return (
+    <div className="pcp-message__inline-artifact">
+      <div className="pcp-message__inline-artifact-header">
+        <button
+          type="button"
+          className="pcp-message__inline-artifact-btn"
+          onClick={onClose}
+          aria-label="Collapse inline artifact"
+        >
+          &#9660; Collapse
+        </button>
+        {onOpenInPanel && (
+          <button
+            type="button"
+            className="pcp-message__inline-artifact-btn"
+            onClick={onOpenInPanel}
+            aria-label="Open in panel"
+          >
+            Open in panel &#8599;
+          </button>
+        )}
+      </div>
+      <div className="pcp-message__inline-artifact-content">
+        {type === 'guide' && (
+          <GuideViewer
+            guide={data}
+            onClose={onClose}
+            onSendMessage={onSendMessage}
+            onStepChange={() => {}}
+            titleId={titleId}
+          />
+        )}
+        {type === 'video' && (
+          <VideoPlayer
+            videos={data}
+            onClose={onClose}
+            titleId={titleId}
+          />
+        )}
+        {type === 'diagnostic' && (
+          <DiagnosticFindings
+            findings={data}
+            onClose={onClose}
+            titleId={titleId}
+          />
+        )}
+        {type === 'resources' && (
+          <ResourcesViewer
+            resources={data}
+            onClose={onClose}
+            titleId={titleId}
+          />
+        )}
+        {type === 'practice' && (
+          <PracticeMode
+            practice={data}
+            onClose={onClose}
+            onSendMessage={onSendMessage}
+            titleId={titleId}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -96,12 +126,23 @@ function getArtifactCards(message, onArtifactTap) {
  * AI: left-aligned with 32x32 mascot avatar, white bubble + border.
  * User: right-aligned, primary blue bubble, white text, no avatar.
  *
- * @param {{ message: object, onArtifactTap: (type:string, data:any) => void, onLongPress: (message:object) => void }} props
+ * @param {{ message: object, onArtifactTap: (type:string, data:any) => void, onLongPress: (message:object) => void, onSendMessage?: (text:string) => void }} props
  */
-function MessageBubble({ message, onArtifactTap, onLongPress }) {
+function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage }) {
   const { role, text, timestamp, images, buddyTerminal, screenshot } = message;
   const isUser = role === 'user';
   const isAI = !isUser;
+
+  // ── Inline-expanded artifact state ──
+  const [inlineExpanded, setInlineExpanded] = useState({});
+
+  const toggleInline = useCallback((key) => {
+    setInlineExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const collapseInline = useCallback((key) => {
+    setInlineExpanded((prev) => ({ ...prev, [key]: false }));
+  }, []);
 
   const formattedTime = timestamp
     ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -140,7 +181,8 @@ function MessageBubble({ message, onArtifactTap, onLongPress }) {
     longPressTimer.current = null;
   };
 
-  const artifactCards = isAI ? getArtifactCards(message, onArtifactTap || (() => {})) : [];
+  const artifactEntries = isAI ? getArtifactEntries(message) : [];
+  const onArtifactTapSafe = onArtifactTap || (() => {});
 
   return (
     <div
@@ -221,10 +263,32 @@ function MessageBubble({ message, onArtifactTap, onLongPress }) {
           )}
         </div>
 
-        {/* Artifact cards appear below the bubble text, inside the AI message area */}
-        {artifactCards.length > 0 && (
+        {/* Artifact cards + inline expansions */}
+        {artifactEntries.length > 0 && (
           <div className="pcp-message__artifacts">
-            {artifactCards}
+            {artifactEntries.map((entry) => (
+              <React.Fragment key={entry.key}>
+                {inlineExpanded[entry.key] ? (
+                  <InlineArtifact
+                    type={entry.type}
+                    data={entry.data}
+                    onClose={() => collapseInline(entry.key)}
+                    onSendMessage={onSendMessage}
+                    onOpenInPanel={() => {
+                      collapseInline(entry.key);
+                      onArtifactTapSafe(entry.type, entry.data);
+                    }}
+                  />
+                ) : (
+                  <ArtifactCard
+                    type={entry.type}
+                    data={entry.data}
+                    onTap={() => onArtifactTapSafe(entry.type, entry.data)}
+                    onShowInline={() => toggleInline(entry.key)}
+                  />
+                )}
+              </React.Fragment>
+            ))}
           </div>
         )}
 

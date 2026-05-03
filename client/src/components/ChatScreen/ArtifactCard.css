@@ -100,3 +100,39 @@
   flex-shrink: 0;
   margin-left: var(--space-2);
 }
+
+/* Wrapper to hold card + inline button together */
+.pcp-artifact-card-wrap {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-3);
+}
+
+.pcp-artifact-card-wrap .pcp-artifact-card {
+  margin-top: 0;
+}
+
+/* "Show inline" button below the card */
+.pcp-artifact-card__inline-btn {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  margin-top: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-artifact-card__inline-btn:hover {
+  background: var(--color-primary-soft);
+}
+
+.pcp-artifact-card__inline-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
