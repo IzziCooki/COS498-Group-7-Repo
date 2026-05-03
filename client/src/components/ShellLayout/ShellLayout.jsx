@@ -78,7 +78,7 @@ function ShellLayout({
         {children}
       </main>
 
-      {breakpoint === 'desktop' && (
+      {breakpoint === 'desktop' && artifactOpen && (
         <div className="pcp-shell__artifact">
           <ArtifactPanel
             artifact={artifact}

@@ -1,14 +1,18 @@
 /* ==========================================================================
-   ArtifactPanel -- Desktop-only right panel (480px, controlled by grid)
+   ArtifactPanel -- Desktop-only right panel, resizable via drag handle.
+   Only rendered when an artifact is open.
    ========================================================================== */
 
 .pcp-artifact-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
   animation: pcp-artifact-panel-in var(--duration-base) var(--easing-decel) both;
+  min-width: 320px;
+  max-width: 800px;
 }
 
 @keyframes pcp-artifact-panel-in {
@@ -28,41 +32,24 @@
   }
 }
 
-/* -- Empty state --------------------------------------------------------- */
+/* -- Drag-to-resize handle on left edge ---------------------------------- */
 
-.pcp-artifact-panel--empty {
-  animation: none;
+.pcp-artifact-panel__resize {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 2;
+  background: transparent;
+  transition: background-color var(--duration-quick);
 }
 
-.pcp-artifact-panel__placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  padding: var(--space-6);
-  text-align: center;
-}
-
-.pcp-artifact-panel__placeholder-icon {
-  width: 48px;
-  height: 48px;
-  color: var(--color-text-3);
-  margin-bottom: var(--space-4);
-}
-
-.pcp-artifact-panel__placeholder-text {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-2);
-  margin: 0 0 var(--space-2);
-}
-
-.pcp-artifact-panel__placeholder-hint {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-3);
-  margin: 0;
-  max-width: 240px;
+.pcp-artifact-panel__resize:hover,
+.pcp-artifact-panel__resize:active {
+  background: var(--color-primary);
+  opacity: 0.4;
 }
 
 /* -- Header with close + inline buttons ---------------------------------- */

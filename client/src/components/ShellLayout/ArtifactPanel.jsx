@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import GuideViewer from '../Artifacts/GuideViewer/GuideViewer';
 import VideoPlayer from '../Artifacts/VideoPlayer';
 import DiagnosticFindings from '../Artifacts/DiagnosticFindings';
@@ -7,39 +7,40 @@ import PracticeMode from '../Artifacts/PracticeMode/PracticeMode';
 import './ArtifactPanel.css';
 
 /**
- * ArtifactPanel -- Desktop-only right panel (480px, controlled by CSS Grid).
- *
- * Renders the appropriate artifact viewer based on the artifact's type.
- * Shows an empty-state prompt when no artifact is selected.
- *
- * @param {{
- *   artifact: { type: string, data: any } | null,
- *   onClose: () => void,
- *   onSendMessage?: (text: string) => void,
- *   onMoveInline?: () => void,
- * }} props
+ * ArtifactPanel -- Desktop-only right panel, resizable via drag handle.
+ * Only rendered when an artifact is open (ShellLayout gates this).
  */
 function ArtifactPanel({ artifact, onClose, onSendMessage, onMoveInline }) {
   const titleId = 'pcp-artifact-panel-title';
+  const panelRef = useRef(null);
+  const [width, setWidth] = useState(480);
+  const dragging = useRef(false);
 
-  if (!artifact) {
-    return (
-      <aside className="pcp-artifact-panel pcp-artifact-panel--empty" aria-label="Artifact viewer">
-        <div className="pcp-artifact-panel__placeholder">
-          <svg className="pcp-artifact-panel__placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <line x1="9" y1="3" x2="9" y2="21" />
-          </svg>
-          <p className="pcp-artifact-panel__placeholder-text">
-            No artifact selected
-          </p>
-          <p className="pcp-artifact-panel__placeholder-hint">
-            Tap a guide, video, or finding in chat to view it here.
-          </p>
-        </div>
-      </aside>
-    );
-  }
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    dragging.current = true;
+    const startX = e.clientX;
+    const startW = width;
+
+    const onMove = (ev) => {
+      if (!dragging.current) return;
+      const delta = startX - ev.clientX;
+      const newW = Math.max(320, Math.min(800, startW + delta));
+      setWidth(newW);
+      // Update CSS grid column in real time
+      const shell = panelRef.current?.closest('.pcp-shell');
+      if (shell) shell.style.setProperty('--artifact-w-live', newW + 'px');
+    };
+    const onUp = () => {
+      dragging.current = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [width]);
+
+  if (!artifact) return null;
 
   const renderContent = () => {
     switch (artifact.type) {
@@ -92,13 +93,29 @@ function ArtifactPanel({ artifact, onClose, onSendMessage, onMoveInline }) {
   };
 
   return (
-    <aside className="pcp-artifact-panel" aria-label="Artifact viewer" aria-labelledby={titleId}>
+    <aside
+      className="pcp-artifact-panel"
+      aria-label="Artifact viewer"
+      aria-labelledby={titleId}
+      ref={panelRef}
+      style={{ width: width + 'px' }}
+    >
+      {/* Drag handle on left edge */}
+      <div
+        className="pcp-artifact-panel__resize"
+        onMouseDown={handleMouseDown}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize artifact panel"
+        tabIndex={0}
+      />
       <div className="pcp-artifact-panel__header">
         <button
           className="pcp-artifact-panel__header-btn"
           onClick={onClose}
           aria-label="Close panel"
           type="button"
+          title="Close"
         >
           &#10005;
         </button>
@@ -108,6 +125,7 @@ function ArtifactPanel({ artifact, onClose, onSendMessage, onMoveInline }) {
             onClick={onMoveInline}
             aria-label="Show inline in chat"
             type="button"
+            title="Show inline"
           >
             &#8601; Inline
           </button>
