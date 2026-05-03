@@ -111,3 +111,32 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-3);
 }
+
+/* ── Sign out button ── */
+.pcp-me-screen__signout {
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  justify-content: center;
+}
+
+.pcp-me-screen__signout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-primary);
+  width: 100%;
+  max-width: 320px;
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-danger);
+  background: transparent;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-me-screen__signout-btn:hover {
+  background: var(--color-danger-soft);
+}

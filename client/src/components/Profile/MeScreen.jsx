@@ -147,6 +147,19 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout }) {
         )}
       </div>
 
+      {/* Sign out button — always visible */}
+      {onLogout && (
+        <div className="pcp-me-screen__signout">
+          <button
+            type="button"
+            className="pcp-me-screen__signout-btn"
+            onClick={onLogout}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+
       {/* ── Sub-screens (overlays) ── */}
       <EditProfile
         open={showEditProfile}
