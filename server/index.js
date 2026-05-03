@@ -14,6 +14,7 @@ const clientInfoStore = require('./core/clientInfoStore');
 const conversationState = require('./core/conversationState');
 const BuddyPair = require('./models/BuddyPair');
 const User = require('./models/User');
+const userProfileManager = require('./core/userProfileManager');
 const HelpRequest = require('./models/HelpRequest');
 const usersRouter = require('./routes/users');
 const chatRouter = require('./routes/chat');
@@ -505,7 +506,7 @@ wss.on('connection', (ws, req) => {
           try {
             if (config.anthropicApiKey && process.env.MOCK_MODE !== 'true') {
               const Anthropic = require('@anthropic-ai/sdk');
-              const client = new Anthropic({ apiKey: anthropicApiKey });
+              const client = new Anthropic({ apiKey: config.anthropicApiKey });
               const aiResponse = await client.messages.create({
                 model: 'claude-sonnet-4-20250514',
                 max_tokens: 200,
