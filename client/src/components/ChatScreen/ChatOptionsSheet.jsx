@@ -10,7 +10,7 @@ import './ChatOptionsSheet.css';
  *
  * @param {{ isOpen: boolean, onClose: () => void, onEndChat: () => void, hasMessages: boolean }} props
  */
-function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages }) {
+function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectComputer, onScreenShare, agentConnected }) {
   const [readAloud, setReadAloud] = useState(false);
   const sheetRef = useRef(null);
 
@@ -123,6 +123,39 @@ function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages }) {
           >
             <span className="pcp-options-sheet__item-icon" aria-hidden="true">&#x1F524;</span>
             <span className="pcp-options-sheet__item-label">Make text bigger</span>
+            <span className="pcp-options-sheet__item-trailing" aria-hidden="true">&#x25B8;</span>
+          </button>
+        </div>
+
+        <div className="pcp-options-sheet__section-label">Tools</div>
+
+        <div className="pcp-options-sheet__items">
+          <button
+            type="button"
+            className="pcp-options-sheet__item"
+            onClick={onConnectComputer}
+            aria-label={agentConnected ? 'Computer connected' : 'Connect your computer'}
+          >
+            <span className="pcp-options-sheet__item-icon" aria-hidden="true">&#x1F5A5;</span>
+            <span className="pcp-options-sheet__item-label">
+              {agentConnected ? 'Computer connected' : 'Connect your computer'}
+            </span>
+            {agentConnected && (
+              <span className="pcp-options-sheet__item-trailing" aria-hidden="true" style={{ color: 'var(--color-success, green)' }}>&#x2713;</span>
+            )}
+            {!agentConnected && (
+              <span className="pcp-options-sheet__item-trailing" aria-hidden="true">&#x25B8;</span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="pcp-options-sheet__item"
+            onClick={onScreenShare}
+            aria-label="Share your screen"
+          >
+            <span className="pcp-options-sheet__item-icon" aria-hidden="true">&#x1F4F1;</span>
+            <span className="pcp-options-sheet__item-label">Share your screen</span>
             <span className="pcp-options-sheet__item-trailing" aria-hidden="true">&#x25B8;</span>
           </button>
         </div>

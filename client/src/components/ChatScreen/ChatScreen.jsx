@@ -6,6 +6,8 @@ import InputArea from './InputArea';
 import ChatOptionsSheet from './ChatOptionsSheet';
 import MessageContextSheet from './MessageContextSheet';
 import FeedbackModal from '../Chat/FeedbackModal';
+import ConnectComputer from '../Chat/ConnectComputer';
+import ScreenShare from '../Chat/ScreenShare';
 import ArtifactOverlay from '../Artifacts/ArtifactOverlay';
 import './ChatScreen.css';
 
@@ -61,11 +63,18 @@ function ChatScreen({
     buddyObserving,
     joinBuddySession,
     leaveBuddySession,
+    pairAgent,
+    agentConnected,
+    sendScreenFrame,
   } = useChat(userId);
 
   // ── Sheet state ──
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [contextMessage, setContextMessage] = useState(null);
+
+  // ── ConnectComputer / ScreenShare overlay state ──
+  const [showConnect, setShowConnect] = useState(false);
+  const [showScreenShare, setShowScreenShare] = useState(false);
 
   // ── Artifact overlay state (Phase 4) ──
   const [openArtifact, setOpenArtifact] = useState(null);
@@ -242,6 +251,9 @@ function ChatScreen({
         onClose={() => setOptionsOpen(false)}
         onEndChat={endChat}
         hasMessages={hasUserMessage}
+        onConnectComputer={() => { setOptionsOpen(false); setShowConnect(true); }}
+        onScreenShare={() => { setOptionsOpen(false); setShowScreenShare(true); }}
+        agentConnected={agentConnected}
       />
 
       {/* Long-press context sheet */}
@@ -260,6 +272,42 @@ function ChatScreen({
           onClose={handleArtifactClose}
           onSendMessage={sendMessage}
         />
+      )}
+
+      {/* ConnectComputer overlay */}
+      {showConnect && (
+        <div className="pcp-chat-screen__overlay">
+          <ConnectComputer
+            isConnected={agentConnected}
+            onPair={pairAgent}
+          />
+          <button
+            type="button"
+            className="pcp-chat-screen__overlay-close"
+            onClick={() => setShowConnect(false)}
+            aria-label="Close connect computer"
+          >
+            &#10005;
+          </button>
+        </div>
+      )}
+
+      {/* ScreenShare overlay */}
+      {showScreenShare && (
+        <div className="pcp-chat-screen__overlay">
+          <ScreenShare
+            onScreenFrame={sendScreenFrame}
+            onStop={() => setShowScreenShare(false)}
+          />
+          <button
+            type="button"
+            className="pcp-chat-screen__overlay-close"
+            onClick={() => setShowScreenShare(false)}
+            aria-label="Close screen share"
+          >
+            &#10005;
+          </button>
+        </div>
       )}
     </div>
   );

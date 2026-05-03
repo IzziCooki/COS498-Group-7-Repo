@@ -33,3 +33,33 @@
   background: var(--color-surface-3);
   border-top: 1px solid var(--color-border);
 }
+
+/* ConnectComputer / ScreenShare modal overlay */
+.pcp-chat-screen__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay, 1000);
+  background: var(--color-overlay, rgba(0, 0, 0, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.pcp-chat-screen__overlay-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: var(--tap-comfort, 48px);
+  height: var(--tap-comfort, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface, #fff);
+  border: none;
+  border-radius: var(--radius-pill, 24px);
+  font-size: var(--font-size-lg, 24px);
+  color: var(--color-text-1);
+  cursor: pointer;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0,0,0,0.15));
+}

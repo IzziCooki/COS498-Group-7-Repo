@@ -8,12 +8,7 @@ import { useConversations } from './hooks/useConversations';
 import ShellLayout from './components/ShellLayout/ShellLayout';
 import Onboarding from './components/Onboarding/Onboarding';
 import AuthScreen from './components/Auth/AuthScreen';
-// ChatWindow import retained for backward compatibility (not rendered)
-// import ChatWindow from './components/Chat/ChatWindow';
 import ChatScreen from './components/ChatScreen/ChatScreen';
-// ConversationSidebar removed — SideRail in ShellLayout handles navigation now
-// BuddyPanel removed — Helper tab in ShellLayout replaces it
-import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 import AdminFeedback from './components/Admin/AdminFeedback';
 import { ToastProvider } from './hooks/useToast';
 import ToastHost from './components/Overlays/ToastHost';
@@ -87,10 +82,12 @@ function AppContent() {
   const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
   const { role, activeLearner, detectAndApplyRole } = useRole();
-  const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
-  const [buddySessionTarget, setBuddySessionTarget] = useState(null);
+  // buddySessionTarget is always null now (BuddyPanel removed); kept for ChatScreen prop contract.
+  const buddySessionTarget = null;
   const [buddySessionActive, setBuddySessionActive] = useState(false);
-  const [viewingConversationId, setViewingConversationId] = useState(null);
+  // viewingConversationId is always null now (ConversationSidebar removed);
+  // kept for ChatScreen prop contract.
+  const viewingConversationId = null;
 
   // ── Helper-specific state ──
   const [replyQuestion, setReplyQuestion] = useState(null);
@@ -115,18 +112,6 @@ function AppContent() {
       navigate('/helper/home', { replace: true });
     }
   }, [role, view, navigate]);
-
-  const handleNewChat = useCallback(() => {
-    setViewingConversationId(null);
-    if (chatWindowRef.current) {
-      chatWindowRef.current();
-    }
-    setTimeout(refreshConversations, 500);
-  }, [refreshConversations]);
-
-  const handleSelectConversation = useCallback((convId) => {
-    setViewingConversationId(convId);
-  }, []);
 
   const handleConversationChange = useCallback(() => {
     refreshConversations();
@@ -413,8 +398,6 @@ function AppContent() {
           />
         )}
       </ShellLayout>
-
-      {/* BuddyPanel removed — Helper tab handles this now */}
     </>
   );
 }
