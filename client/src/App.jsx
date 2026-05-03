@@ -11,8 +11,8 @@ import AuthScreen from './components/Auth/AuthScreen';
 // ChatWindow import retained for backward compatibility (not rendered)
 // import ChatWindow from './components/Chat/ChatWindow';
 import ChatScreen from './components/ChatScreen/ChatScreen';
-import ConversationSidebar from './components/Chat/ConversationSidebar';
-import BuddyPanel from './components/Collaboration/BuddyPanel';
+// ConversationSidebar removed — SideRail in ShellLayout handles navigation now
+// BuddyPanel removed — Helper tab in ShellLayout replaces it
 import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 import AdminFeedback from './components/Admin/AdminFeedback';
 import { ToastProvider } from './hooks/useToast';
@@ -277,29 +277,16 @@ function AppContent() {
         navigate={navigate}
         currentView={view}
       >
-        {view === 'chat' && (
-          <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', height: '100%' }}>
-            <ConversationSidebar
-              conversations={conversations}
-              activeConversationId={activeConversationId}
-              viewingConversationId={viewingConversationId}
-              onSelectConversation={handleSelectConversation}
-              onNewChat={handleNewChat}
-              isCollapsed={true}
-              onToggleCollapse={() => {}}
-            />
-            {user && (
-              <ChatScreen
-                userId={user.id}
-                hasBuddy={buddyData.hasBuddy}
-                viewingConversationId={viewingConversationId}
-                onConversationChange={handleConversationChange}
-                startNewChatRef={chatWindowRef}
-                buddySessionTarget={buddySessionTarget}
-                onBuddySessionChange={setBuddySessionActive}
-              />
-            )}
-          </div>
+        {view === 'chat' && user && (
+          <ChatScreen
+            userId={user.id}
+            hasBuddy={buddyData.hasBuddy}
+            viewingConversationId={viewingConversationId}
+            onConversationChange={handleConversationChange}
+            startNewChatRef={chatWindowRef}
+            buddySessionTarget={buddySessionTarget}
+            onBuddySessionChange={setBuddySessionActive}
+          />
         )}
 
         {view === 'history' && <HistoryPlaceholder />}
@@ -427,16 +414,7 @@ function AppContent() {
         )}
       </ShellLayout>
 
-      {/* BuddyPanel overlay -- sits above the shell */}
-      <BuddyPanel
-        isOpen={buddyPanelOpen}
-        onClose={() => setBuddyPanelOpen(false)}
-        buddyData={buddyData}
-        currentUserId={user?.id}
-        onJoinSession={(targetId) => { setBuddySessionTarget(targetId); setBuddyPanelOpen(false); }}
-        onLeaveSession={() => setBuddySessionTarget(null)}
-        isInSession={buddySessionActive}
-      />
+      {/* BuddyPanel removed — Helper tab handles this now */}
     </>
   );
 }
