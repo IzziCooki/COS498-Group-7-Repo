@@ -54,7 +54,6 @@ function HelperSessions({
   questions = [],
   alerts = [],
   onConversationTap,
-  onQuestionTap,
   onAlertTap,
   onReply,
 }) {

@@ -85,7 +85,7 @@ const HELPER_ITEMS = [
   { id: 'helper-me',       label: 'Me',       path: '/helper/me',       Icon: MeIcon       },
 ];
 
-function SideRail({ expanded, onToggle, navigate, currentView, role, breakpoint }) {
+function SideRail({ expanded, onToggle, navigate, currentView, role }) {
   const items = role === 'helper' ? HELPER_ITEMS : LEARNER_ITEMS;
 
   return (
@@ -98,25 +98,26 @@ function SideRail({ expanded, onToggle, navigate, currentView, role, breakpoint 
       aria-label="Main navigation"
     >
       <div className="pcp-side-rail__nav" role="tablist">
-        {items.map(({ id, label, path, Icon }) => {
-          const isActive = currentView === id || (id === 'chat' && currentView === 'chat');
+        {items.map((item) => {
+          const isActive = currentView === item.id || (item.id === 'chat' && currentView === 'chat');
+          const ItemIcon = item.Icon;
           return (
             <button
-              key={id}
+              key={item.id}
               role="tab"
               aria-selected={isActive}
-              aria-label={label}
+              aria-label={item.label}
               className={[
                 'pcp-side-rail__item',
                 isActive ? 'pcp-side-rail__item--active' : '',
               ].filter(Boolean).join(' ')}
-              onClick={() => navigate(path)}
-              title={expanded ? undefined : label}
+              onClick={() => navigate(item.path)}
+              title={expanded ? undefined : item.label}
             >
               <span className="pcp-side-rail__item-icon">
-                <Icon />
+                <ItemIcon />
               </span>
-              <span className="pcp-side-rail__item-label">{label}</span>
+              <span className="pcp-side-rail__item-label">{item.label}</span>
             </button>
           );
         })}

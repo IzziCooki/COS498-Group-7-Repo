@@ -23,14 +23,12 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
   const overlayRef = useRef(null);
   const previousFocusRef = useRef(null);
   const [confirmClose, setConfirmClose] = useState(false);
-  const [guideStep, setGuideStep] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
 
   // Track the guide's current step for confirm-on-close logic
   const guideStepRef = useRef(0);
   const handleGuideStepChange = useCallback((step) => {
     guideStepRef.current = step;
-    setGuideStep(step);
   }, []);
 
   // Save the previously focused element and focus the overlay
@@ -53,15 +51,6 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
     };
   }, [triggerRef]);
 
-  // Attempt close -- may require confirmation for guides mid-step
-  const attemptClose = useCallback(() => {
-    if (type === 'guide' && guideStepRef.current > 0) {
-      setConfirmClose(true);
-      return;
-    }
-    doClose();
-  }, [type]);
-
   const doClose = useCallback(() => {
     setIsClosing(true);
     // Allow closing animation to complete
@@ -70,6 +59,15 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
     }, 320);
     return () => clearTimeout(timeout);
   }, [onClose]);
+
+  // Attempt close -- may require confirmation for guides mid-step
+  const attemptClose = useCallback(() => {
+    if (type === 'guide' && guideStepRef.current > 0) {
+      setConfirmClose(true);
+      return;
+    }
+    doClose();
+  }, [type, doClose]);
 
   // Esc key handler
   useEffect(() => {

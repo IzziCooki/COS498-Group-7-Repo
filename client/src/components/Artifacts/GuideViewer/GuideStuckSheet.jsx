@@ -13,7 +13,7 @@ import './GuideStuckSheet.css';
  *   onSendMessage?: (text: string) => void,
  * }} props
  */
-function GuideStuckSheet({ guideTitle, stepNumber, stepTitle, onClose, onSendMessage }) {
+function GuideStuckSheet({ guideTitle, stepNumber, onClose, onSendMessage }) {
   const prefill = `I'm stuck on Step ${stepNumber} of ${guideTitle}.`;
   const [text, setText] = useState(prefill);
   const [sent, setSent] = useState(false);

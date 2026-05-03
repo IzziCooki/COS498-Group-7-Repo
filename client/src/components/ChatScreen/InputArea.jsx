@@ -15,7 +15,7 @@ const MAX_INPUT_LENGTH = 4000;
  *
  * @param {{ onSend: (text:string) => void, onGatherResources: (text:string) => void, isTyping: boolean, hasMessages: boolean }} props
  */
-function InputArea({ onSend, onGatherResources, isTyping, hasMessages }) {
+function InputArea({ onSend, onGatherResources, isTyping }) {
   const textareaRef = useRef(null);
   const [value, setValue] = useState('');
   const [helpLoading, setHelpLoading] = useState(false);

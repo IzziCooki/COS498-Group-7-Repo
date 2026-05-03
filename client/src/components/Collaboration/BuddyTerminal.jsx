@@ -114,7 +114,6 @@ function BuddyTerminal({ terminalHistory, onRunCommand, learnerName, disabled, c
         {terminalHistory.map((entry) => {
           const isExpanded = expandedIds.has(entry.requestId);
           const succeeded = !entry.error && !entry.running;
-          const failed = !!entry.error;
 
           return (
             <div key={entry.requestId} className="pcp-buddy-terminal__result-card">

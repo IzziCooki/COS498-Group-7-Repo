@@ -47,11 +47,8 @@ function ChatScreen({
     messages: liveMessages,
     sendMessage,
     gatherResources,
-    agentConnected,
-    runCommand,
     isConnected,
     isTyping,
-    activeSequence,
     welcomeBack,
     dismissWelcomeBack,
     conversationId,
@@ -64,7 +61,6 @@ function ChatScreen({
     buddyObserving,
     joinBuddySession,
     leaveBuddySession,
-    sendBuddyCommand,
   } = useChat(userId);
 
   // ── Sheet state ──

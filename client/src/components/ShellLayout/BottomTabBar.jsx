@@ -156,33 +156,34 @@ function BottomTabBar({ navigate, currentView, role }) {
 
   return (
     <nav className="pcp-tab-bar" role="tablist" aria-label="Main navigation">
-      {tabs.map(({ id, label, path, Icon }) => {
-        const isActive = currentView === id || (id === 'chat' && currentView === 'chat');
+      {tabs.map((tab) => {
+        const isActive = currentView === tab.id || (tab.id === 'chat' && currentView === 'chat');
+        const TabIcon = tab.Icon;
         return (
           <button
-            key={id}
+            key={tab.id}
             role="tab"
             aria-selected={isActive}
-            aria-label={label}
+            aria-label={tab.label}
             className={[
               'pcp-tab-bar__tab',
               isActive ? 'pcp-tab-bar__tab--active' : '',
               role === 'helper' ? 'pcp-tab-bar__tab--helper-role' : '',
             ].filter(Boolean).join(' ')}
-            onClick={() => handleTabClick(path)}
-            onPointerDown={() => handleLongPressStart(id)}
+            onClick={() => handleTabClick(tab.path)}
+            onPointerDown={() => handleLongPressStart(tab.id)}
             onPointerUp={handleLongPressEnd}
             onPointerLeave={handleLongPressEnd}
           >
-            <Icon filled={isActive} />
+            <TabIcon filled={isActive} />
             <span
               className={[
                 'pcp-tab-bar__tooltip',
-                tooltipId === id ? 'pcp-tab-bar__tooltip--visible' : '',
+                tooltipId === tab.id ? 'pcp-tab-bar__tooltip--visible' : '',
               ].join(' ')}
               role="tooltip"
             >
-              {label}
+              {tab.label}
             </span>
           </button>
         );

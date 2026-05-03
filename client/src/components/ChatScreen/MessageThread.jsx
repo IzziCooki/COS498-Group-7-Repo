@@ -57,7 +57,7 @@ function MessageThread({
         setSlowResponse(true);
       }, 30000);
     } else {
-      setSlowResponse(false);
+      queueMicrotask(() => setSlowResponse(false));
       if (slowTimerRef.current) {
         clearTimeout(slowTimerRef.current);
         slowTimerRef.current = null;

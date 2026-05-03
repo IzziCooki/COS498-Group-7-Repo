@@ -31,15 +31,16 @@ function HelperHome({
   onSeeAll,
   isLearnerInChat = false,
 }) {
+  const name = learner?.name;
   const initials = useMemo(() => {
-    if (!learner?.name) return '??';
-    return learner.name
+    if (!name) return '??';
+    return name
       .split(' ')
       .map((w) => w[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
-  }, [learner?.name]);
+  }, [name]);
 
   const statusDotClass = useMemo(() => {
     switch (learner?.status) {

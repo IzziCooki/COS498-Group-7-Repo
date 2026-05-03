@@ -93,6 +93,7 @@ export function RoleProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRole() {
   const ctx = useContext(RoleContext);
   if (!ctx) {

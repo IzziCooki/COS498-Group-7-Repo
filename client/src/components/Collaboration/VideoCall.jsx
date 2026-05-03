@@ -64,7 +64,7 @@ function VideoCall({
   const [errorMsg, setErrorMsg] = useState('');
   const [controlsVisible, setControlsVisible] = useState(true);
   const [selfPreviewCorner, setSelfPreviewCorner] = useState('bottom-right');
-  const [reconnectCountdown, setReconnectCountdown] = useState(0);
+  const [reconnectCountdown] = useState(0);
   const [callTimer, setCallTimer] = useState(0);
 
   const localVideoRef = useRef(null);

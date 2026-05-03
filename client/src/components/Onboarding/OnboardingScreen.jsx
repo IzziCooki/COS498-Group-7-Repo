@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import OnboardingProgress from './OnboardingProgress';
 import './OnboardingScreen.css';
 
@@ -25,8 +25,6 @@ function OnboardingScreen({
   children,
   footer,
 }) {
-  const headingRef = useRef(null);
-
   // On screen entry, move focus to heading for screen reader announcement
   useEffect(() => {
     if (headingId) {

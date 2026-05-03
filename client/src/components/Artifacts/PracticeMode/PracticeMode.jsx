@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import PracticeStep from './PracticeStep';
 import PracticeChecklist from './PracticeChecklist';
 import practiceRegistry from '../../Chat/practiceRegistry';
@@ -60,9 +60,50 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
   const [completed, setCompleted] = useState(false);
   const [showAlt, setShowAlt] = useState({});
 
+  const data = practice ? getSteps(practice) : null;
+  const title = data?.title;
+  const steps = data?.steps;
+  const totalSteps = steps?.length ?? 0;
+  const step = steps?.[currentStep];
+
+  const handleNext = () => {
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep((s) => s + 1);
+      setShowAlt({});
+    } else {
+      setCompleted(true);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep((s) => s - 1);
+      setShowAlt({});
+    }
+  };
+
+  const handleExplainDifferently = () => {
+    setShowAlt((prev) => ({ ...prev, [currentStep]: true }));
+    if (onSendMessage && step) {
+      onSendMessage(`I'm confused about step ${currentStep + 1} -- "${step.instruction}". Can you explain differently?`);
+    }
+  };
+
+  const handleTryForReal = () => {
+    if (onSendMessage) {
+      onSendMessage(`I finished practicing ${title}. I'm ready to try it for real now!`);
+    }
+    onClose();
+  };
+
+  const handlePracticeAgain = () => {
+    setCurrentStep(0);
+    setCompleted(false);
+    setShowAlt({});
+  };
+
   if (!practice) return null;
 
-  const data = getSteps(practice);
   if (!data) {
     return (
       <div className="pcp-practice">
@@ -80,46 +121,6 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
       </div>
     );
   }
-
-  const { title, steps } = data;
-  const step = steps[currentStep];
-  const totalSteps = steps.length;
-
-  const handleNext = useCallback(() => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep((s) => s + 1);
-      setShowAlt({});
-    } else {
-      setCompleted(true);
-    }
-  }, [currentStep, totalSteps]);
-
-  const handleBack = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((s) => s - 1);
-      setShowAlt({});
-    }
-  }, [currentStep]);
-
-  const handleExplainDifferently = useCallback(() => {
-    setShowAlt((prev) => ({ ...prev, [currentStep]: true }));
-    if (onSendMessage) {
-      onSendMessage(`I'm confused about step ${currentStep + 1} -- "${step.instruction}". Can you explain differently?`);
-    }
-  }, [currentStep, step, onSendMessage]);
-
-  const handleTryForReal = useCallback(() => {
-    if (onSendMessage) {
-      onSendMessage(`I finished practicing ${title}. I'm ready to try it for real now!`);
-    }
-    onClose();
-  }, [title, onSendMessage, onClose]);
-
-  const handlePracticeAgain = useCallback(() => {
-    setCurrentStep(0);
-    setCompleted(false);
-    setShowAlt({});
-  }, []);
 
   if (completed) {
     return (

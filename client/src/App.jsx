@@ -82,7 +82,7 @@ const VIEW_TITLES = {
 /* ── Inner content component (needs router + role context) ───── */
 
 function AppContent() {
-  const { view, params, navigate, back } = useRouter();
+  const { view, navigate, back } = useRouter();
   const { user, isOnboarded, isLoading, createUser, completeOnboarding, updateProfile, applyUser } = useUser();
   const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
@@ -228,7 +228,6 @@ function AppContent() {
   }
 
   // ── Derived state ──
-  const buddyBadge = buddyData.progressShares.filter(s => !s.seen).length;
   const activeConv = conversations.find(c => c.status === 'active');
   const activeConversationId = activeConv ? activeConv.id : null;
 
@@ -351,8 +350,8 @@ function AppContent() {
             }}
             onCall={handleHelperCall}
             onWatch={handleHelperWatch}
-            onAlertTap={(id) => navigate('/helper/sessions')}
-            onQuestionTap={(id) => handleReply(id)}
+            onAlertTap={() => navigate('/helper/sessions')}
+            onQuestionTap={(qId) => handleReply(qId)}
             onSeeAll={() => navigate('/helper/sessions')}
             isLearnerInChat={!!activeConversationId}
           />
@@ -381,9 +380,9 @@ function AppContent() {
               timestamp: a.timestamp || a.created_at,
               resolved: a.resolved || false,
             }))}
-            onConversationTap={(id) => {}}
-            onQuestionTap={(id) => handleReply(id)}
-            onAlertTap={(id) => {}}
+            onConversationTap={() => {}}
+            onQuestionTap={(qId) => handleReply(qId)}
+            onAlertTap={() => {}}
             onReply={handleReply}
           />
         )}
@@ -412,7 +411,7 @@ function AppContent() {
             onEditProfile={() => {}}
             onManageLearner={() => {}}
             onAddLearner={() => navigate('/pair')}
-            onNavigateSetting={(id) => {}}
+            onNavigateSetting={() => {}}
           />
         )}
 

@@ -34,7 +34,7 @@ function ToastHost() {
 
   // Reset exiting state when a new toast arrives
   useEffect(() => {
-    setExiting(false);
+    queueMicrotask(() => setExiting(false));
   }, [toast?.id]);
 
   // Swipe right to dismiss

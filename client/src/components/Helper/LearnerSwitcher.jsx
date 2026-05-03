@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import './LearnerSwitcher.css';
 
 /**

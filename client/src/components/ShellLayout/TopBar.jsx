@@ -36,7 +36,6 @@ const OverflowIcon = () => (
 function TopBar({
   title,
   onBack,
-  breakpoint,
   onMenuToggle,
   showMenuToggle,
   role,
