@@ -122,6 +122,19 @@
   color: var(--color-text-3);
 }
 
+.pcp-name-device__optional {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-3);
+  font-size: var(--font-size-base);
+}
+
+.pcp-name-device__optional-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
 .pcp-name-device__name-hint {
   font-size: var(--font-size-sm);
   color: var(--color-text-2);

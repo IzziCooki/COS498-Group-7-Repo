@@ -6,8 +6,8 @@ const MAX_NAME_LENGTH = 40;
 /**
  * Screen 2 — Name + Device
  *
- * Text input for name + two device tiles (Mac / Windows) + "I don't know" ghost button.
- * Continue disabled until name (1+ char) AND device chosen.
+ * Text input for name (optional) + two device tiles (Mac / Windows) + "I don't know" ghost button.
+ * Continue disabled until device chosen. Name is encouraged but not required.
  * Return on keyboard does NOT submit.
  */
 function ScreenNameDevice({
@@ -23,7 +23,7 @@ function ScreenNameDevice({
 
   const trimmedName = name.trim();
   const nameTooLong = name.length > MAX_NAME_LENGTH;
-  const canContinue = trimmedName.length > 0 && device !== null && device !== '';
+  const canContinue = device !== null && device !== '';
 
   const handleNameChange = (e) => {
     const val = e.target.value;
@@ -43,13 +43,7 @@ function ScreenNameDevice({
   };
 
   const handleContinue = () => {
-    if (!canContinue) {
-      // Focus the first invalid field
-      if (trimmedName.length === 0 && inputRef.current) {
-        inputRef.current.focus();
-      }
-      return;
-    }
+    if (!canContinue) return;
     onNext();
   };
 
@@ -81,7 +75,7 @@ function ScreenNameDevice({
         {/* Name input */}
         <div>
           <label htmlFor="pcp-name-input" className="pcp-name-device__label">
-            What should I call you?
+            What should I call you? <span className="pcp-name-device__optional">(optional)</span>
           </label>
           <input
             ref={inputRef}
@@ -93,9 +87,12 @@ function ScreenNameDevice({
             onKeyDown={handleKeyDown}
             placeholder="Your first name"
             autoComplete="given-name"
-            aria-describedby={nameTooLong ? 'pcp-name-hint' : undefined}
+            aria-describedby={nameTooLong ? 'pcp-name-hint' : 'pcp-name-optional-hint'}
             maxLength={MAX_NAME_LENGTH}
           />
+          <p id="pcp-name-optional-hint" className="pcp-name-device__optional-hint">
+            Adding your name helps me talk to you more naturally.
+          </p>
           {name.length >= MAX_NAME_LENGTH && (
             <p id="pcp-name-hint" className="pcp-name-device__name-hint">
               That&apos;s a great name! I&apos;ll just call you the first part.
