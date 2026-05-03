@@ -5,6 +5,7 @@ import { useUser } from './hooks/useUser';
 import { useAuth } from './hooks/useAuth';
 import { useBuddy } from './hooks/useBuddy';
 import { useConversations } from './hooks/useConversations';
+import { useChat } from './hooks/useChat';
 import ShellLayout from './components/ShellLayout/ShellLayout';
 import Onboarding from './components/Onboarding/Onboarding';
 import AuthScreen from './components/Auth/AuthScreen';
@@ -27,17 +28,57 @@ import MeScreen from './components/Profile/MeScreen';
 
 /* ── Placeholder components for views not yet built ────────────── */
 
-function HistoryPlaceholder() {
+function HistoryScreen({ conversations, onSelect, onNewChat, navigate }) {
+  const formatDate = (d) => {
+    if (!d) return '';
+    const date = new Date(d);
+    const now = new Date();
+    const diff = now - date;
+    if (diff < 86400000) return 'Today';
+    if (diff < 172800000) return 'Yesterday';
+    return date.toLocaleDateString();
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 'var(--space-6)' }}>
-      <div style={{ textAlign: 'center' }}>
-        <h2 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-4)', color: 'var(--color-text-1)' }}>
-          My Conversations
-        </h2>
-        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-2)' }}>
-          Your conversation history will appear here.
-        </p>
+    <div style={{ height: '100%', overflow: 'auto', background: 'var(--color-surface-2)' }}>
+      <div style={{ padding: 'var(--space-4)' }}>
+        <button
+          type="button"
+          className="pcp-btn pcp-btn--primary"
+          style={{ width: '100%', marginBottom: 'var(--space-4)' }}
+          onClick={() => { onNewChat(); navigate('/'); }}
+        >
+          + Start a new chat
+        </button>
       </div>
+      {conversations.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-2)' }}>
+          <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-3)' }}>No conversations yet</p>
+          <p style={{ fontSize: 'var(--font-size-base)' }}>Start chatting and your history will appear here.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '0 var(--space-4)' }}>
+          {conversations.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="pcp-card pcp-card--interactive"
+              style={{ textAlign: 'left', width: '100%', cursor: 'pointer' }}
+              onClick={() => { onSelect(c.id); navigate('/'); }}
+            >
+              <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
+                {c.context_summary || c.task_type || 'Chat session'}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
+                <span>{formatDate(c.started_at || c.created_at)}</span>
+                <span style={{ color: c.status === 'active' ? 'var(--color-success)' : 'var(--color-text-3)' }}>
+                  {c.status === 'active' ? '● Active' : 'Ended'}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -82,11 +123,11 @@ function AppContent() {
   const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
   const { role, activeLearner, detectAndApplyRole } = useRole();
-  // buddySessionTarget is always null now (BuddyPanel removed); kept for ChatScreen prop contract.
+  // Chat hook lifted to App level so WebSocket stays alive across tab switches
+  const chatData = useChat(user?.id);
+
   const buddySessionTarget = null;
   const [buddySessionActive, setBuddySessionActive] = useState(false);
-  // viewingConversationId is always null now (ConversationSidebar removed);
-  // kept for ChatScreen prop contract.
   const viewingConversationId = null;
 
   // ── Helper-specific state ──
@@ -273,10 +314,23 @@ function AppContent() {
             onBuddySessionChange={setBuddySessionActive}
             navigate={navigate}
             onLogout={logout}
+            chatData={chatData}
           />
         )}
 
-        {view === 'history' && <HistoryPlaceholder />}
+        {view === 'history' && (
+          <HistoryScreen
+            conversations={conversations}
+            onSelect={() => {
+              navigate('/');
+            }}
+            onNewChat={() => {
+              if (chatData.startNewChat) chatData.startNewChat();
+              refreshConversations();
+            }}
+            navigate={navigate}
+          />
+        )}
         {view === 'helper' && <HelperPlaceholder />}
         {(view === 'me' || view === 'me-sub') && (
           <MeScreen

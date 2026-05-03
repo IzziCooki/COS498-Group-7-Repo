@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useChat } from '../../hooks/useChat';
 import ChatTopBar from './ChatTopBar';
 import MessageThread from './MessageThread';
 import InputArea from './InputArea';
@@ -37,6 +36,7 @@ import './ChatScreen.css';
  * }} props
  */
 function ChatScreen({
+  // eslint-disable-next-line no-unused-vars
   userId,
   hasBuddy,
   viewingConversationId,
@@ -46,6 +46,7 @@ function ChatScreen({
   onBuddySessionChange,
   navigate,
   onLogout,
+  chatData,
 }) {
   const {
     messages: liveMessages,
@@ -68,7 +69,7 @@ function ChatScreen({
     pairAgent,
     agentConnected,
     sendScreenFrame,
-  } = useChat(userId);
+  } = chatData;
 
   // ── Sheet state ──
   const [optionsOpen, setOptionsOpen] = useState(false);
