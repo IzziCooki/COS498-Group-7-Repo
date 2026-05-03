@@ -10,7 +10,7 @@ import './ChatOptionsSheet.css';
  *
  * @param {{ isOpen: boolean, onClose: () => void, onEndChat: () => void, hasMessages: boolean }} props
  */
-function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectComputer, onScreenShare, agentConnected }) {
+function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectComputer, onScreenShare, agentConnected, navigate, onLogout }) {
   const [readAloud, setReadAloud] = useState(false);
   const sheetRef = useRef(null);
 
@@ -53,9 +53,11 @@ function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectCo
   };
 
   const handleMenuItem = (label) => {
-    // Phase 4+: navigate to the corresponding screen
-    console.log('ChatOptionsSheet:', label);
     onClose();
+    if (label === 'settings' && navigate) navigate('/me');
+    else if (label === 'sign-out' && onLogout) onLogout();
+    else if (label === 'how-to-use' && navigate) navigate('/me');
+    else if (label === 'about' && navigate) navigate('/me');
   };
 
   return (

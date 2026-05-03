@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../hooks/useTheme';
 import './TopBar.css';
 
 /**
@@ -43,6 +44,12 @@ function TopBar({
   onLearnerSwitcherToggle,
   hasMultipleLearners,
 }) {
+  const [theme, setTheme] = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   return (
     <header className="pcp-top-bar" role="banner">
       <div className="pcp-top-bar__left">
@@ -95,9 +102,11 @@ function TopBar({
       <div className="pcp-top-bar__right">
         <button
           className="pcp-top-bar__btn"
-          aria-label="More options"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
         >
-          <OverflowIcon />
+          {theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'}
         </button>
       </div>
     </header>

@@ -44,6 +44,8 @@ function ChatScreen({
   startNewChatRef,
   buddySessionTarget,
   onBuddySessionChange,
+  navigate,
+  onLogout,
 }) {
   const {
     messages: liveMessages,
@@ -236,7 +238,9 @@ function ChatScreen({
           onSend={sendMessage}
           onGatherResources={gatherResources}
           isTyping={isTyping}
-          hasMessages={hasUserMessage}
+          onConnectComputer={() => setShowConnect(true)}
+          onScreenShare={() => setShowScreenShare(true)}
+          agentConnected={agentConnected}
         />
       )}
 
@@ -254,6 +258,8 @@ function ChatScreen({
         onConnectComputer={() => { setOptionsOpen(false); setShowConnect(true); }}
         onScreenShare={() => { setOptionsOpen(false); setShowScreenShare(true); }}
         agentConnected={agentConnected}
+        navigate={navigate}
+        onLogout={onLogout}
       />
 
       {/* Long-press context sheet */}

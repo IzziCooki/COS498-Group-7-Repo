@@ -15,7 +15,7 @@ const MAX_INPUT_LENGTH = 4000;
  *
  * @param {{ onSend: (text:string) => void, onGatherResources: (text:string) => void, isTyping: boolean, hasMessages: boolean }} props
  */
-function InputArea({ onSend, onGatherResources, isTyping }) {
+function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onScreenShare, agentConnected }) {
   const textareaRef = useRef(null);
   const [value, setValue] = useState('');
   const [helpLoading, setHelpLoading] = useState(false);
@@ -158,18 +158,42 @@ function InputArea({ onSend, onGatherResources, isTyping }) {
           <span className="pcp-input-area__send-icon" aria-hidden="true">&#x2191;</span>
         </button>
       </div>
-      <button
-        type="button"
-        className={helpBtnClass}
-        onClick={handleGetHelp}
-        disabled={isTyping}
-        aria-label="Ask PC Pal for outside resources"
-      >
-        <span className="pcp-input-area__help-icon" aria-hidden="true">
-          {helpLoading ? '\u21BB' : '+'}
-        </span>
-        {helpLoading ? 'Looking for help...' : 'Get Help'}
-      </button>
+      <div className="pcp-input-area__actions">
+        <button
+          type="button"
+          className={helpBtnClass}
+          onClick={handleGetHelp}
+          disabled={isTyping}
+          aria-label="Get external resources from PC Pal"
+        >
+          <span className="pcp-input-area__help-icon" aria-hidden="true">
+            {helpLoading ? '\u21BB' : '\uD83D\uDD17'}
+          </span>
+          {helpLoading ? 'Searching...' : 'Get External Resources'}
+        </button>
+        {onConnectComputer && (
+          <button
+            type="button"
+            className="pcp-input-area__action-btn"
+            onClick={onConnectComputer}
+            aria-label={agentConnected ? 'Computer connected' : 'Connect your computer'}
+          >
+            <span aria-hidden="true">{agentConnected ? '\u2705' : '\uD83D\uDDA5'}</span>
+            {agentConnected ? 'Connected' : 'Connect Computer'}
+          </button>
+        )}
+        {onScreenShare && (
+          <button
+            type="button"
+            className="pcp-input-area__action-btn"
+            onClick={onScreenShare}
+            aria-label="Share your screen"
+          >
+            <span aria-hidden="true">&#x1F4F1;</span>
+            Share Screen
+          </button>
+        )}
+      </div>
     </div>
   );
 }

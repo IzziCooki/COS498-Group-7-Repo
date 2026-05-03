@@ -271,6 +271,8 @@ function AppContent() {
             startNewChatRef={chatWindowRef}
             buddySessionTarget={buddySessionTarget}
             onBuddySessionChange={setBuddySessionActive}
+            navigate={navigate}
+            onLogout={logout}
           />
         )}
 

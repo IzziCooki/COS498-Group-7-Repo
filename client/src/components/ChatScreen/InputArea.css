@@ -98,14 +98,22 @@
   line-height: 1;
 }
 
-/* Get Help button: full-width ghost, 48px tall */
+/* Actions row: Get External Resources + Connect Computer + Share Screen */
+.pcp-input-area__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Get External Resources button */
 .pcp-input-area__help {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: var(--tap-comfort);            /* 48px */
-  margin-top: var(--space-2);
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
@@ -115,6 +123,27 @@
   cursor: pointer;
   gap: var(--space-2);
   transition: background-color var(--duration-quick);
+}
+
+/* Connect Computer / Share Screen action buttons */
+.pcp-input-area__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--tap-comfort);
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--duration-quick);
+}
+.pcp-input-area__action-btn:hover {
+  background: var(--color-surface-3);
 }
 
 .pcp-input-area__help:hover {
