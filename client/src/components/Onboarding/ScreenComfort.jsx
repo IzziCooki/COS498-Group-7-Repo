@@ -40,7 +40,12 @@ function ScreenComfort({ comfort, onComfortChange, onNext, onBack, direction }) 
   const canContinue = comfort !== null && comfort !== '';
 
   const handleContinue = () => {
-    if (!canContinue) return;
+    if (!canContinue) onComfortChange('learning');
+    onNext();
+  };
+
+  const handleSkip = () => {
+    onComfortChange('learning');
     onNext();
   };
 
@@ -53,15 +58,22 @@ function ScreenComfort({ comfort, onComfortChange, onNext, onBack, direction }) 
       headingId="pcp-comfort-heading"
       direction={direction}
       footer={
-        <button
-          type="button"
-          className="pcp-onboarding-screen__cta"
-          onClick={handleContinue}
-          aria-disabled={!canContinue}
-          disabled={!canContinue}
-        >
-          Continue &#9654;
-        </button>
+        <>
+          <button
+            type="button"
+            className="pcp-onboarding-screen__cta"
+            onClick={handleContinue}
+          >
+            Continue &#9654;
+          </button>
+          <button
+            type="button"
+            className="pcp-onboarding-screen__ghost"
+            onClick={handleSkip}
+          >
+            Skip for now
+          </button>
+        </>
       }
     >
       <div className="pcp-comfort">
