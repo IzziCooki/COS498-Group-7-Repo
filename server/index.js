@@ -745,6 +745,7 @@ wss.on('connection', (ws, req) => {
             } : null,
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
+            confidence: result.confidence || null,
           }));
         }
 

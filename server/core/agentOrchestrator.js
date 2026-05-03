@@ -1303,7 +1303,7 @@ async function processMessage(text, userId, context = {}) {
     const screenshot = getAndClearLastScreenshot();
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, screenshot: screenshot || null };
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, screenshot: screenshot || null, confidence: skillMatch ? 'high' : 'low' };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };

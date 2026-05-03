@@ -28,6 +28,12 @@
   margin: 0;
 }
 
+.pcp-guide__source {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-3, #6b7280);
+  margin-top: var(--space-1, 4px);
+}
+
 .pcp-guide__step-indicator {
   display: flex;
   align-items: center;

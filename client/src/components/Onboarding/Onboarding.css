@@ -206,6 +206,27 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Ghost/skip button in onboarding footer */
+.pcp-onboarding-screen__ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap-comfort);
+  margin-top: var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  cursor: pointer;
+}
+.pcp-onboarding-screen__ghost:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Legacy unknown-btn kept for backward compat */
 .pcp-name-device__unknown-btn {
   display: flex;
   align-items: center;

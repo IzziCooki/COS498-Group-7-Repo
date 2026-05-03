@@ -61,5 +61,25 @@
   "forward": "send someone else's email to a new person",
   "inbox": "where new emails arrive",
   "draft": "an email you started but haven't sent yet",
-  "archive": "put away without deleting"
+  "archive": "put away without deleting",
+
+  "bandwidth throttling": "slowing down your internet on purpose",
+  "Bluetooth": "wireless connection for nearby devices",
+  "BIOS": "your computer's startup settings",
+  "defragment": "tidy up your hard drive",
+  "DNS": "the phone book for websites",
+  "driver": "software that helps your computer talk to a device",
+  "firmware": "built-in software on a device",
+  "hard drive": "where your computer stores everything",
+  "HDMI": "the cable that carries picture and sound to your TV",
+  "IP address": "your computer's internet address",
+  "megabyte": "a small amount of storage",
+  "gigabyte": "a medium amount of storage",
+  "operating system": "the main software that runs your computer",
+  "pixel": "a tiny dot on your screen",
+  "RAM": "your computer's short-term memory",
+  "reboot": "turn off and turn on again",
+  "USB": "the rectangular plug on a cable",
+  "widget": "a small tool on your screen",
+  "zip file": "a folder that has been squeezed smaller"
 }

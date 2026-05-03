@@ -6,8 +6,8 @@ const MAX_NAME_LENGTH = 40;
 /**
  * Screen 2 — Name + Device
  *
- * Text input for name (optional) + two device tiles (Mac / Windows) + "I don't know" ghost button.
- * Continue disabled until device chosen. Name is encouraged but not required.
+ * Text input for name (optional) + device tiles (Mac / Windows / iPhone / Android) + skip.
+ * Everything is optional. User can skip the entire screen.
  * Return on keyboard does NOT submit.
  */
 function ScreenNameDevice({
@@ -21,9 +21,7 @@ function ScreenNameDevice({
 }) {
   const inputRef = useRef(null);
 
-  const trimmedName = name.trim();
-  const nameTooLong = name.length > MAX_NAME_LENGTH;
-  const canContinue = device !== null && device !== '';
+  const hasDevice = device !== null && device !== '';
 
   const handleNameChange = (e) => {
     const val = e.target.value;
@@ -43,7 +41,12 @@ function ScreenNameDevice({
   };
 
   const handleContinue = () => {
-    if (!canContinue) return;
+    if (!hasDevice) onDeviceChange('unknown');
+    onNext();
+  };
+
+  const handleSkip = () => {
+    if (!hasDevice) onDeviceChange('unknown');
     onNext();
   };
 
@@ -56,15 +59,22 @@ function ScreenNameDevice({
       headingId="pcp-name-device-heading"
       direction={direction}
       footer={
-        <button
-          type="button"
-          className="pcp-onboarding-screen__cta"
-          onClick={handleContinue}
-          aria-disabled={!canContinue}
-          disabled={!canContinue}
-        >
-          Continue &#9654;
-        </button>
+        <>
+          <button
+            type="button"
+            className="pcp-onboarding-screen__cta"
+            onClick={handleContinue}
+          >
+            Continue &#9654;
+          </button>
+          <button
+            type="button"
+            className="pcp-onboarding-screen__ghost"
+            onClick={handleSkip}
+          >
+            Skip for now
+          </button>
+        </>
       }
     >
       <div className="pcp-name-device">
@@ -87,75 +97,46 @@ function ScreenNameDevice({
             onKeyDown={handleKeyDown}
             placeholder="Your first name"
             autoComplete="given-name"
-            aria-describedby={nameTooLong ? 'pcp-name-hint' : 'pcp-name-optional-hint'}
+            aria-describedby="pcp-name-optional-hint"
             maxLength={MAX_NAME_LENGTH}
           />
           <p id="pcp-name-optional-hint" className="pcp-name-device__optional-hint">
             Adding your name helps me talk to you more naturally.
           </p>
-          {name.length >= MAX_NAME_LENGTH && (
-            <p id="pcp-name-hint" className="pcp-name-device__name-hint">
-              That&apos;s a great name! I&apos;ll just call you the first part.
-            </p>
-          )}
         </div>
 
         {/* Device tiles */}
         <div>
           <p className="pcp-name-device__label" id="pcp-device-label">
-            Which kind of computer do you have?
+            What device do you use? <span className="pcp-name-device__optional">(optional)</span>
           </p>
           <div
-            className="pcp-name-device__tiles"
+            className="pcp-name-device__tiles pcp-name-device__tiles--grid"
             role="radiogroup"
             aria-labelledby="pcp-device-label"
           >
-            <button
-              type="button"
-              role="radio"
-              aria-checked={device === 'mac'}
-              className={`pcp-name-device__tile${device === 'mac' ? ' pcp-name-device__tile--selected' : ''}`}
-              onClick={() => onDeviceChange('mac')}
-            >
-              <span className="pcp-name-device__tile-emoji" aria-hidden="true">
-                &#x1F34E;
-              </span>
-              <span className="pcp-name-device__tile-name">Mac</span>
-              <span className="pcp-name-device__tile-desc">Made by Apple</span>
-              {device === 'mac' && (
-                <span className="pcp-name-device__tile-check" aria-hidden="true">&#10003;</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              role="radio"
-              aria-checked={device === 'windows'}
-              className={`pcp-name-device__tile${device === 'windows' ? ' pcp-name-device__tile--selected' : ''}`}
-              onClick={() => onDeviceChange('windows')}
-            >
-              <span className="pcp-name-device__tile-emoji" aria-hidden="true">
-                &#x1FA9F;
-              </span>
-              <span className="pcp-name-device__tile-name">Windows</span>
-              <span className="pcp-name-device__tile-desc">Made by Microsoft</span>
-              {device === 'windows' && (
-                <span className="pcp-name-device__tile-check" aria-hidden="true">&#10003;</span>
-              )}
-            </button>
-          </div>
-
-          {/* "I don't know" option */}
-          <div style={{ marginTop: 'var(--space-3)' }}>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={device === 'unknown'}
-              className={`pcp-name-device__unknown-btn${device === 'unknown' ? ' pcp-name-device__unknown-btn--selected' : ''}`}
-              onClick={() => onDeviceChange('unknown')}
-            >
-              I don&apos;t know / I&apos;ll set this later
-            </button>
+            {[
+              { id: 'mac', emoji: '\uD83C\uDF4E', name: 'Mac', desc: 'Apple computer' },
+              { id: 'windows', emoji: '\uD83E\uDE9F', name: 'Windows', desc: 'Windows PC' },
+              { id: 'iphone', emoji: '\uD83D\uDCF1', name: 'iPhone / iPad', desc: 'Apple phone or tablet' },
+              { id: 'android', emoji: '\uD83E\uDD16', name: 'Android', desc: 'Android phone or tablet' },
+            ].map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                role="radio"
+                aria-checked={device === d.id}
+                className={`pcp-name-device__tile${device === d.id ? ' pcp-name-device__tile--selected' : ''}`}
+                onClick={() => onDeviceChange(d.id)}
+              >
+                <span className="pcp-name-device__tile-emoji" aria-hidden="true">{d.emoji}</span>
+                <span className="pcp-name-device__tile-name">{d.name}</span>
+                <span className="pcp-name-device__tile-desc">{d.desc}</span>
+                {device === d.id && (
+                  <span className="pcp-name-device__tile-check" aria-hidden="true">&#10003;</span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </div>

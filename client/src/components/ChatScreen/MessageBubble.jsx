@@ -160,7 +160,14 @@ function MessageBubble({ message, onArtifactTap, onLongPress }) {
           {isUser ? (
             <span>{text}</span>
           ) : (
-            <div className="pcp-message__formatted">{formatMessage(text)}</div>
+            <>
+              {isAI && message.confidence === 'low' && (
+                <div className="pcp-message__confidence-badge">
+                  I'm less sure about this one — please double-check these steps
+                </div>
+              )}
+              <div className="pcp-message__formatted">{formatMessage(text)}</div>
+            </>
           )}
 
           {/* Buddy terminal inline */}

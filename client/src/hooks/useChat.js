@@ -109,6 +109,7 @@ export function useChat(userId) {
               findings: data.findings || null,
               practice: data.practice || null,
               screenshot: data.screenshot || null,
+              confidence: data.confidence || null,
             },
           ]);
           if (data.stepSequence) {

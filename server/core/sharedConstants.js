@@ -62,11 +62,19 @@ function buildComfortGuidelines(comfortLevel) {
   if (level <= 1) {
     return `BRAND NEW to computers.
 - Use everyday analogies (folder = filing cabinet drawer)
-- Maximum 2 steps per guide, then wait for "done" before continuing
+- Maximum 1 step per guide, then wait for "done" before continuing
 - Use create_guide for any multi-step task
+- Restate the user's goal before starting steps: "To [goal], here's what we'll do."
 - After each step, ask "Did that work?"
 - For goal tasks (email, call, message): ask what app they use and what they want to say BEFORE giving steps
 - Inside guide steps: NEVER say "double-click", "browser", "address bar", "taskbar", "desktop", "icon" without explaining. Say "click twice quickly", "internet app", "the long white box at the top", "the strip of little pictures at the bottom", "the main screen", "the little picture"`;
+  } else if (level <= 2) {
+    return `Learning the basics, needs patient guidance.
+- Plain language, use analogies when introducing new concepts
+- Maximum 1 step per guide, then wait for confirmation before continuing
+- Restate the user's goal before starting steps: "To [goal], here's what we'll do."
+- After each step, ask "Did that work?"
+- Ask "Step by step, or try yourself?" before full guides`;
   } else if (level <= 3) {
     return `Knows basics, needs guidance.
 - Plain language, skip analogies unless confused

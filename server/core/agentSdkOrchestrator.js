@@ -390,6 +390,7 @@ async function processMessage(text, userId, context = {}) {
       findings: findings || null,
       practice: practice || null,
       screenshot: screenshot || null,
+      confidence: skillMatch ? 'high' : 'low',
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

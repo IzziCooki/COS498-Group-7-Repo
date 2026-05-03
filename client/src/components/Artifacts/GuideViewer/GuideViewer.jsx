@@ -225,6 +225,11 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
             {renderDots()}
           </div>
         )}
+        {guide.source && (
+          <div className="pcp-guide__source">
+            Source: {(() => { try { return new URL(guide.source).hostname.replace('www.', ''); } catch { return guide.source; } })()}
+          </div>
+        )}
       </div>
 
       {/* Step content (scrollable) */}
