@@ -1,0 +1,126 @@
+/* ==========================================================================
+   SettingsRow — Reusable row for Me-tab settings & navigation.
+   64px min height, icon + label + trailing element (chevron, toggle, custom).
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-hero);           /* 64px */
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-settings-row:hover {
+  background: var(--color-surface-2);
+}
+
+.pcp-settings-row:active {
+  background: var(--color-surface-3);
+}
+
+/* Non-interactive variant (e.g. row with inline toggle only) */
+.pcp-settings-row--static {
+  cursor: default;
+}
+
+.pcp-settings-row--static:hover {
+  background: var(--color-surface);
+}
+
+/* ── Icon ── */
+.pcp-settings-row__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);       /* 24px */
+  line-height: 1;
+}
+
+/* ── Label ── */
+.pcp-settings-row__label {
+  flex: 1;
+  font-size: var(--font-size-base);     /* 18px minimum */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+/* ── Trailing container (chevron, badge, or custom element) ── */
+.pcp-settings-row__trailing {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Chevron ── */
+.pcp-settings-row__chevron {
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  line-height: 1;
+}
+
+/* ── Toggle switch ── */
+.pcp-settings-row__toggle {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-3);
+  border: 2px solid var(--color-border-strong);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+  /* Reset button styles */
+  padding: 0;
+  min-height: 32px;
+  min-width: 52px;
+}
+
+.pcp-settings-row__toggle[aria-checked="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.pcp-settings-row__toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-settings-row__toggle[aria-checked="true"] .pcp-settings-row__toggle-knob {
+  transform: translateX(20px);
+}
+
+/* ── Focus ring on entire row ── */
+.pcp-settings-row:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Focus ring on toggle ── */
+.pcp-settings-row__toggle:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}

@@ -264,6 +264,9 @@ function OnboardingFlow({ createUser, completeOnboarding, existingUser }) {
               <p className="onboarding-hint">
                 For example: "Email photos to my grandkids" or "Video call my doctor"
               </p>
+              <label htmlFor="user-goal" className="sr-only">
+                Your learning goal
+              </label>
               <input
                 id="user-goal"
                 type="text"

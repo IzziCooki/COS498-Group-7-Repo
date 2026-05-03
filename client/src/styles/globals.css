@@ -1,206 +1,423 @@
-/* PC Pal — Elderly-Friendly Global Styles */
-/* Designed for maximum readability and ease of use */
+/* ==========================================================================
+   PC Pal — Deliverable 7: Design Tokens & Style Guide
+   --------------------------------------------------------------------------
+   Drop into globals.css. Replaces existing :root token block.
+   Designed for the 65+ demographic: AAA contrast, 18px minimum body, 48px
+   minimum touch, generous spacing, motion-safe defaults.
+   ========================================================================== */
 
 :root {
-  /* Color palette */
-  --color-bg: #f5f5f5;
-  --color-text: #1a1a2e;
-  --color-text-light: #4a4a6a;
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #dbeafe;
-  --color-success: #16a34a;
-  --color-success-light: #dcfce7;
-  --color-warning: #d97706;
-  --color-warning-light: #fef3c7;
-  --color-danger: #dc2626;
-  --color-danger-light: #fee2e2;
-  --color-white: #ffffff;
-  --color-border: #d1d5db;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f0f0f8;
-  --color-shadow: rgba(26, 26, 46, 0.12);
+  /* ========================================================================
+     TYPOGRAPHY
+     18px is the base size — never go below it for any user-facing prose.
+     ======================================================================== */
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono:
+    "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
 
-  /* Typography */
-  --font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
-  --font-size-base: 18px;
-  --font-size-sm: 16px;
-  --font-size-md: 20px;
-  --font-size-lg: 24px;
-  --font-size-xl: 30px;
-  --font-size-2xl: 36px;
-  --line-height: 1.6;
+  --font-size-xs:    0.875rem;   /* 14px — timestamps, captions, sr-only labels */
+  --font-size-sm:    1rem;       /* 16px — secondary subtitles, helper text, code */
+  --font-size-base:  1.125rem;   /* 18px — BODY MINIMUM, all conversational text */
+  --font-size-md:    1.25rem;    /* 20px — input fields, primary button labels */
+  --font-size-lg:    1.5rem;     /* 24px — screen titles, AI greetings */
+  --font-size-xl:    1.75rem;    /* 28px — hero headings, safety banner first line */
+  --font-size-2xl:   2rem;       /* 32px — onboarding hero, video call name */
 
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
+  --font-weight-regular: 400;
+  --font-weight-medium:  500;
+  --font-weight-bold:    600;
+  --font-weight-heavy:   700;
 
-  /* Touch targets */
-  --touch-target: 48px;
+  --line-height-tight: 1.25;     /* headings */
+  --line-height-base:  1.45;     /* body prose */
+  --line-height-loose: 1.6;      /* AI explanatory text, accessibility */
 
-  /* Border radius */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-full: 9999px;
+  --letter-spacing-base: 0;
+  --letter-spacing-caps: 0.05em; /* small caps section headers */
+  --letter-spacing-code: 0.02em; /* monospace, slight breathing */
 
-  /* Transitions */
-  --transition: 200ms ease;
+  /* ========================================================================
+     SPACING (8px-based scale)
+     Generous on purpose — elderly hands need room.
+     ======================================================================== */
+  --space-1:  0.25rem;   /* 4px  — fine borders, micro-gaps */
+  --space-2:  0.5rem;    /* 8px  — chip gaps, icon-to-label */
+  --space-3:  0.75rem;   /* 12px — card padding internal, list gaps */
+  --space-4:  1rem;      /* 16px — default container padding */
+  --space-5:  1.5rem;    /* 24px — section breathing room */
+  --space-6:  2rem;      /* 32px — major breaks */
+  --space-7:  3rem;      /* 48px — generous separation */
+  --space-8:  4rem;      /* 64px — hero spacing */
+
+  /* ========================================================================
+     TOUCH TARGETS
+     Per-breakpoint minimums. Always honored.
+     ======================================================================== */
+  --tap-min:        2.75rem;   /* 44px — absolute floor (only sub-actions like x) */
+  --tap-comfort:    3rem;      /* 48px — secondary actions */
+  --tap-primary:    3.5rem;    /* 56px — primary buttons, send, send actions */
+  --tap-hero:       4rem;      /* 64px — onboarding primary, high-stakes choices */
+  --tap-call:       6rem;      /* 96px — call answer/decline (one-tap-in-panic) */
+  --tab-bar-height: 4rem;      /* 64px tab bar (+ safe-area-inset-bottom) */
+
+  /* ========================================================================
+     RADIUS
+     Friendly, not sharp. Larger on bigger surfaces for visual softness.
+     ======================================================================== */
+  --radius-sm:    0.5rem;    /* 8px  — chip, tag */
+  --radius-md:    0.75rem;   /* 12px — input, callout, small card */
+  --radius-lg:    1rem;      /* 16px — message bubble, card, sheet top */
+  --radius-xl:    1.5rem;    /* 24px — input pill, primary button */
+  --radius-2xl:   2rem;      /* 32px — modal, hero */
+  --radius-pill:  9999px;    /* pills, status badges */
+
+  /* ========================================================================
+     COLORS — LIGHT THEME (default)
+     WCAG AAA against surface for all text-1 / text-2.
+     Primary chosen for AAA on white at 18px (institutional, calming blue).
+     ======================================================================== */
+
+  /* Surfaces */
+  --color-surface:        #FFFFFF;   /* primary background, cards */
+  --color-surface-2:      #F7FAFC;   /* chat thread bg, soft cards */
+  --color-surface-3:      #EDF2F7;   /* input recess, disabled bg */
+  --color-surface-inset:  #F1F5F9;   /* nested surfaces */
+
+  /* Text */
+  --color-text-1:  #1A202C;   /* primary, AAA */
+  --color-text-2:  #4A5568;   /* secondary, AAA at 18px+ */
+  --color-text-3:  #718096;   /* tertiary, placeholder, AA */
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-helper:  #FFFFFF;
+  --color-text-on-danger:  #FFFFFF;
+
+  /* Borders */
+  --color-border:        #E2E8F0;   /* default 1px borders */
+  --color-border-strong: #CBD5E0;   /* form inputs, selected tiles */
+  --color-border-focus:  #3182CE;   /* focus outline */
+
+  /* Brand / Primary (Margaret's blue) */
+  --color-primary:        #2B6CB0;   /* AAA on surface */
+  --color-primary-hover:  #2C5282;
+  --color-primary-active: #2A4365;
+  --color-primary-soft:   #EBF8FF;   /* tinted bg for callouts, mascot circle */
+  --color-primary-text:   #FFFFFF;
+
+  /* Helper (Sarah's slightly cooler blue) */
+  --color-helper:        #2C5282;   /* darker/cooler — distinguishable from primary */
+  --color-helper-hover:  #2A4365;
+  --color-helper-soft:   #DEEBFA;
+  --color-helper-text:   #FFFFFF;
+
+  /* Status — Success */
+  --color-success:        #2F855A;   /* AAA */
+  --color-success-soft:   #C6F6D5;
+  --color-success-text:   #22543D;
+
+  /* Status — Warning */
+  --color-warning:        #C05621;   /* AA, used with bg/icon */
+  --color-warning-soft:   #FEEBC8;
+  --color-warning-text:   #7B341E;
+
+  /* Status — Danger */
+  --color-danger:        #C53030;   /* AAA */
+  --color-danger-hover:  #9B2C2C;
+  --color-danger-soft:   #FED7D7;
+  --color-danger-text:   #742A2A;
+  --color-danger-text-soft: #C53030; /* on danger-soft bg */
+
+  /* Focus ring */
+  --color-focus:        #3182CE;
+  --color-focus-shadow: rgba(49, 130, 206, 0.3);
+
+  /* Overlay & scrim */
+  --color-overlay:       rgba(26, 32, 44, 0.4);
+  --color-overlay-light: rgba(26, 32, 44, 0.2);
+  --color-scrim-dark:    rgba(0, 0, 0, 0.6);   /* video call, immersive */
+
+  /* Code / terminal */
+  --color-code-bg:    #1A202C;
+  --color-code-text:  #F7FAFC;
+  --color-code-comment: #A0AEC0;
+  --color-code-success: #68D391;
+  --color-code-error:   #FC8181;
+
+  /* ========================================================================
+     SHADOWS
+     Subtle on light theme. Used for elevation hierarchy.
+     ======================================================================== */
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover:
+    0 4px 6px rgba(0, 0, 0, 0.07),
+    0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-input-top: 0 -1px 0 var(--color-border);   /* sticky input top edge */
+  --shadow-overlay:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-modal:
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.08);
+  --shadow-focus:
+    0 0 0 3px var(--color-focus-shadow);
+
+  /* ========================================================================
+     MOTION
+     All durations gated by prefers-reduced-motion (see end of file).
+     ======================================================================== */
+  --duration-instant: 0ms;
+  --duration-quick:   120ms;
+  --duration-base:    200ms;
+  --duration-slow:    320ms;
+  --duration-page:    420ms;
+
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-decel:    cubic-bezier(0, 0, 0.2, 1);
+  --easing-accel:    cubic-bezier(0.4, 0, 1, 1);
+  --easing-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ========================================================================
+     Z-INDEX SCALE
+     Strict, named, monotonic.
+     ======================================================================== */
+  --z-base:      0;
+  --z-content:   1;
+  --z-sticky:    10;     /* top bar, input area, tab bar */
+  --z-banner:    20;     /* safety banner */
+  --z-overlay:   100;    /* full-screen overlays (guide, video) */
+  --z-modal:     200;    /* modals on top of overlays */
+  --z-toast:     300;    /* always visible */
+  --z-tooltip:   400;    /* always on top */
+
+  /* ========================================================================
+     LAYOUT
+     ======================================================================== */
+  --layout-max-width:        100%;
+  --layout-content-max:      640px;     /* phone full; tablet artifact pane uses */
+  --layout-sidebar-w:        260px;     /* desktop sidebar */
+  --layout-sidebar-collapsed: 64px;
+  --layout-artifact-w:       480px;     /* desktop artifact panel */
+  --layout-top-bar-h:        3.5rem;    /* 56px */
+  --layout-input-area-min:   3.5rem;    /* 56px */
+
+  /* Safe-area helpers (iOS notch / home indicator) */
+  --safe-top:    env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --safe-left:   env(safe-area-inset-left, 0);
+  --safe-right:  env(safe-area-inset-right, 0);
+
+  /* ========================================================================
+     BREAKPOINTS (for media queries; reference only)
+     - phone:    < 640px
+     - tablet:   640px – 1024px
+     - desktop:  > 1024px
+     ======================================================================== */
 }
 
-/* Reset */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ==========================================================================
+   HELPER ACCENT SWAP
+   When data-accent="helper" is set on the shell, all components that use
+   --color-primary tokens automatically pick up the cooler helper blue.
+   ========================================================================== */
+
+[data-accent="helper"] {
+  --color-primary: var(--color-helper);
+  --color-primary-hover: var(--color-helper-hover);
+  --color-primary-soft: var(--color-helper-soft);
 }
+
+/* ==========================================================================
+   DARK THEME
+   AAA contrast preserved. Uses the same token names — components don't change.
+   ========================================================================== */
+
+:root[data-theme="dark"] {
+  --color-surface:        #1A202C;
+  --color-surface-2:      #2D3748;
+  --color-surface-3:      #4A5568;
+  --color-surface-inset:  #2D3748;
+
+  --color-text-1:  #F7FAFC;
+  --color-text-2:  #CBD5E0;
+  --color-text-3:  #A0AEC0;
+
+  --color-border:        #4A5568;
+  --color-border-strong: #718096;
+  --color-border-focus:  #63B3ED;
+
+  --color-primary:        #63B3ED;   /* lighter, AAA on dark surface */
+  --color-primary-hover:  #4299E1;
+  --color-primary-active: #3182CE;
+  --color-primary-soft:   #2A4365;
+
+  --color-helper:        #4299E1;
+  --color-helper-hover:  #3182CE;
+  --color-helper-soft:   #2A4365;
+
+  --color-success:        #68D391;
+  --color-success-soft:   #22543D;
+  --color-success-text:   #C6F6D5;
+
+  --color-warning:        #F6AD55;
+  --color-warning-soft:   #7B341E;
+  --color-warning-text:   #FEEBC8;
+
+  --color-danger:        #FC8181;
+  --color-danger-hover:  #F56565;
+  --color-danger-soft:   #742A2A;
+  --color-danger-text:   #FED7D7;
+  --color-danger-text-soft: #FC8181;
+
+  --color-focus:        #63B3ED;
+  --color-focus-shadow: rgba(99, 179, 237, 0.4);
+
+  --color-overlay:       rgba(0, 0, 0, 0.6);
+  --color-overlay-light: rgba(0, 0, 0, 0.3);
+  --color-scrim-dark:    rgba(0, 0, 0, 0.85);
+
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover:
+    0 4px 6px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-overlay:
+    0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-modal:
+    0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   USER-SCALABLE FONT SIZE
+   "Make text bigger" sets data-text-size on :root. Body scale only.
+   ========================================================================== */
+
+:root[data-text-size="larger"] {
+  --font-size-base: 1.25rem;   /* 20px */
+  --font-size-md:   1.375rem;  /* 22px */
+  --font-size-lg:   1.625rem;  /* 26px */
+}
+
+:root[data-text-size="largest"] {
+  --font-size-base: 1.375rem;  /* 22px */
+  --font-size-md:   1.5rem;    /* 24px */
+  --font-size-lg:   1.75rem;   /* 28px */
+  --font-size-xl:   2rem;      /* 32px */
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Single global gate. Components reference durations through tokens, so
+   disabling here cascades correctly.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-quick: 0ms;
+    --duration-base:  0ms;
+    --duration-slow:  0ms;
+    --duration-page:  0ms;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   FORCED COLORS / HIGH CONTRAST (Windows High Contrast Mode)
+   Borders become visible; system colors take over.
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  :root {
+    --color-border: CanvasText;
+    --color-border-strong: CanvasText;
+    --color-focus: Highlight;
+  }
+}
+
+/* ==========================================================================
+   GLOBAL RESETS & DEFAULTS
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
-  font-size: var(--font-size-base);
+  /* Use dynamic viewport height so address-bar collapse on mobile doesn't
+     break sticky bottom elements (one of the bugs called out in the brief). */
+  height: 100vh; /* fallback */
+  height: 100dvh;
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
-  font-family: var(--font-family);
+  margin: 0;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
+  font-family: var(--font-family-base);
   font-size: var(--font-size-base);
-  line-height: var(--line-height);
-  color: var(--color-text);
-  background-color: var(--color-bg);
+  line-height: var(--line-height-base);
+  color: var(--color-text-1);
+  background: var(--color-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
-/* Headings */
+/* All headings reset to be styled per-component, but never below 18px */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--color-text);
-  line-height: 1.3;
-  font-weight: 700;
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-1);
 }
 
-h1 { font-size: var(--font-size-2xl); }
-h2 { font-size: var(--font-size-xl); }
-h3 { font-size: var(--font-size-lg); }
-h4 { font-size: var(--font-size-md); }
-
-p {
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height);
-}
-
-/* Large, accessible buttons */
 button {
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  min-height: var(--touch-target);
-  min-width: var(--touch-target);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border: none;
-  border-radius: var(--radius-md);
+  font: inherit;
   cursor: pointer;
-  transition: background-color var(--transition), transform var(--transition),
-    box-shadow var(--transition);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  line-height: 1.2;
+  border: none;
+  background: none;
+  color: inherit;
+  /* All buttons must meet tap-comfort minimum unless explicitly opted out */
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
 }
 
-button:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
+input, textarea, select {
+  font: inherit;
+  font-size: var(--font-size-md);   /* 20px so iOS doesn't auto-zoom */
+  color: var(--color-text-1);
+  background: var(--color-surface);
 }
 
-button:active {
-  transform: scale(0.98);
+/* Universal focus ring — never removed, only restyled */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+/* Hide focus ring for mouse users only; keyboard always sees it */
+:focus:not(:focus-visible) { outline: none; }
 
-/* Primary button */
-.btn-primary {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  box-shadow: 0 4px 12px var(--color-shadow);
-}
-
-/* Secondary button */
-.btn-secondary {
-  background-color: var(--color-white);
-  color: var(--color-text);
-  border: 2px solid var(--color-border);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--color-surface-alt);
-  border-color: var(--color-primary);
-}
-
-/* Large, readable input fields */
-input[type="text"],
-input[type="email"],
-textarea {
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-  color: var(--color-text);
-  background-color: var(--color-white);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  width: 100%;
-  min-height: var(--touch-target);
-  transition: border-color var(--transition), box-shadow var(--transition);
-  line-height: var(--line-height);
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--color-text-light);
-  opacity: 0.8;
-}
-
-/* Links */
-a {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-a:hover {
-  color: var(--color-primary-dark);
-}
-
-/* Utilities */
+/* Screen reader only utility */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -213,7 +430,21 @@ a:hover {
   border: 0;
 }
 
-/* Animations — smooth, non-jarring */
+/* Skip-link target style — visible on focus */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  z-index: var(--z-tooltip);
+  transition: top var(--duration-quick) var(--easing-decel);
+}
+.skip-link:focus { top: var(--space-4); }
+
+/* Animations — smooth, non-jarring (kept for existing component references) */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -230,16 +461,118 @@ a:hover {
 }
 
 .animate-fade-in {
-  animation: fadeIn 300ms ease forwards;
+  animation: fadeIn var(--duration-base) var(--easing-decel) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 350ms ease forwards;
+  animation: slideUp var(--duration-slow) var(--easing-decel) forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ==========================================================================
+   COMPONENT BASE CLASSES (BEM)
+   These are reference utilities — full per-component styles live in their
+   respective .css files (see D8 file plan).
+   ========================================================================== */
+
+/* Card chassis used by artifacts, conversation rows, list items */
+.pcp-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+.pcp-card--soft { background: var(--color-surface-2); }
+.pcp-card--interactive {
+  cursor: pointer;
+  transition: border-color var(--duration-quick),
+              box-shadow var(--duration-quick),
+              transform var(--duration-quick);
+}
+.pcp-card--interactive:hover { box-shadow: var(--shadow-card-hover); }
+.pcp-card--interactive:active { transform: scale(0.98); }
+
+/* Primary button */
+.pcp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-primary);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  transition: background-color var(--duration-quick),
+              transform var(--duration-quick);
+}
+.pcp-btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+.pcp-btn--primary:hover { background: var(--color-primary-hover); }
+.pcp-btn--primary:active { transform: scale(0.98); background: var(--color-primary-active); }
+.pcp-btn--primary:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+.pcp-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+}
+.pcp-btn--ghost:hover { background: var(--color-primary-soft); }
+.pcp-btn--danger {
+  background: var(--color-danger);
+  color: var(--color-text-on-danger);
+}
+.pcp-btn--danger:hover { background: var(--color-danger-hover); }
+
+/* Hero button (onboarding, high-stakes) */
+.pcp-btn--hero {
+  min-height: var(--tap-hero);
+  font-size: var(--font-size-lg);
+}
+
+/* Legacy utility classes — mapped to new tokens for backward compatibility */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
+  border: 2px solid var(--color-border);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-3);
+  border-color: var(--color-primary);
 }

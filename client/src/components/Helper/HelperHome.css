@@ -1,0 +1,264 @@
+/* ==========================================================================
+   HelperHome — Helper dashboard (D5 section 2)
+   Status hero, alerts, questions, progress, "see all activity" link.
+   ========================================================================== */
+
+.pcp-helper-home {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Status Hero Card ──────────────────────────────────────────────────── */
+
+.pcp-helper-home__hero {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcp-helper-home__hero-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pcp-helper-home__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.pcp-helper-home__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-helper-home__name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-helper-home__status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-top: var(--space-1);
+}
+
+.pcp-helper-home__status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.pcp-helper-home__status-dot--online {
+  background: var(--color-success);
+}
+
+.pcp-helper-home__status-dot--offline {
+  background: var(--color-text-3);
+}
+
+.pcp-helper-home__status-dot--sleeping {
+  background: var(--color-primary);
+}
+
+.pcp-helper-home__status-dot--needs-help {
+  background: var(--color-danger);
+}
+
+.pcp-helper-home__last-chat {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-top: var(--space-1);
+}
+
+.pcp-helper-home__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pcp-helper-home__actions .pcp-btn {
+  flex: 1;
+}
+
+/* ── Alert / Question Cards ────────────────────────────────────────────── */
+
+.pcp-helper-home__card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: box-shadow var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-helper-home__card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.pcp-helper-home__card--alert {
+  border-left: 4px solid var(--color-danger);
+}
+
+.pcp-helper-home__card--question {
+  border-left: 4px solid var(--color-primary);
+}
+
+.pcp-helper-home__card-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.pcp-helper-home__card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-helper-home__card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-helper-home__card-preview {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: var(--space-1);
+}
+
+.pcp-helper-home__card-chevron {
+  color: var(--color-text-3);
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+}
+
+/* ── Progress Card ─────────────────────────────────────────────────────── */
+
+.pcp-helper-home__progress {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.pcp-helper-home__progress-heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-helper-home__progress-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-helper-home__skill-bar {
+  height: 12px;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+}
+
+.pcp-helper-home__skill-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width var(--duration-slow) var(--easing-decel);
+}
+
+.pcp-helper-home__skill-bar-fill--complete {
+  background: var(--color-success);
+}
+
+.pcp-helper-home__skill-count {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  text-align: right;
+  margin-bottom: var(--space-3);
+}
+
+.pcp-helper-home__completions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-helper-home__completion-item {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcp-helper-home__completion-check {
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.pcp-helper-home__completion-progress {
+  color: var(--color-text-3);
+  font-style: italic;
+}
+
+/* ── See All Activity Link ─────────────────────────────────────────────── */
+
+.pcp-helper-home__see-all {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: box-shadow var(--duration-quick) var(--easing-standard);
+  width: 100%;
+  text-align: left;
+}
+
+.pcp-helper-home__see-all:hover {
+  box-shadow: var(--shadow-card-hover);
+}

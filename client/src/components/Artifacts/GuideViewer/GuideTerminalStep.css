@@ -1,0 +1,172 @@
+/* ==========================================================================
+   GuideTerminalStep -- Terminal command step variant (D3 S3)
+   ========================================================================== */
+
+.pcp-terminal-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Step text ── */
+
+.pcp-terminal-step__heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.pcp-terminal-step__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: var(--space-2) 0 0;
+}
+
+/* ── Code block ── */
+
+.pcp-terminal-step__code-block {
+  background: var(--color-code-bg);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.pcp-terminal-step__code {
+  margin: 0;
+  padding: var(--space-5);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-code-text);
+  line-height: var(--line-height-base);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.pcp-terminal-step__code code {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ── Action row ── */
+
+.pcp-terminal-step__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.pcp-terminal-step__copy-btn,
+.pcp-terminal-step__run-btn {
+  flex: 1;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+}
+
+.pcp-terminal-step__run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Run tooltip ── */
+
+.pcp-terminal-step__tooltip {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  text-align: center;
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-style: italic;
+}
+
+/* ── Explainer ── */
+
+.pcp-terminal-step__explainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-terminal-step__explainer-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+  margin: 0;
+}
+
+.pcp-terminal-step__explainer-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+/* ── Destructive warning ── */
+
+.pcp-terminal-step__warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.pcp-terminal-step__warning-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.pcp-terminal-step__warning-text {
+  font-size: var(--font-size-base);
+  color: var(--color-warning-text);
+  line-height: var(--line-height-base);
+}
+
+/* ── Stuck button ── */
+
+.pcp-terminal-step__stuck {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+  justify-content: center;
+}
+
+/* ── Copy toast ── */
+
+.pcp-terminal-step__toast {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  min-height: var(--tap-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-overlay);
+  animation: pcp-toast-enter var(--duration-base) var(--easing-decel);
+  max-width: calc(100% - var(--space-8));
+}
+
+@keyframes pcp-toast-enter {
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}

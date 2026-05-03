@@ -1,0 +1,182 @@
+/* ==========================================================================
+   MemoryViewer — Lists what the AI remembers, grouped by type.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-memory-viewer {
+  padding: var(--space-4);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+/* ── Loading ── */
+.pcp-memory-viewer__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) 0;
+  gap: var(--space-4);
+  color: var(--color-text-2);
+  font-size: var(--font-size-base);
+}
+
+.pcp-memory-viewer__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: pcp-memory-spin 800ms linear infinite;
+}
+
+@keyframes pcp-memory-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Empty state ── */
+.pcp-memory-viewer__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  gap: var(--space-4);
+}
+
+.pcp-memory-viewer__empty-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.pcp-memory-viewer__empty-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-memory-viewer__empty-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  max-width: 32ch;
+  margin: 0;
+}
+
+/* ── Group header ── */
+.pcp-memory-viewer__group {
+  margin-bottom: var(--space-5);
+}
+
+.pcp-memory-viewer__group-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-3);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Memory item ── */
+.pcp-memory-viewer__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-memory-viewer__item:last-child {
+  border-bottom: none;
+}
+
+.pcp-memory-viewer__item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Type badge ── */
+.pcp-memory-viewer__badge {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  white-space: nowrap;
+  margin-bottom: var(--space-1);
+}
+
+.pcp-memory-viewer__badge--preference {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.pcp-memory-viewer__badge--struggle {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.pcp-memory-viewer__badge--breakthrough {
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+
+.pcp-memory-viewer__badge--context {
+  background: var(--color-surface-3);
+  color: var(--color-text-2);
+}
+
+.pcp-memory-viewer__badge--pattern {
+  background: var(--color-helper-soft);
+  color: var(--color-text-1);
+}
+
+/* ── Content text ── */
+.pcp-memory-viewer__content {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: var(--space-1) 0;
+}
+
+/* ── Date ── */
+.pcp-memory-viewer__date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  line-height: 1;
+}
+
+/* ── Forget button ── */
+.pcp-memory-viewer__forget {
+  flex-shrink: 0;
+  align-self: center;
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-danger);
+  background: transparent;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-memory-viewer__forget:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text-soft);
+}
+
+/* ── Error state ── */
+.pcp-memory-viewer__error {
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--color-danger);
+  font-size: var(--font-size-base);
+}

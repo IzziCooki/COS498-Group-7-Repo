@@ -1,0 +1,151 @@
+/* ==========================================================================
+   InputArea — Sticky bottom input (D2 S2 / S6 / S7)
+   Textarea (auto-grows to 5 lines) + send button + Get Help button
+   ========================================================================== */
+
+.pcp-input-area {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-input-top);
+}
+
+.pcp-input-area__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);                       /* 12px between textarea and send */
+}
+
+/* Textarea: auto-grows from 56px to 5-line max */
+.pcp-input-area__textarea {
+  flex: 1;
+  min-height: var(--tap-primary);            /* 56px */
+  max-height: calc(var(--font-size-md) * var(--line-height-base) * 5 + var(--space-3) * 2);
+  padding: 14px 20px;
+  background: var(--color-surface-3);
+  border: none;
+  border-radius: var(--radius-xl);           /* 24px pill */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);            /* 20px */
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  resize: none;
+  overflow-y: auto;
+  outline: none;
+  transition: box-shadow var(--duration-quick);
+}
+
+.pcp-input-area__textarea::placeholder {
+  font-size: var(--font-size-md);
+  color: var(--color-text-3);
+}
+
+.pcp-input-area__textarea:focus {
+  box-shadow: 0 0 0 3px var(--color-focus-shadow);
+}
+
+/* Send button: 56x56 circle */
+.pcp-input-area__send {
+  width: var(--tap-primary);                 /* 56px */
+  height: var(--tap-primary);
+  min-height: var(--tap-primary);
+  min-width: var(--tap-primary);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--duration-quick),
+              transform var(--duration-quick);
+}
+
+/* Send button active state: has text */
+.pcp-input-area__send--active {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.pcp-input-area__send--active:hover {
+  background: var(--color-primary-hover);
+}
+
+.pcp-input-area__send--active:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-input-area__send--active:active {
+    transform: none;
+  }
+}
+
+/* Send button disabled state: empty textarea */
+.pcp-input-area__send--disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+/* Arrow icon inside send button */
+.pcp-input-area__send-icon {
+  font-size: var(--font-size-lg);           /* 24px */
+  line-height: 1;
+}
+
+/* Get Help button: full-width ghost, 48px tall */
+.pcp-input-area__help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap-comfort);            /* 48px */
+  margin-top: var(--space-2);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-base);          /* 18px */
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  gap: var(--space-2);
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-input-area__help:hover {
+  background: var(--color-primary-soft);
+}
+
+.pcp-input-area__help:disabled {
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.pcp-input-area__help-icon {
+  font-size: var(--font-size-md);
+}
+
+/* Loading state for Get Help */
+.pcp-input-area__help--loading {
+  color: var(--color-text-2);
+}
+
+.pcp-input-area__help--loading .pcp-input-area__help-icon {
+  animation: pcp-spin 1s linear infinite;
+}
+
+@keyframes pcp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-input-area__help--loading .pcp-input-area__help-icon {
+    animation: none;
+  }
+}

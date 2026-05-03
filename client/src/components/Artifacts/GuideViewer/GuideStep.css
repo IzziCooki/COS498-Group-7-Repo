@@ -1,0 +1,133 @@
+/* ==========================================================================
+   GuideStep -- Single step: image + hotspot + caption + text + note
+   ========================================================================== */
+
+.pcp-guide-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Screenshot area ── */
+
+.pcp-guide-step__image-area {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  max-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcp-guide-step__image-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  touch-action: pinch-zoom;
+}
+
+.pcp-guide-step__image {
+  width: 100%;
+  height: auto;
+  max-height: 40vh;
+  object-fit: contain;
+  display: block;
+}
+
+/* Image load fallback */
+.pcp-guide-step__image-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.pcp-guide-step__image-fallback-icon {
+  font-size: 2rem;
+}
+
+.pcp-guide-step__image-fallback-text {
+  font-size: var(--font-size-base);
+  text-align: center;
+}
+
+/* ── Caption ── */
+
+.pcp-guide-step__caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+/* ── Step text ── */
+
+.pcp-guide-step__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-guide-step__heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.pcp-guide-step__body {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+/* ── Note callout ── */
+
+.pcp-guide-step__note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-guide-step__note--warning {
+  border-left-color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.pcp-guide-step__note-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.pcp-guide-step__note-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-guide-step__note--warning .pcp-guide-step__note-text {
+  color: var(--color-warning-text);
+}
+
+/* ── Stuck button ── */
+
+.pcp-guide-step__stuck {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+  justify-content: center;
+}

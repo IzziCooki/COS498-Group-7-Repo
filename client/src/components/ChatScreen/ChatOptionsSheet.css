@@ -1,0 +1,178 @@
+/* ==========================================================================
+   ChatOptionsSheet — Bottom sheet, 75% viewport (D2 S4)
+   Swipe down or tap-x to dismiss. Seven menu items.
+   ========================================================================== */
+
+.pcp-options-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  z-index: var(--z-overlay);
+  animation: pcp-backdrop-enter var(--duration-base) var(--easing-standard);
+}
+
+@keyframes pcp-backdrop-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pcp-options-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 75vh;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: var(--z-overlay);
+  overflow-y: auto;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  animation: pcp-sheet-slide-up var(--duration-slow) var(--easing-standard);
+}
+
+@keyframes pcp-sheet-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-options-sheet {
+    animation: none;
+  }
+  .pcp-options-sheet__backdrop {
+    animation: none;
+  }
+}
+
+.pcp-options-sheet__handle {
+  width: 32px;
+  height: 4px;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-pill);
+  margin: 0 auto var(--space-4);
+}
+
+.pcp-options-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.pcp-options-sheet__title {
+  font-size: var(--font-size-lg);           /* 24px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-options-sheet__close {
+  width: var(--tap-comfort);                /* 48px */
+  height: var(--tap-comfort);
+  min-height: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-2);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.pcp-options-sheet__close:hover {
+  color: var(--color-text-1);
+}
+
+.pcp-options-sheet__section-label {
+  font-size: var(--font-size-sm);           /* 16px */
+  color: var(--color-text-2);
+  margin: var(--space-4) 0 var(--space-2);
+  padding-left: var(--space-4);
+}
+
+.pcp-options-sheet__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-options-sheet__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 64px;                          /* 64px row */
+  padding: 0 var(--space-4);
+  background: var(--color-surface-2);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-options-sheet__item:hover {
+  background: var(--color-surface-3);
+}
+
+.pcp-options-sheet__item-icon {
+  font-size: var(--font-size-lg);           /* 24px */
+  flex-shrink: 0;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.pcp-options-sheet__item-label {
+  flex: 1;
+  font-size: var(--font-size-base);         /* 18px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-options-sheet__item-label--secondary {
+  color: var(--color-text-2);
+}
+
+.pcp-options-sheet__item-trailing {
+  font-size: var(--font-size-md);
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+/* Toggle switch (Read aloud) */
+.pcp-options-sheet__toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-3);
+  border: 1px solid var(--color-border);
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--duration-quick);
+  flex-shrink: 0;
+  min-height: 28px;
+  min-width: 48px;
+}
+
+.pcp-options-sheet__toggle--on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.pcp-options-sheet__toggle-knob {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform var(--duration-quick);
+  box-shadow: var(--shadow-card);
+}
+
+.pcp-options-sheet__toggle--on .pcp-options-sheet__toggle-knob {
+  transform: translateX(20px);
+}

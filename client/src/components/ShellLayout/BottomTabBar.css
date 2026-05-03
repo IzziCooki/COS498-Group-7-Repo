@@ -1,0 +1,82 @@
+/* ==========================================================================
+   BottomTabBar — Phone-only bottom tab bar
+   64px + safe-area-inset-bottom. Icon-only (no labels) per spec.
+   ========================================================================== */
+
+.pcp-tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: var(--tab-bar-height);
+  padding-bottom: var(--safe-bottom);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Hide on tablet and desktop (CSS reinforces JS-level gating) */
+@media (min-width: 640px) {
+  .pcp-tab-bar {
+    display: none;
+  }
+}
+
+.pcp-tab-bar__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: var(--space-2) 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-3);
+  position: relative;
+  transition: color var(--duration-quick) var(--easing-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pcp-tab-bar__tab:hover {
+  color: var(--color-text-2);
+}
+
+/* Active state: filled icon + primary color */
+.pcp-tab-bar__tab--active {
+  color: var(--color-primary);
+}
+
+.pcp-tab-bar__tab--active.pcp-tab-bar__tab--helper-role {
+  color: var(--color-helper);
+}
+
+.pcp-tab-bar__tab svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Tooltip on long-press */
+.pcp-tab-bar__tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-text-1);
+  color: var(--color-surface);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-quick) var(--easing-standard);
+  z-index: var(--z-tooltip);
+}
+
+.pcp-tab-bar__tooltip--visible {
+  opacity: 1;
+}

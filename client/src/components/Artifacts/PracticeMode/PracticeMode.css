@@ -1,0 +1,288 @@
+/* ==========================================================================
+   PracticeMode -- Full-screen takeover for guided simulation
+   Hides EVERYTHING including tab bar.
+   ========================================================================== */
+
+.pcp-practice {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-surface);
+}
+
+/* ── Banner ── */
+
+.pcp-practice__banner {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  letter-spacing: var(--letter-spacing-caps);
+}
+
+/* ── Progress segments ── */
+
+.pcp-practice__progress {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+}
+
+.pcp-practice__segment {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-3);
+  transition: background-color var(--duration-quick);
+}
+
+.pcp-practice__segment--done {
+  background: var(--color-success);
+}
+
+.pcp-practice__segment--active {
+  background: var(--color-primary);
+}
+
+/* ── Header ── */
+
+.pcp-practice__header {
+  flex-shrink: 0;
+  padding: 0 var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-practice__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+}
+
+.pcp-practice__step-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-top: var(--space-1);
+  display: block;
+}
+
+/* ── Content ── */
+
+.pcp-practice__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.pcp-practice__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  flex: 1;
+  padding: var(--space-6);
+  text-align: center;
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+}
+
+/* ── Navigation ── */
+
+.pcp-practice__nav {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.pcp-practice__nav-next {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-md);
+}
+
+.pcp-practice__nav-explain,
+.pcp-practice__nav-back {
+  width: 100%;
+  min-height: var(--tap-comfort);
+  font-size: var(--font-size-base);
+}
+
+/* ==========================================================================
+   PracticeStep -- Single practice step
+   ========================================================================== */
+
+.pcp-practice-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcp-practice-step__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.pcp-practice-step__number {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pcp-practice-step__instruction {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0;
+  padding-top: var(--space-2);
+}
+
+.pcp-practice-step__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.pcp-practice-step__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-practice-step__label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+}
+
+.pcp-practice-step__alt {
+  background: var(--color-primary-soft);
+  border-left: 4px solid var(--color-primary);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.pcp-practice-step__alt-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: var(--space-2) 0 0;
+}
+
+/* ==========================================================================
+   PracticeChecklist -- Completion screen
+   ========================================================================== */
+
+.pcp-practice-checklist {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) 0;
+  text-align: center;
+}
+
+.pcp-practice-checklist__celebration {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pcp-practice-checklist__emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.pcp-practice-checklist__heading {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+}
+
+.pcp-practice-checklist__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+.pcp-practice-checklist__list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: left;
+  background: var(--color-surface-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.pcp-practice-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-practice-checklist__check {
+  font-size: var(--font-size-lg);
+  color: var(--color-success);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.pcp-practice-checklist__item-text {
+  flex: 1;
+}
+
+.pcp-practice-checklist__actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-practice-checklist__real-btn {
+  width: 100%;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-md);
+}
+
+.pcp-practice-checklist__again-btn,
+.pcp-practice-checklist__done-btn {
+  width: 100%;
+  min-height: var(--tap-comfort);
+  font-size: var(--font-size-base);
+}

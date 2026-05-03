@@ -1,0 +1,202 @@
+/* ==========================================================================
+   GuideStuckSheet -- 50vh slide-up chat sheet (D3 S6)
+   ========================================================================== */
+
+/* Backdrop: dims the guide content behind the sheet */
+.pcp-stuck-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 1);
+  background: var(--color-overlay);
+  animation: pcp-stuck-backdrop-in var(--duration-slow) var(--easing-decel);
+}
+
+@keyframes pcp-stuck-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Sheet container */
+.pcp-stuck-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: calc(var(--z-overlay) + 2);
+  height: 50vh;
+  max-height: 75vh;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-modal);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--safe-bottom);
+  animation: pcp-stuck-sheet-in var(--duration-slow) var(--easing-decel);
+}
+
+@keyframes pcp-stuck-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-stuck-sheet,
+  .pcp-stuck-sheet__backdrop {
+    animation: none;
+  }
+}
+
+/* Drag handle */
+.pcp-stuck-sheet__handle {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) 0;
+  flex-shrink: 0;
+}
+
+.pcp-stuck-sheet__handle-bar {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+/* Header */
+.pcp-stuck-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4) var(--space-3);
+  flex-shrink: 0;
+}
+
+.pcp-stuck-sheet__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+}
+
+.pcp-stuck-sheet__close {
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  color: var(--color-text-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.pcp-stuck-sheet__close:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text-1);
+}
+
+/* Content area */
+.pcp-stuck-sheet__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Textarea */
+.pcp-stuck-sheet__textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  color: var(--color-text-1);
+  background: var(--color-surface-2);
+  line-height: var(--line-height-base);
+  resize: vertical;
+}
+
+.pcp-stuck-sheet__textarea:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+/* Action buttons row */
+.pcp-stuck-sheet__actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.pcp-stuck-sheet__send,
+.pcp-stuck-sheet__continue {
+  flex: 1;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-base);
+}
+
+.pcp-stuck-sheet__open-chat {
+  flex: 1;
+  min-height: var(--tap-primary);
+  font-size: var(--font-size-base);
+}
+
+/* Sent message display */
+.pcp-stuck-sheet__sent-msg {
+  background: var(--color-surface-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.pcp-stuck-sheet__sent-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcp-stuck-sheet__sent-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  margin: var(--space-2) 0 0;
+  line-height: var(--line-height-base);
+}
+
+/* AI response */
+.pcp-stuck-sheet__response {
+  background: var(--color-primary-soft);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+}
+
+.pcp-stuck-sheet__response-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.pcp-stuck-sheet__response-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  margin: var(--space-2) 0 0;
+  line-height: var(--line-height-base);
+}
+
+/* Loading state */
+.pcp-stuck-sheet__loading {
+  font-size: var(--font-size-base);
+  color: var(--color-text-3);
+  text-align: center;
+  padding: var(--space-5);
+  animation: pulse 1.5s ease-in-out infinite;
+}

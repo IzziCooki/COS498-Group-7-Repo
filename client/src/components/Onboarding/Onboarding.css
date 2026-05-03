@@ -1,0 +1,558 @@
+/* ==========================================================================
+   Onboarding — orchestrator & shared screen styles
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+/* ── Progress dots ──────────────────────────────────────────────────────── */
+.pcp-onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcp-onboarding-progress__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-border-strong);
+  background: transparent;
+  transition: background-color var(--duration-base) var(--easing-standard),
+              border-color var(--duration-base) var(--easing-standard);
+}
+
+.pcp-onboarding-progress__dot--filled {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.pcp-onboarding-progress__dot--current {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: scale(1.15);
+}
+
+/* ── Screen 1: Welcome ──────────────────────────────────────────────────── */
+.pcp-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  padding: var(--space-6) var(--space-4);
+  gap: var(--space-4);
+}
+
+.pcp-welcome__mascot {
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-heavy);
+  flex-shrink: 0;
+}
+
+.pcp-welcome__heading {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-welcome__body {
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+  line-height: var(--line-height-loose);
+  max-width: 32ch;
+}
+
+.pcp-welcome__reassurance {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  margin-top: var(--space-3);
+}
+
+/* ── Screen 2: Name + Device ────────────────────────────────────────────── */
+.pcp-name-device {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pcp-name-device__section-heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-name-device__label {
+  display: block;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-name-device__input {
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: var(--space-4);
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              box-shadow var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-name-device__input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.pcp-name-device__input::placeholder {
+  color: var(--color-text-3);
+}
+
+.pcp-name-device__name-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  margin-top: var(--space-1);
+}
+
+.pcp-name-device__tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.pcp-name-device__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 140px;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              background-color var(--duration-quick) var(--easing-standard);
+  position: relative;
+}
+
+.pcp-name-device__tile:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-name-device__tile--selected {
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-name-device__tile-emoji {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.pcp-name-device__tile-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-name-device__tile-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+}
+
+.pcp-name-device__tile-check {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.pcp-name-device__unknown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: 0 var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-2);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-name-device__unknown-btn:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-border-strong);
+}
+
+.pcp-name-device__unknown-btn--selected {
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text-1);
+}
+
+/* ── Screen 3: Comfort Level ────────────────────────────────────────────── */
+.pcp-comfort {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pcp-comfort__heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-comfort__reassurance {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-top: calc(-1 * var(--space-3));
+}
+
+.pcp-comfort__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-comfort__tile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 80px;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-comfort__tile:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-comfort__tile--selected {
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-comfort__tile-emoji {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.pcp-comfort__tile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-comfort__tile-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-comfort__tile-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin-top: var(--space-1);
+}
+
+.pcp-comfort__tile-check {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ── Screen 4: Learning Goal ────────────────────────────────────────────── */
+.pcp-goal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pcp-goal__heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-goal__reassurance {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  margin-top: calc(-1 * var(--space-3));
+}
+
+.pcp-goal__textarea {
+  width: 100%;
+  min-height: 96px;
+  max-height: calc(var(--line-height-base) * var(--font-size-md) * 5 + 2 * 16px);
+  padding: var(--space-4);
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-base);
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  resize: none;
+  overflow-y: auto;
+  line-height: var(--line-height-base);
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              box-shadow var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-goal__textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.pcp-goal__textarea::placeholder {
+  color: var(--color-text-3);
+}
+
+.pcp-goal__chips-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-goal__chips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pcp-goal__chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-goal__chip:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.pcp-goal__chip-emoji {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Screen 5: Buddy Opt-In ─────────────────────────────────────────────── */
+.pcp-buddy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.pcp-buddy__illustration {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  flex-shrink: 0;
+}
+
+.pcp-buddy__heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-buddy__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  max-width: 36ch;
+  line-height: var(--line-height-base);
+}
+
+.pcp-buddy__lists {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcp-buddy__list-heading {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-buddy__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-buddy__list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-buddy__list-icon {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.pcp-buddy__list-icon--success {
+  color: var(--color-success);
+}
+
+.pcp-buddy__list-icon--danger {
+  color: var(--color-danger);
+}
+
+.pcp-buddy__reassurance {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+}
+
+/* Buddy skip button gets a success check */
+.pcp-buddy__skip-check {
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--space-2);
+}
+
+/* ── BuddyCodeShare (post-onboarding banner) ────────────────────────────── */
+.pcp-buddy-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-success-soft);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-success);
+  text-align: center;
+}
+
+.pcp-buddy-code__greeting {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.pcp-buddy-code__code {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-mono);
+  letter-spacing: 4px;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--color-primary);
+}
+
+.pcp-buddy-code__instruction {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+}
+
+.pcp-buddy-code__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-comfort);
+  padding: 0 var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.pcp-buddy-code__action:hover {
+  background: var(--color-primary-hover);
+}

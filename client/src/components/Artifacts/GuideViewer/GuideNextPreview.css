@@ -1,0 +1,168 @@
+/* ==========================================================================
+   GuideNextPreview -- Peek panel for next step (D3 S5)
+   ========================================================================== */
+
+/* ── Strip (sticky between content and nav) ── */
+
+.pcp-next-preview__strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 var(--space-4);
+  background: var(--color-surface-3);
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+  flex-shrink: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border-left: none;
+  border-right: none;
+}
+
+.pcp-next-preview__strip:hover {
+  background: var(--color-surface-2);
+}
+
+.pcp-next-preview__strip-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pcp-next-preview__strip-next {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-2);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.pcp-next-preview__strip-title {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcp-next-preview__strip-chevron {
+  font-size: var(--font-size-md);
+  color: var(--color-text-3);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+/* ── Backdrop for expanded panel ── */
+
+.pcp-next-preview__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 1);
+  background: var(--color-overlay-light);
+}
+
+/* ── Expanded peek panel ── */
+
+.pcp-next-preview__panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: calc(var(--z-overlay) + 2);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-overlay);
+  padding: var(--space-5);
+  padding-bottom: calc(var(--space-5) + var(--safe-bottom));
+  max-height: 280px;
+  animation: pcp-preview-panel-in var(--duration-base) var(--easing-decel);
+}
+
+@keyframes pcp-preview-panel-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-next-preview__panel {
+    animation: none;
+  }
+}
+
+.pcp-next-preview__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.pcp-next-preview__panel-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+}
+
+.pcp-next-preview__panel-close {
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  color: var(--color-text-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.pcp-next-preview__panel-close:hover {
+  background: var(--color-surface-3);
+}
+
+.pcp-next-preview__panel-step-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0 0 var(--space-3);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-next-preview__panel-thumb {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-3);
+  max-height: 120px;
+}
+
+.pcp-next-preview__panel-img {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.pcp-next-preview__panel-body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0 0 var(--space-3);
+}
+
+.pcp-next-preview__panel-skip {
+  width: 100%;
+  min-height: var(--tap-comfort);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+}

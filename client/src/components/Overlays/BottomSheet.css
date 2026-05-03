@@ -1,0 +1,151 @@
+/* ==========================================================================
+   BottomSheet — Mobile-style slide-up sheet with drag handle.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+/* ── Backdrop ── */
+.pcp-bottom-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-overlay);
+  display: flex;
+  align-items: flex-end;
+  animation: pcp-bottom-sheet-backdrop-in var(--duration-base) var(--easing-decel) both;
+}
+
+.pcp-bottom-sheet__backdrop--closing {
+  animation: pcp-bottom-sheet-backdrop-out var(--duration-base) var(--easing-accel) both;
+}
+
+@keyframes pcp-bottom-sheet-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pcp-bottom-sheet-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Panel ── */
+.pcp-bottom-sheet__panel {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-modal);
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pcp-bottom-sheet-in var(--duration-slow) var(--easing-decel) both;
+  touch-action: none; /* we handle touch ourselves for swipe-to-dismiss */
+  padding-bottom: var(--safe-bottom);
+}
+
+.pcp-bottom-sheet__backdrop--closing .pcp-bottom-sheet__panel {
+  animation: pcp-bottom-sheet-out var(--duration-slow) var(--easing-accel) both;
+}
+
+@keyframes pcp-bottom-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes pcp-bottom-sheet-out {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+/* ── Drag handle ── */
+.pcp-bottom-sheet__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) 0 var(--space-2);
+  cursor: grab;
+  flex-shrink: 0;
+  /* Make handle a larger touch target */
+  min-height: var(--tap-min);
+}
+
+.pcp-bottom-sheet__handle:active {
+  cursor: grabbing;
+}
+
+.pcp-bottom-sheet__handle-bar {
+  width: 32px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+}
+
+/* ── Header ── */
+.pcp-bottom-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4) var(--space-3);
+  flex-shrink: 0;
+}
+
+.pcp-bottom-sheet__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.pcp-bottom-sheet__close {
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.pcp-bottom-sheet__close:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text-1);
+}
+
+/* ── Body ── */
+.pcp-bottom-sheet__body {
+  padding: 0 var(--space-4) var(--space-5);
+  overflow-y: auto;
+  flex: 1;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-1);
+}
+
+/* ── Desktop: constrain width ── */
+@media (min-width: 640px) {
+  .pcp-bottom-sheet__backdrop {
+    justify-content: center;
+  }
+
+  .pcp-bottom-sheet__panel {
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pcp-bottom-sheet__backdrop,
+  .pcp-bottom-sheet__backdrop--closing,
+  .pcp-bottom-sheet__panel,
+  .pcp-bottom-sheet__backdrop--closing .pcp-bottom-sheet__panel {
+    animation: none;
+  }
+}

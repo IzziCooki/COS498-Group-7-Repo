@@ -1,0 +1,6 @@
+node_modules
+client/node_modules
+.env
+server/db/pcpal.db
+.claude
+.git

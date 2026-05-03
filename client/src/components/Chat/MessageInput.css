@@ -5,9 +5,10 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background-color: var(--color-white);
+  padding-bottom: max(16px, var(--safe-bottom));
+  background-color: var(--color-surface);
   border-top: 2px solid var(--color-border);
-  box-shadow: 0 -2px 8px var(--color-shadow);
+  box-shadow: 0 -2px 8px var(--shadow-input-top);
 }
 
 .message-input-field {
@@ -17,9 +18,9 @@
   padding: 14px 20px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-white);
-  color: var(--color-text);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  background-color: var(--color-surface);
+  color: var(--color-text-1);
+  transition: border-color var(--duration-base) var(--easing-standard), box-shadow var(--duration-base) var(--easing-standard);
   /* Override reset from globals */
   margin: 0;
 }
@@ -27,17 +28,17 @@
 .message-input-field:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .message-input-field:disabled {
-  background-color: var(--color-surface-alt);
-  color: var(--color-text-light);
+  background-color: var(--color-surface-3);
+  color: var(--color-text-2);
   cursor: not-allowed;
 }
 
 .message-input-field::placeholder {
-  color: var(--color-text-light);
+  color: var(--color-text-2);
 }
 
 .message-send-btn {
@@ -62,7 +63,7 @@
   color: var(--color-primary, #2563eb);
   border: 2px solid var(--color-primary, #2563eb);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition: background var(--duration-base) var(--easing-standard), color var(--duration-base) var(--easing-standard);
 }
 
 .message-resources-btn:hover:not(:disabled) {

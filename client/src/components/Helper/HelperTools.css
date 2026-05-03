@@ -1,0 +1,238 @@
+/* ==========================================================================
+   HelperTools — Remote terminal + quick-action grid (D5 section 7)
+   ========================================================================== */
+
+.pcp-helper-tools {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Empty State (no active session) ───────────────────────────────────── */
+
+.pcp-helper-tools__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: var(--space-6);
+  text-align: center;
+  gap: var(--space-5);
+}
+
+.pcp-helper-tools__empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-3);
+}
+
+.pcp-helper-tools__empty-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-helper-tools__empty-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  max-width: 320px;
+}
+
+.pcp-helper-tools__empty-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 320px;
+}
+
+.pcp-helper-tools__empty-actions .pcp-btn {
+  width: 100%;
+}
+
+/* ── Active Session Content ────────────────────────────────────────────── */
+
+.pcp-helper-tools__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Section Header ────────────────────────────────────────────────────── */
+
+.pcp-helper-tools__section-label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+}
+
+/* ── Quick-Action Grid ─────────────────────────────────────────────────── */
+
+.pcp-helper-tools__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.pcp-helper-tools__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 80px;
+  padding: var(--space-3);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-quick),
+              border-color var(--duration-quick);
+}
+
+.pcp-helper-tools__tile:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-primary);
+}
+
+.pcp-helper-tools__tile:active {
+  background: var(--color-primary-soft);
+}
+
+.pcp-helper-tools__tile-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.pcp-helper-tools__tile-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+/* ── Custom Command Input ──────────────────────────────────────────────── */
+
+.pcp-helper-tools__cmd-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-helper-tools__cmd-input {
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  letter-spacing: var(--letter-spacing-code);
+}
+
+.pcp-helper-tools__cmd-input::placeholder {
+  color: var(--color-code-comment);
+}
+
+.pcp-helper-tools__run-btn {
+  width: 100%;
+}
+
+/* ── History ───────────────────────────────────────────────────────────── */
+
+.pcp-helper-tools__history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-helper-tools__result-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.pcp-helper-tools__result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  min-height: var(--tap-comfort);
+  width: 100%;
+  text-align: left;
+}
+
+.pcp-helper-tools__result-header:hover {
+  background: var(--color-surface-2);
+}
+
+.pcp-helper-tools__result-cmd {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-1);
+  letter-spacing: var(--letter-spacing-code);
+}
+
+.pcp-helper-tools__result-status {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+.pcp-helper-tools__result-status--success {
+  color: var(--color-success);
+}
+
+.pcp-helper-tools__result-status--error {
+  color: var(--color-danger);
+}
+
+.pcp-helper-tools__result-summary {
+  padding: 0 var(--space-4) var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+}
+
+.pcp-helper-tools__result-details {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  border-top: 1px solid var(--color-border);
+}
+
+.pcp-helper-tools__result-toggle {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-primary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: right;
+  width: 100%;
+}

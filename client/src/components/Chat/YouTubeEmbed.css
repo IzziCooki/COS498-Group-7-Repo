@@ -149,7 +149,7 @@
 .yt-embed__video-title {
   font-size: 17px;
   font-weight: 600;
-  color: var(--color-text, #1e293b);
+  color: var(--color-text-1, #1e293b);
   text-decoration: none;
   display: block;
   line-height: 1.4;

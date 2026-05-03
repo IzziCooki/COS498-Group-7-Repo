@@ -1,0 +1,156 @@
+/* ==========================================================================
+   Modal — Centered dialog on desktop, full-screen bottom sheet on phone.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+/* ── Backdrop ── */
+.pcp-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: pcp-modal-backdrop-in var(--duration-base) var(--easing-decel) both;
+}
+
+.pcp-modal__backdrop--closing {
+  animation: pcp-modal-backdrop-out var(--duration-base) var(--easing-accel) both;
+}
+
+@keyframes pcp-modal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pcp-modal-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Dialog panel (desktop / tablet: centered card) ── */
+.pcp-modal__panel {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-modal);
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: pcp-modal-panel-in var(--duration-base) var(--easing-decel) both;
+}
+
+.pcp-modal__backdrop--closing .pcp-modal__panel {
+  animation: pcp-modal-panel-out var(--duration-base) var(--easing-accel) both;
+}
+
+@keyframes pcp-modal-panel-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pcp-modal-panel-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.95); }
+}
+
+/* ── Close button (top-left, 48x48) ── */
+.pcp-modal__close {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.pcp-modal__close:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text-1);
+}
+
+/* ── Header (optional title area, padded past close button) ── */
+.pcp-modal__header {
+  padding: var(--space-5) var(--space-5) 0 var(--space-5);
+  padding-left: calc(var(--tap-comfort) + var(--space-3) + var(--space-2));
+}
+
+.pcp-modal__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+/* ── Body ── */
+.pcp-modal__body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Phone: full-screen bottom sheet mode ── */
+@media (max-width: 639px) {
+  .pcp-modal__backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .pcp-modal__panel {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    border-radius: 0;
+    animation: pcp-modal-sheet-in var(--duration-slow) var(--easing-decel) both;
+  }
+
+  .pcp-modal__backdrop--closing .pcp-modal__panel {
+    animation: pcp-modal-sheet-out var(--duration-slow) var(--easing-accel) both;
+  }
+
+  @keyframes pcp-modal-sheet-in {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  @keyframes pcp-modal-sheet-out {
+    from { transform: translateY(0); }
+    to   { transform: translateY(100%); }
+  }
+
+  .pcp-modal__header {
+    padding-top: calc(var(--safe-top) + var(--space-5));
+  }
+
+  .pcp-modal__close {
+    top: calc(var(--safe-top) + var(--space-3));
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pcp-modal__backdrop,
+  .pcp-modal__backdrop--closing,
+  .pcp-modal__panel,
+  .pcp-modal__backdrop--closing .pcp-modal__panel {
+    animation: none;
+  }
+}

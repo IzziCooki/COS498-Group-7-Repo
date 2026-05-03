@@ -1,0 +1,107 @@
+/* ==========================================================================
+   GuideHotspot -- Concentric pulsing rings animation (D3 S2)
+   Positioned by percentage coordinates; parent must be position: relative.
+   ========================================================================== */
+
+.pcp-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+}
+
+/* Inner dot: 16px, solid primary */
+.pcp-hotspot__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+/* Concentric ring base */
+.pcp-hotspot__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0.4;
+  z-index: 2;
+}
+
+/* Animation: scale 1 -> 1.6, opacity 0.4 -> 0, 1.4s duration */
+@keyframes pcp-hotspot-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0;
+  }
+}
+
+.pcp-hotspot__ring--1 {
+  animation: pcp-hotspot-pulse 1.4s ease-out infinite;
+  animation-delay: 0s;
+}
+
+.pcp-hotspot__ring--2 {
+  animation: pcp-hotspot-pulse 1.4s ease-out infinite;
+  animation-delay: 0.4s;
+}
+
+.pcp-hotspot__ring--3 {
+  animation: pcp-hotspot-pulse 1.4s ease-out infinite;
+  animation-delay: 0.8s;
+}
+
+/* Static arrow for reduced-motion -- hidden by default */
+.pcp-hotspot__arrow {
+  display: none;
+}
+
+/* ── Reduced motion fallback ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-hotspot__ring {
+    animation: none;
+  }
+
+  /* Show only the first ring as a static halo */
+  .pcp-hotspot__ring--1 {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+    border-width: 3px;
+  }
+
+  .pcp-hotspot__ring--2,
+  .pcp-hotspot__ring--3 {
+    display: none;
+  }
+
+  /* Show static arrow indicator */
+  .pcp-hotspot__arrow {
+    display: block;
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid var(--color-primary);
+    z-index: 4;
+  }
+}

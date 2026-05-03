@@ -1,0 +1,119 @@
+/* ==========================================================================
+   FullScreenOverlay — Reusable chassis for guide, video, profile, etc.
+   Slides up from bottom, provides top bar with back button, traps focus.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pcp-fullscreen-enter var(--duration-slow) var(--easing-decel) both;
+}
+
+.pcp-fullscreen-overlay:focus {
+  outline: none;
+}
+
+.pcp-fullscreen-overlay--closing {
+  animation: pcp-fullscreen-exit var(--duration-slow) var(--easing-accel) both;
+}
+
+@keyframes pcp-fullscreen-enter {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pcp-fullscreen-exit {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+}
+
+/* ── Top bar ── */
+.pcp-fullscreen-overlay__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--layout-top-bar-h);
+  padding: 0 var(--space-4);
+  padding-top: var(--safe-top);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.pcp-fullscreen-overlay__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.pcp-fullscreen-overlay__back:hover {
+  background: var(--color-primary-soft);
+}
+
+.pcp-fullscreen-overlay__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  line-height: var(--line-height-tight);
+}
+
+.pcp-fullscreen-overlay__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Mirror the back button width so the title stays centered */
+  min-width: var(--tap-comfort);
+  justify-content: flex-end;
+}
+
+/* ── Body ── */
+.pcp-fullscreen-overlay__body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pcp-fullscreen-overlay,
+  .pcp-fullscreen-overlay--closing {
+    animation: none;
+  }
+}
+
+/* When overlay is open, hide the tab bar */
+body.pcp-overlay-open .pcp-tab-bar,
+body.pcp-overlay-open [data-tab-bar] {
+  display: none !important;
+}

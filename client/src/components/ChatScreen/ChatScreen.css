@@ -1,0 +1,35 @@
+/* ==========================================================================
+   ChatScreen — Main chat orchestrator layout (D2 S2)
+   Full-height flex column: optional top-bar → thread → input area.
+   ========================================================================== */
+
+.pcp-chat-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  background: var(--color-surface-2);
+}
+
+/* Top bar area within the chat (options button row) */
+.pcp-chat-screen__topbar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-height: var(--tap-primary);
+  display: flex;
+  align-items: center;
+}
+
+/* Past conversation banner replaces input area */
+.pcp-chat-screen__readonly {
+  flex-shrink: 0;
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  background: var(--color-surface-3);
+  border-top: 1px solid var(--color-border);
+}

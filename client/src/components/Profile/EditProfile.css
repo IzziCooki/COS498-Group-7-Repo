@@ -1,0 +1,228 @@
+/* ==========================================================================
+   EditProfile — Full-screen profile editor.
+   Fields: name, device tiles, comfort tiles, goal textarea, AI model select.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-edit-profile {
+  padding: var(--space-5);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+/* ── Field group ── */
+.pcp-edit-profile__field {
+  margin-bottom: var(--space-5);
+}
+
+.pcp-edit-profile__label {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.pcp-edit-profile__hint {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-base);
+}
+
+/* ── Text input ── */
+.pcp-edit-profile__input {
+  display: block;
+  width: 100%;
+  min-height: var(--tap-primary);         /* 56px */
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-md);         /* 20px, prevent iOS zoom */
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__input:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-shadow);
+  outline-offset: 0;
+}
+
+.pcp-edit-profile__input::placeholder {
+  color: var(--color-text-3);
+}
+
+/* ── Textarea (goal) ── */
+.pcp-edit-profile__textarea {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-base);
+  transition: border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__textarea:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-shadow);
+  outline-offset: 0;
+}
+
+/* ── Select dropdown ── */
+.pcp-edit-profile__select {
+  display: block;
+  width: 100%;
+  min-height: var(--tap-primary);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-md);
+  color: var(--color-text-1);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  /* Dropdown arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234A5568' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  padding-right: calc(var(--space-4) + 24px);
+  transition: border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__select:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-focus-shadow);
+  outline-offset: 0;
+}
+
+/* ── Tile group (device, comfort) ── */
+.pcp-edit-profile__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.pcp-edit-profile__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-hero);            /* 64px */
+  min-width: 80px;
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__tile:hover {
+  border-color: var(--color-primary);
+}
+
+.pcp-edit-profile__tile--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-edit-profile__tile-icon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.pcp-edit-profile__tile-label {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+/* ── Actions ── */
+.pcp-edit-profile__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-6);
+}
+
+.pcp-edit-profile__save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-primary);         /* 56px */
+  width: 100%;
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__save:hover {
+  background: var(--color-primary-hover);
+}
+
+.pcp-edit-profile__save:active {
+  background: var(--color-primary-active);
+}
+
+.pcp-edit-profile__save:disabled {
+  background: var(--color-surface-3);
+  color: var(--color-text-3);
+  cursor: not-allowed;
+}
+
+.pcp-edit-profile__cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-primary);
+  width: 100%;
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-edit-profile__cancel:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Error message ── */
+.pcp-edit-profile__error {
+  font-size: var(--font-size-base);
+  color: var(--color-danger);
+  line-height: var(--line-height-base);
+  padding: var(--space-3);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}

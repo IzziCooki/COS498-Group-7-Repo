@@ -1,0 +1,102 @@
+/* ==========================================================================
+   ArtifactCard — Inline preview card in chat (D2 S3.4)
+   Same chassis for all artifact types.
+   80px min-height, full chat-bubble width, surface-2 bg, 12px radius.
+   ========================================================================== */
+
+.pcp-artifact-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);          /* 12px */
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+  margin-top: var(--space-3);
+}
+
+.pcp-artifact-card:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-primary);
+}
+
+.pcp-artifact-card:active {
+  border-width: 2px;
+  border-color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-artifact-card:active {
+    transform: none;
+  }
+}
+
+/* Variant: practice — dashed primary border */
+.pcp-artifact-card--practice {
+  border: 2px dashed var(--color-primary);
+}
+
+/* Variant: diagnostic status border */
+.pcp-artifact-card--diagnostic-success {
+  border-left: 4px solid var(--color-success);
+}
+.pcp-artifact-card--diagnostic-warning {
+  border-left: 4px solid var(--color-warning);
+}
+.pcp-artifact-card--diagnostic-danger {
+  border-left: 4px solid var(--color-danger);
+}
+
+.pcp-artifact-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);           /* 24px emoji */
+  flex-shrink: 0;
+  background: var(--color-primary-soft);
+}
+
+/* Video icon gets a red-soft background */
+.pcp-artifact-card__icon--video {
+  background: #FED7D7;
+}
+
+.pcp-artifact-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-artifact-card__title {
+  font-size: var(--font-size-base);         /* 18px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcp-artifact-card__meta {
+  font-size: var(--font-size-sm);           /* 16px */
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcp-artifact-card__chevron {
+  font-size: var(--font-size-md);           /* 20px */
+  color: var(--color-text-3);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}

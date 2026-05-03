@@ -1,0 +1,88 @@
+/* ==========================================================================
+   ThemePicker — 3-option theme selector (light/dark/system).
+   Rendered inside a BottomSheet.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-theme-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+/* ── Option ── */
+.pcp-theme-picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--tap-primary);        /* 56px */
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--color-text-1);
+  transition: border-color var(--duration-quick) var(--easing-standard),
+              background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-theme-picker__option:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.pcp-theme-picker__option--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* ── Icon ── */
+.pcp-theme-picker__icon {
+  flex-shrink: 0;
+  font-size: var(--font-size-lg);        /* 24px */
+  line-height: 1;
+  width: 32px;
+  text-align: center;
+}
+
+/* ── Label ── */
+.pcp-theme-picker__label {
+  flex: 1;
+  font-size: var(--font-size-base);      /* 18px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+/* ── Radio indicator (right side) ── */
+.pcp-theme-picker__radio {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-theme-picker__option--active .pcp-theme-picker__radio {
+  border-color: var(--color-primary);
+}
+
+.pcp-theme-picker__radio-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-theme-picker__option--active .pcp-theme-picker__radio-dot {
+  background: var(--color-primary);
+}

@@ -1,0 +1,177 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import './InputArea.css';
+
+const MAX_INPUT_LENGTH = 4000;
+
+/**
+ * InputArea -- Textarea + send button + Get Help ghost button (D2 S2/S6/S7).
+ *
+ * Key behaviors:
+ * - Textarea auto-grows from 56px to 5-line max
+ * - Enter does NOT submit (Margaret types newlines accidentally)
+ * - Only the send button submits
+ * - Send button: 56x56 circle, primary when has text, disabled when empty
+ * - Get Help: full-width ghost button below input
+ *
+ * @param {{ onSend: (text:string) => void, onGatherResources: (text:string) => void, isTyping: boolean, hasMessages: boolean }} props
+ */
+function InputArea({ onSend, onGatherResources, isTyping }) {
+  const textareaRef = useRef(null);
+  const [value, setValue] = useState('');
+  const [helpLoading, setHelpLoading] = useState(false);
+
+  const hasText = value.trim().length > 0;
+
+  // Focus textarea on mount
+  useEffect(() => {
+    if (textareaRef.current) textareaRef.current.focus();
+  }, []);
+
+  // Re-focus after AI finishes typing
+  useEffect(() => {
+    if (!isTyping && textareaRef.current) textareaRef.current.focus();
+  }, [isTyping]);
+
+  // Auto-resize textarea
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, el.offsetHeight * 5) + 'px';
+  }, []);
+
+  const handleChange = (e) => {
+    let val = e.target.value;
+    if (val.length > MAX_INPUT_LENGTH) {
+      val = val.slice(0, MAX_INPUT_LENGTH);
+    }
+    setValue(val);
+    autoResize();
+  };
+
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData('text');
+    const currentLen = value.length;
+    const selStart = e.target.selectionStart || 0;
+    const selEnd = e.target.selectionEnd || 0;
+    const selectedLen = selEnd - selStart;
+    const newLen = currentLen - selectedLen + pasted.length;
+    if (newLen > MAX_INPUT_LENGTH) {
+      e.preventDefault();
+      const allowed = MAX_INPUT_LENGTH - (currentLen - selectedLen);
+      const truncated = pasted.slice(0, Math.max(0, allowed));
+      const before = value.slice(0, selStart);
+      const after = value.slice(selEnd);
+      setValue(before + truncated + after);
+      autoResize();
+    }
+  };
+
+  const handleSend = () => {
+    const trimmed = value.trim();
+    if (!trimmed || isTyping) return;
+    onSend(trimmed);
+    setValue('');
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleGetHelp = () => {
+    if (isTyping || helpLoading) return;
+    setHelpLoading(true);
+    const text = value.trim();
+    onGatherResources(text);
+    setValue('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    // Reset loading after a brief period (server will handle via isTyping)
+    setTimeout(() => setHelpLoading(false), 3000);
+  };
+
+  // Do NOT submit on Enter — only the send button submits
+  // This is a deliberate design choice for elderly users
+  const handleKeyDown = (e) => {
+    // Prevent default nothing — Enter just creates a newline in textarea
+    // No special handling needed; textarea handles Enter natively
+    void e;
+  };
+
+  /**
+   * Fill the textarea with text and auto-submit.
+   * Called by EmptyState suggestion chips via parent.
+   */
+  const fillAndSubmit = useCallback((text) => {
+    setValue(text);
+    // Use a microtask so React processes the state update first
+    queueMicrotask(() => {
+      onSend(text);
+      setValue('');
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    });
+  }, [onSend]);
+
+  // Expose fillAndSubmit to parent via a prop callback
+  useEffect(() => {
+    if (InputArea._fillRef) InputArea._fillRef.current = fillAndSubmit;
+  }, [fillAndSubmit]);
+
+  const sendBtnClass = hasText && !isTyping
+    ? 'pcp-input-area__send pcp-input-area__send--active'
+    : 'pcp-input-area__send pcp-input-area__send--disabled';
+
+  const helpBtnClass = helpLoading
+    ? 'pcp-input-area__help pcp-input-area__help--loading'
+    : 'pcp-input-area__help';
+
+  return (
+    <div className="pcp-input-area">
+      <div className="pcp-input-area__row">
+        <label htmlFor="pcp-chat-input" className="sr-only">
+          Type your question
+        </label>
+        <textarea
+          id="pcp-chat-input"
+          ref={textareaRef}
+          className="pcp-input-area__textarea"
+          placeholder="Type your question..."
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          disabled={isTyping}
+          maxLength={MAX_INPUT_LENGTH}
+          rows={1}
+          autoComplete="off"
+          aria-label="Type your question here"
+        />
+        <button
+          type="button"
+          className={sendBtnClass}
+          onClick={handleSend}
+          disabled={!hasText || isTyping}
+          aria-label="Send message"
+          aria-disabled={!hasText || isTyping}
+        >
+          <span className="pcp-input-area__send-icon" aria-hidden="true">&#x2191;</span>
+        </button>
+      </div>
+      <button
+        type="button"
+        className={helpBtnClass}
+        onClick={handleGetHelp}
+        disabled={isTyping}
+        aria-label="Ask PC Pal for outside resources"
+      >
+        <span className="pcp-input-area__help-icon" aria-hidden="true">
+          {helpLoading ? '\u21BB' : '+'}
+        </span>
+        {helpLoading ? 'Looking for help...' : 'Get Help'}
+      </button>
+    </div>
+  );
+}
+
+export default InputArea;

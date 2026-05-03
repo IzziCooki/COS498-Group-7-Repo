@@ -1,0 +1,113 @@
+/* ==========================================================================
+   MeScreen — Me tab root: profile card + settings rows.
+   BEM with pcp- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-me-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--color-surface-2);
+}
+
+/* ── Profile card ── */
+.pcp-me-screen__profile {
+  background: var(--color-surface);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-me-screen__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pcp-me-screen__name {
+  font-size: var(--font-size-lg);          /* 24px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+  text-align: center;
+  margin: 0;
+}
+
+.pcp-me-screen__details {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  text-align: center;
+  margin: 0;
+}
+
+.pcp-me-screen__edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-primary);          /* 56px */
+  width: 100%;
+  max-width: 320px;
+  margin-top: var(--space-2);
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-me-screen__edit-btn:hover {
+  background: var(--color-primary-soft);
+}
+
+.pcp-me-screen__edit-btn:active {
+  background: var(--color-primary-soft);
+}
+
+/* ── Settings rows container ── */
+.pcp-me-screen__rows {
+  background: var(--color-surface);
+  flex: 1;
+}
+
+/* ── About section (inline content) ── */
+.pcp-me-screen__about {
+  padding: var(--space-5);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+.pcp-me-screen__about-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-me-screen__about-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-me-screen__about-version {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+}

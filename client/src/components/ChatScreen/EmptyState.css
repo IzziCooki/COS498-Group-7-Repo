@@ -1,0 +1,73 @@
+/* ==========================================================================
+   EmptyState — First-message welcome (D2 S3.1)
+   Centered mascot + heading + subtitle + 3 suggestion chips
+   ========================================================================== */
+
+.pcp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  flex: 1;
+  text-align: center;
+}
+
+.pcp-empty__mascot {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+}
+
+.pcp-empty__mascot-text {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.pcp-empty__heading {
+  font-size: var(--font-size-lg);           /* 24px */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-empty__subtitle {
+  font-size: var(--font-size-base);         /* 18px */
+  color: var(--color-text-2);
+  line-height: 1.5;
+  max-width: 32ch;
+  margin-bottom: var(--space-6);
+}
+
+.pcp-empty__label {
+  font-size: var(--font-size-sm);           /* 16px */
+  color: var(--color-text-2);
+  margin-bottom: var(--space-3);
+  align-self: flex-start;
+  padding-left: var(--space-4);
+}
+
+.pcp-empty__chips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0 var(--space-4);
+}
+
+/* Very small phones: tighten padding */
+@media (max-width: 359px) {
+  .pcp-empty__chips {
+    padding: 0 var(--space-2);
+  }
+
+  .pcp-empty {
+    padding: var(--space-5) var(--space-2);
+  }
+}
