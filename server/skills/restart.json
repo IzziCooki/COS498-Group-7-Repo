@@ -5,5 +5,10 @@
   "triggers": ["restart", "reboot", "shut down", "turn off", "turn it off", "power off", "frozen", "stuck", "not responding"],
   "category": "troubleshooting",
   "difficulty": "beginner",
+  "quickHelp": true,
+  "quickHelpLabel": "Restart my computer",
+  "quickHelpEmoji": "🔄",
+  "quickHelpStarter": "How do I restart my computer the right way?",
+  "quickHelpOrder": 8,
   "prompt": "The user wants to restart their device (or it may be frozen). FIRST remind them to save any open work. Then give the restart steps for their specific device. Mention that restarting fixes many common problems — it is like giving your device a fresh start."
 }

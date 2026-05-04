@@ -5,5 +5,10 @@
   "triggers": ["copy", "paste", "ctrl+c", "ctrl+v", "cmd+c", "cmd+v", "duplicate text", "move text"],
   "category": "basics",
   "difficulty": "beginner",
+  "quickHelp": true,
+  "quickHelpLabel": "Copy and paste",
+  "quickHelpEmoji": "📋",
+  "quickHelpStarter": "Show me how to copy and paste something.",
+  "quickHelpOrder": 5,
   "prompt": "The user needs help with copying and pasting. Teach them step by step. Mention that this is one of the most useful skills on any device. Explain what the clipboard is in simple terms (a temporary invisible notepad). Show the keyboard shortcut prominently in bold."
 }

@@ -5,5 +5,10 @@
   "triggers": ["screenshot", "screen shot", "capture screen", "print screen", "snip", "picture of screen", "save my screen"],
   "category": "basics",
   "difficulty": "beginner",
+  "quickHelp": true,
+  "quickHelpLabel": "Take a screenshot",
+  "quickHelpEmoji": "📸",
+  "quickHelpStarter": "Help me take a screenshot.",
+  "quickHelpOrder": 3,
   "prompt": "The user wants to take a screenshot. Explain that a screenshot is like taking a photo of whatever is showing on their screen. Give the exact key combination for their device. Mention where the screenshot gets saved."
 }

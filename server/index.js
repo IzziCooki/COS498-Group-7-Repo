@@ -23,6 +23,7 @@ const buddyRouter = require('./routes/buddy');
 const qualityRouter = require('./routes/quality');
 const authRouter = require('./routes/auth');
 const adminRouter = require('./routes/admin');
+const skillsRouter = require('./routes/skills');
 const { attachUser } = require('./middleware/auth');
 
 const app = express();
@@ -156,6 +157,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/conversations', exportRouter);
 app.use('/api/buddy', buddyRouter);
 app.use('/api/quality', qualityRouter);
+app.use('/api/skills', skillsRouter);
 
 app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
 
