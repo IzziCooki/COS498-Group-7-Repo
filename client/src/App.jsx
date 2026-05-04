@@ -9,6 +9,7 @@ import { useChat } from './hooks/useChat';
 import ShellLayout from './components/ShellLayout/ShellLayout';
 import AccessibilityBar from './components/Layout/AccessibilityBar';
 import { useAccessibilityPrefs } from './hooks/useAccessibilityPrefs';
+import { useSpeech } from './hooks/useSpeech';
 import Onboarding from './components/Onboarding/Onboarding';
 import AuthScreen from './components/Auth/AuthScreen';
 import ChatScreen from './components/ChatScreen/ChatScreen';
@@ -148,8 +149,15 @@ function AppContent() {
   const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
   const { role, activeLearner, detectAndApplyRole } = useRole();
+  const speech = useSpeech();
   // Chat hook lifted to App level so WebSocket stays alive across tab switches
-  const chatData = useChat(user?.id);
+  const chatData = useChat(user?.id, {
+    onAssistantResponse: useCallback((text) => {
+      if (a11y.prefs.readAloud && speech.synthSupported) {
+        speech.speak(text);
+      }
+    }, [a11y.prefs.readAloud, speech]),
+  });
   const { toast } = useToast() || {};
 
   // ── Copy conversation to clipboard ──
