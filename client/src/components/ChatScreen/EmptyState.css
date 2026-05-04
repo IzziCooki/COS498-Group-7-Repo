@@ -1,56 +1,79 @@
 /* ==========================================================================
-   EmptyState — First-message welcome (D2 S3.1)
-   Centered mascot + heading + subtitle + 3 suggestion chips
+   EmptyState — Welcome screen with scrollable categorized suggestions
    ========================================================================== */
 
 .pcp-empty {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6) var(--space-4);
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Fixed top section: mascot + heading */
+.pcp-empty__top {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  padding: var(--space-5) var(--space-4) var(--space-3);
 }
 
 .pcp-empty__mascot {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
 }
 
 .pcp-empty__mascot-text {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
 }
 
 .pcp-empty__heading {
-  font-size: var(--font-size-lg);           /* 24px */
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-1);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .pcp-empty__subtitle {
-  font-size: var(--font-size-base);         /* 18px */
+  font-size: var(--font-size-base);
   color: var(--color-text-2);
-  line-height: 1.5;
-  max-width: 32ch;
-  margin-bottom: var(--space-6);
+  line-height: var(--line-height-base);
+  max-width: 36ch;
+  margin: 0;
 }
 
-.pcp-empty__label {
-  font-size: var(--font-size-sm);           /* 16px */
+/* Scrollable suggestion list */
+.pcp-empty__scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-2) var(--space-4) var(--space-6);
+}
+
+/* Category group */
+.pcp-empty__category {
+  margin-bottom: var(--space-4);
+}
+
+.pcp-empty__category-heading {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-2);
-  margin-bottom: var(--space-3);
-  align-self: flex-start;
-  padding-left: var(--space-4);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-1);
 }
 
 .pcp-empty__chips {
@@ -58,16 +81,14 @@
   flex-direction: column;
   gap: var(--space-2);
   width: 100%;
-  padding: 0 var(--space-4);
 }
 
-/* Very small phones: tighten padding */
+/* Very small phones */
 @media (max-width: 359px) {
-  .pcp-empty__chips {
-    padding: 0 var(--space-2);
+  .pcp-empty__scroll {
+    padding: var(--space-2) var(--space-2) var(--space-5);
   }
-
-  .pcp-empty {
-    padding: var(--space-5) var(--space-2);
+  .pcp-empty__top {
+    padding: var(--space-4) var(--space-2) var(--space-2);
   }
 }
