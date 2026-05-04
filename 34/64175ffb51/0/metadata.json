@@ -1,0 +1,48 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "3464175ffb51",
+  "session_id": "2b1932fa-4923-4982-8bbe-2f559eb92eae",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-04T19:00:36.2356634Z",
+  "branch": "refactor/remove-buddy-system",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "README.md",
+    "client/src/App.jsx",
+    "client/src/components/Chat/ChatWindow.jsx",
+    "client/src/components/Chat/MessageInput.css",
+    "client/src/components/Chat/MessageInput.jsx",
+    "client/src/styles/globals.css",
+    "server/index.js",
+    "server/skills/copy-paste.json",
+    "server/skills/print-document.json",
+    "server/skills/restart.json",
+    "server/skills/scam-protection.json",
+    "server/skills/screenshot.json",
+    "server/skills/send-email.json",
+    "server/skills/video-call.json",
+    "server/skills/wifi.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "4232ce864a37",
+  "token_usage": {
+    "input_tokens": 3846,
+    "cache_creation_tokens": 366856,
+    "cache_read_tokens": 3432003,
+    "output_tokens": 44201,
+    "api_call_count": 32
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-04T19:00:35.2254128Z",
+    "agent_lines": 0,
+    "human_added": 682,
+    "human_modified": 2332,
+    "human_removed": 0,
+    "total_committed": 3013,
+    "agent_percentage": 0
+  }
+}
