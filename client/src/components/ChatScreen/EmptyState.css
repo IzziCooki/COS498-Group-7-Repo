@@ -1,23 +1,13 @@
 /* ==========================================================================
-   EmptyState — Welcome screen with scrollable categorized suggestions
+   EmptyState — Welcome with a compact scrollable suggestion box
    ========================================================================== */
 
 .pcp-empty {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Fixed top section: mascot + heading */
-.pcp-empty__top {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
   padding: var(--space-5) var(--space-4) var(--space-3);
+  text-align: center;
 }
 
 .pcp-empty__mascot {
@@ -49,27 +39,34 @@
   color: var(--color-text-2);
   line-height: var(--line-height-base);
   max-width: 36ch;
-  margin: 0;
+  margin: 0 0 var(--space-4);
 }
 
-/* Scrollable suggestion list */
+/* Scrollable suggestion box — fixed height, rounded border */
 .pcp-empty__scroll {
-  flex: 1;
+  width: 100%;
+  max-width: 480px;
+  height: 280px;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: var(--space-2) var(--space-4) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: var(--space-3);
 }
 
-/* Category group */
 .pcp-empty__category {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-empty__category:last-child {
+  margin-bottom: 0;
 }
 
 .pcp-empty__category-heading {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-2);
+  color: var(--color-text-3);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-caps);
   margin: 0 0 var(--space-2);
@@ -79,16 +76,17 @@
 .pcp-empty__chips {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   width: 100%;
 }
 
 /* Very small phones */
 @media (max-width: 359px) {
-  .pcp-empty__scroll {
-    padding: var(--space-2) var(--space-2) var(--space-5);
-  }
-  .pcp-empty__top {
+  .pcp-empty {
     padding: var(--space-4) var(--space-2) var(--space-2);
+  }
+  .pcp-empty__scroll {
+    height: 220px;
+    padding: var(--space-2);
   }
 }

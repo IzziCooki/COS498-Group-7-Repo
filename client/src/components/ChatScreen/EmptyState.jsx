@@ -77,16 +77,14 @@ const CATEGORIES = [
 function EmptyState({ onSendMessage }) {
   return (
     <div className="pcp-empty">
-      <div className="pcp-empty__top">
-        <div className="pcp-empty__mascot" aria-hidden="true">
-          <span className="pcp-empty__mascot-text">PC</span>
-        </div>
-        <h2 className="pcp-empty__heading">Hi, I'm PC Pal</h2>
-        <p className="pcp-empty__subtitle">
-          I can help you with your computer, phone, or tablet.
-          Tap any question below, or type your own.
-        </p>
+      <div className="pcp-empty__mascot" aria-hidden="true">
+        <span className="pcp-empty__mascot-text">PC</span>
       </div>
+      <h2 className="pcp-empty__heading">Hi, I'm PC Pal</h2>
+      <p className="pcp-empty__subtitle">
+        I can help you with your computer, phone, or tablet.
+        Tap any question below, or type your own.
+      </p>
       <div className="pcp-empty__scroll">
         {CATEGORIES.map((cat) => (
           <div key={cat.heading} className="pcp-empty__category">
