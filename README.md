@@ -23,6 +23,15 @@ PC Pal is an AI-powered IT tutor designed for elderly and beginner computer user
 - **Vocabulary Simplification** — Automatically replaces 20+ technical terms with plain language (e.g., "browser" becomes "internet app") with 3 adaptation levels
 - **Comfort-Level Adaptation** — Responses adjust based on the user's self-reported comfort level (1-5): brand new users get max 2 steps at a time with everyday analogies, experienced users get concise answers
 
+### Accessibility
+- **Persistent Accessibility Toolbar** — Always-visible top strip with three controls
+  - **Text size** cycle (Normal / Large / Extra Large) — proportionally scales every font in the app
+  - **High contrast** toggle — pure black on pure white with thicker borders for low-vision users
+  - **Read aloud** toggle — speaks PC Pal's replies through the browser's built-in voice at a calm cadence; markdown is stripped before speaking
+- **Tap-to-Start Tile Grid** — Large emoji tiles for the most common tasks (Send email, Connect to Wi-Fi, Take a screenshot, etc.) appear on the empty chat state. One tap drops a starter prompt into the chat — no typing required. Tiles are data-driven; opt a skill in via `quickHelp: true` in its JSON
+- **Voice Dictation** — Speak instead of typing on Chromium-based browsers (mic button on the message input)
+- **Persistent Preferences** — Accessibility choices persist across sessions via `localStorage`
+
 ### Learning Science
 - **Skill Progression Chains** — Skills build on each other (copy/paste -> send email -> attach file) so users follow a natural learning path
 - **Spaced Repetition** — Completed skills are scheduled for review after 7 days. Returning users see a "Welcome back! Want to practice?" prompt
