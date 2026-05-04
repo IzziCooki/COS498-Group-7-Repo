@@ -1,0 +1,21 @@
+Please verify that you can reach the connected github for this code project. Inside of the branch that I've been working on, which is refactor/slash/remove buddy system, I see that I am at least 150, if not more, commits behind main. And I need this branch to implement removing the buddy system within the main branch without causing a gigantic merge conflict. And I need this to be done autonomously. So please first verify that you can connect to the GitHub, then pull from main, resolve any merge conflicts, verify that the buddy system has been properly removed and the refactor landed, then set up a pull request and merge it into main.
+
+---
+
+All right, since the buddy system has been vastly improved, I really need a feature pushed to this GitHub repository to say that I've successfully implemented something. So one of the comments that I wrote was UI improvement. Perhaps this is something that I could attack on, but regardless, we need to first create a new branch. I deleted this branch as well as another one that I authored because they were so far behind and I don't think it's a good starting point anymore. So let's create a new branch from main, start working on, and then brainstorm some new feature that you think would potentially be cool. I'll take a look at it myself and we can go from there.
+
+---
+
+explain the wip feature a little more to me
+
+---
+
+ship it!!!
+
+---
+
+Looks good, make sure this doesnt break anything in main though
+
+---
+
+2
