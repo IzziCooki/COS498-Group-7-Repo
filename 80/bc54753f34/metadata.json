@@ -1,0 +1,33 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "80bc54753f34",
+  "strategy": "manual-commit",
+  "branch": "feature/accessibility-quick-help",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "server/index.js",
+    "server/skills/copy-paste.json",
+    "server/skills/print-document.json",
+    "server/skills/restart.json",
+    "server/skills/scam-protection.json",
+    "server/skills/screenshot.json",
+    "server/skills/send-email.json",
+    "server/skills/video-call.json",
+    "server/skills/wifi.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/80/bc54753f34/0/metadata.json",
+      "transcript": "/80/bc54753f34/0/full.jsonl",
+      "content_hash": "/80/bc54753f34/0/content_hash.txt",
+      "prompt": "/80/bc54753f34/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3926,
+    "cache_creation_tokens": 671293,
+    "cache_read_tokens": 17909943,
+    "output_tokens": 102136,
+    "api_call_count": 93
+  }
+}
