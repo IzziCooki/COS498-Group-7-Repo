@@ -46,9 +46,7 @@ const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
 const MAX_TOOL_ROUNDS = 10;
 
-// Side-channel for screenshot data (same pattern as pcpalTools.js)
-let _lastScreenshot = null;
-function getAndClearLastScreenshot() { const s = _lastScreenshot; _lastScreenshot = null; return s; }
+// getAndClearLastScreenshot is imported from pcpalTools.js (line 21)
 
 const tools = [
   {
