@@ -1,0 +1,382 @@
+/* ==========================================================================
+   Architecture — Interactive system architecture viewer.
+   BEM with pcp-arch- prefix. Design tokens only.
+   ========================================================================== */
+
+.pcp-arch {
+  padding: var(--space-5);
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+}
+
+.pcp-arch__intro {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  margin-bottom: var(--space-6);
+}
+
+/* ── Collapsible section ── */
+.pcp-arch__section {
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.pcp-arch__section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  min-height: var(--tap-comfort);
+  min-width: unset;
+  transition: background-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-arch__section-header:hover {
+  background: var(--color-surface-3);
+}
+
+.pcp-arch__section-chevron {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  transition: transform var(--duration-base) var(--easing-standard);
+  flex-shrink: 0;
+}
+
+.pcp-arch__section-chevron--open {
+  transform: rotate(90deg);
+}
+
+.pcp-arch__section-title {
+  flex: 1;
+  line-height: var(--line-height-tight);
+}
+
+.pcp-arch__section-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+.pcp-arch__section-body {
+  padding: 0 var(--space-4) var(--space-4);
+  animation: pcp-arch-fadeIn var(--duration-base) var(--easing-decel) forwards;
+}
+
+@keyframes pcp-arch-fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-arch__section-chevron,
+  .pcp-arch__section-chevron--open {
+    transition: none;
+  }
+
+  .pcp-arch__section-body {
+    animation: none;
+  }
+}
+
+/* ── Pipeline diagram (Section A) ── */
+.pcp-arch__pipeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.pcp-arch__pipeline-box {
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.pcp-arch__pipeline-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-1);
+}
+
+.pcp-arch__pipeline-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0;
+}
+
+.pcp-arch__pipeline-arrow {
+  text-align: center;
+  color: var(--color-text-3);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  padding: var(--space-1) 0;
+  user-select: none;
+}
+
+/* ── Category sub-header ── */
+.pcp-arch__category {
+  margin-bottom: var(--space-4);
+}
+
+.pcp-arch__category:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-arch__category-header {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-arch__category-count {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-3);
+  font-size: var(--font-size-xs);
+}
+
+/* ── Tool card ── */
+.pcp-arch__tool {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-arch__tool:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-arch__tool-name {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-1);
+}
+
+.pcp-arch__tool-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0 0 var(--space-2);
+}
+
+.pcp-arch__tool-params {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pcp-arch__tool-param {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  line-height: var(--line-height-loose);
+  padding-left: var(--space-3);
+  position: relative;
+}
+
+.pcp-arch__tool-param::before {
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  color: var(--color-text-3);
+}
+
+.pcp-arch__tool-param-name {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+}
+
+.pcp-arch__tool-param-type {
+  color: var(--color-primary);
+}
+
+/* ── Skill card ── */
+.pcp-arch__skill {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-arch__skill:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-arch__skill-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.pcp-arch__skill-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-arch__skill-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+  margin: 0 0 var(--space-2);
+}
+
+/* Difficulty badge */
+.pcp-arch__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.pcp-arch__badge--beginner {
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+
+.pcp-arch__badge--intermediate {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.pcp-arch__badge--critical {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}
+
+/* Trigger tags */
+.pcp-arch__triggers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.pcp-arch__trigger-tag {
+  display: inline-block;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* ── Safety layer card ── */
+.pcp-arch__safety-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.pcp-arch__safety-card:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-arch__safety-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-3);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-caps);
+  margin-bottom: var(--space-1);
+}
+
+.pcp-arch__safety-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+}
+
+.pcp-arch__safety-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: var(--line-height-loose);
+  margin: 0;
+}
+
+/* ── Database table list ── */
+.pcp-arch__db-group {
+  margin-bottom: var(--space-4);
+}
+
+.pcp-arch__db-group:last-child {
+  margin-bottom: 0;
+}
+
+.pcp-arch__db-group-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-arch__db-group-count {
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-3);
+  font-size: var(--font-size-xs);
+}
+
+.pcp-arch__db-table {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pcp-arch__db-table:last-child {
+  border-bottom: none;
+}
+
+.pcp-arch__db-table-name {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-1);
+  flex-shrink: 0;
+}
+
+.pcp-arch__db-table-purpose {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  line-height: var(--line-height-base);
+}

@@ -8,6 +8,7 @@ import Settings from './Settings';
 import TextSizePicker from './TextSizePicker';
 import ThemePicker from './ThemePicker';
 import HowToUseGuide from './HowToUseGuide';
+import Architecture from './Architecture';
 import FullScreenOverlay from '../Overlays/FullScreenOverlay';
 import { useTheme } from '../../hooks/useTheme';
 import { useTextSize } from '../../hooks/useTextSize';
@@ -58,6 +59,7 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout, onSendM
   const [showTextSize, setShowTextSize] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
   const [showHowToUse, setShowHowToUse] = useState(false);
+  const [showArchitecture, setShowArchitecture] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [readAloud, setReadAloud] = useState(() => {
     return localStorage.getItem('pcpal-read-aloud') === 'true';
@@ -137,6 +139,11 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout, onSendM
           icon={'\u2753'}
           label="How to use PC Pal"
           onClick={() => setShowHowToUse(true)}
+        />
+        <SettingsRow
+          icon={'\uD83D\uDD27'}
+          label="Architecture"
+          onClick={() => setShowArchitecture(true)}
         />
         <SettingsRow
           icon={'\uD83D\uDCCB'}
@@ -229,6 +236,11 @@ function MeScreen({ user, updateProfile, hasBuddy, helperName, onLogout, onSendM
       <HowToUseGuide
         open={showHowToUse}
         onClose={() => setShowHowToUse(false)}
+      />
+
+      <Architecture
+        open={showArchitecture}
+        onClose={() => setShowArchitecture(false)}
       />
 
       {/* About screen (simple full-screen overlay) */}
