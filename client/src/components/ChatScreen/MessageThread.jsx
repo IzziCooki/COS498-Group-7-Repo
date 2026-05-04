@@ -4,6 +4,7 @@ import TypingIndicator from './TypingIndicator';
 import SafetyBanner from './SafetyBanner';
 import WelcomeBackBanner from './WelcomeBackBanner';
 import EmptyState from './EmptyState';
+import QuickHelpGrid from '../Chat/QuickHelpGrid';
 import './MessageThread.css';
 
 /**
@@ -109,9 +110,13 @@ function MessageThread({
           />
         )}
 
-        {/* Empty state */}
+        {/* Empty state: large quick-help tiles up top for tap-to-start users,
+            then EmptyState chip list below for browsers. */}
         {isEmpty && !isViewingPast && (
-          <EmptyState onSendMessage={onSendMessage} />
+          <>
+            <QuickHelpGrid onSelect={onSendMessage} />
+            <EmptyState onSendMessage={onSendMessage} />
+          </>
         )}
 
         {isEmpty && isViewingPast && (
