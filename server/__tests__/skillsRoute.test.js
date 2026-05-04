@@ -14,7 +14,10 @@ function startServer() {
 function getJSON(server, path) {
   return new Promise((resolve, reject) => {
     const { port } = server.address();
-    http.get({ host: '127.0.0.1', port, path }, (res) => {
+    // agent: false → no keepalive, so the socket closes cleanly after the
+    // response; otherwise server.close() hangs on Linux CI waiting for the
+    // pooled connection to time out.
+    http.get({ host: '127.0.0.1', port, path, agent: false }, (res) => {
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
       res.on('end', () => {
@@ -32,7 +35,14 @@ describe('GET /api/skills/quick-help', () => {
   let server;
 
   beforeAll(async () => { server = await startServer(); });
-  afterAll((done) => server.close(done));
+  afterAll(async () => {
+    // closeAllConnections (Node 18.2+) belt-and-suspenders for any pooled
+    // sockets the test runner might have left dangling.
+    if (typeof server.closeAllConnections === 'function') {
+      server.closeAllConnections();
+    }
+    await new Promise((resolve) => server.close(resolve));
+  });
 
   it('returns only skills marked quickHelp: true', async () => {
     const { status, body } = await getJSON(server, '/api/skills/quick-help');
