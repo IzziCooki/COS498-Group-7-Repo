@@ -3,9 +3,10 @@
   "checkpoint_id": "3464175ffb51",
   "strategy": "manual-commit",
   "branch": "refactor/remove-buddy-system",
-  "checkpoints_count": 3,
+  "checkpoints_count": 5,
   "files_touched": [
     "README.md",
+    "bash.exe.stackdump",
     "client/src/App.jsx",
     "client/src/components/Chat/ChatWindow.jsx",
     "client/src/components/Chat/MessageInput.css",
@@ -27,13 +28,19 @@
       "transcript": "/34/64175ffb51/0/full.jsonl",
       "content_hash": "/34/64175ffb51/0/content_hash.txt",
       "prompt": "/34/64175ffb51/0/prompt.txt"
+    },
+    {
+      "metadata": "/34/64175ffb51/1/metadata.json",
+      "transcript": "/34/64175ffb51/1/full.jsonl",
+      "content_hash": "/34/64175ffb51/1/content_hash.txt",
+      "prompt": "/34/64175ffb51/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3846,
-    "cache_creation_tokens": 366856,
-    "cache_read_tokens": 3432003,
-    "output_tokens": 44201,
-    "api_call_count": 32
+    "input_tokens": 6211,
+    "cache_creation_tokens": 908852,
+    "cache_read_tokens": 20940655,
+    "output_tokens": 146537,
+    "api_call_count": 118
   }
 }
