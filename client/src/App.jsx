@@ -7,6 +7,8 @@ import { useBuddy } from './hooks/useBuddy';
 import { useConversations } from './hooks/useConversations';
 import { useChat } from './hooks/useChat';
 import ShellLayout from './components/ShellLayout/ShellLayout';
+import AccessibilityBar from './components/Layout/AccessibilityBar';
+import { useAccessibilityPrefs } from './hooks/useAccessibilityPrefs';
 import Onboarding from './components/Onboarding/Onboarding';
 import AuthScreen from './components/Auth/AuthScreen';
 import ChatScreen from './components/ChatScreen/ChatScreen';
@@ -141,6 +143,7 @@ const VIEW_TITLES = {
 
 function AppContent() {
   const { view, navigate, back } = useRouter();
+  const a11y = useAccessibilityPrefs();
   const { user, isOnboarded, isLoading, createUser, completeOnboarding, updateProfile, applyUser } = useUser();
   const { logout } = useAuth({ onUserChanged: applyUser });
   const buddyData = useBuddy(user?.id);
@@ -357,6 +360,13 @@ function AppContent() {
   // ── Main app with shell ──
   return (
     <>
+      <AccessibilityBar
+        prefs={a11y.prefs}
+        onCycleTextSize={a11y.cycleTextSize}
+        onToggleHighContrast={a11y.toggleHighContrast}
+        onToggleReadAloud={a11y.toggleReadAloud}
+        speechSupported={typeof window !== 'undefined' && 'speechSynthesis' in window}
+      />
       <ShellLayout
         title={VIEW_TITLES[view] || 'PC Pal'}
         onBack={onBack}
