@@ -27,3 +27,6 @@ Thumbs.db
 .claude/scheduled_tasks.lock
 .claude/settings.json
 .entire/
+
+# Cygwin/Git-for-Windows crash dumps
+*.stackdump
