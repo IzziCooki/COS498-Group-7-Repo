@@ -1,4 +1,11 @@
 import React, { useState, useCallback } from 'react';
+
+// Preload voices — Chrome loads them async after page load
+let _voicesReady = false;
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.getVoices(); // trigger initial load
+  window.speechSynthesis.onvoiceschanged = () => { _voicesReady = true; };
+}
 import ArtifactCard from './ArtifactCard';
 import GuideViewer from '../Artifacts/GuideViewer/GuideViewer';
 import VideoPlayer from '../Artifacts/VideoPlayer';
@@ -311,7 +318,30 @@ function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage, onR
                     setSpeaking(false);
                   } else if (text && 'speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.rate = 0.9;
+                    utterance.rate = 0.95;
+                    utterance.pitch = 1.0;
+                    // Pick the best available English voice
+                    const voices = window.speechSynthesis.getVoices();
+                    const english = voices.filter(v => v.lang.startsWith('en'));
+                    // Prefer high-quality voices by name (order = preference)
+                    const preferred = [
+                      'Google UK English Female',   // Chrome — natural, warm
+                      'Google US English',           // Chrome fallback
+                      'Samantha',                    // macOS — high quality
+                      'Karen',                       // macOS Australian
+                      'Daniel',                      // macOS British
+                      'Microsoft Zira',              // Windows
+                      'Microsoft Jenny',             // Windows 11 neural
+                      'Moira',                       // macOS Irish
+                    ];
+                    let best = null;
+                    for (const name of preferred) {
+                      best = english.find(v => v.name.includes(name));
+                      if (best) break;
+                    }
+                    // Fallback: any English voice, preferring non-default
+                    if (!best) best = english.find(v => !v.localService) || english[0];
+                    if (best) utterance.voice = best;
                     utterance.onend = () => setSpeaking(false);
                     utterance.onerror = () => setSpeaking(false);
                     window.speechSynthesis.speak(utterance);
