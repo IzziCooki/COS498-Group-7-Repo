@@ -1,0 +1,1 @@
+first act as an analyst, being critical of what is in this reposiotry, what isnt, what could be improved. then a brainstormer identifying ideas to be added. go through 2 reounds of review, then impliment. do this fully autonomously, and add something that would be a good user feature
