@@ -1,0 +1,25 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "e1e9deabd914",
+  "strategy": "manual-commit",
+  "branch": "feature/accessibility-quick-help",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "client/src/styles/globals.css"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e1/e9deabd914/0/metadata.json",
+      "transcript": "/e1/e9deabd914/0/full.jsonl",
+      "content_hash": "/e1/e9deabd914/0/content_hash.txt",
+      "prompt": "/e1/e9deabd914/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3906,
+    "cache_creation_tokens": 651601,
+    "cache_read_tokens": 12472049,
+    "output_tokens": 94346,
+    "api_call_count": 73
+  }
+}
