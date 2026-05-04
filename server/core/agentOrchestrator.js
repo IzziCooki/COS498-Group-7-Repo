@@ -18,6 +18,7 @@ const SkillReview = require('../models/SkillReview');
 const UserGoal = require('../models/UserGoal');
 const User = require('../models/User');
 const qualityTracker = require('./conversationQualityTracker');
+const { getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot } = require('../mcp/pcpalTools');
 const ScamCheckEvent = require('../models/ScamCheckEvent');
 const scamKnowledge = require('../assets/scam-knowledge.json');
 const systemDiagnostics = require('./systemDiagnostics');
@@ -70,6 +71,68 @@ const tools = [
         reason: { type: 'string', description: 'Why this was flagged as an emergency' },
       },
       required: ['reason'],
+    },
+  },
+  {
+    name: 'create_guide',
+    description: 'Create an interactive step-by-step guide artifact that appears in the side panel. Use this for ANY multi-step procedure (sending email, video calling, printing, etc.). Each step can include a screenshot image via image_id.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Guide title, e.g. "How to Send an Email in Gmail"' },
+        description: { type: 'string', description: 'Optional brief description' },
+        source: { type: 'string', description: 'Optional source attribution' },
+        steps: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              text: { type: 'string', description: 'Step instruction text' },
+              image_id: { type: 'string', description: 'Optional image ID from the UI reference library' },
+              command: { type: 'string', description: 'Optional terminal command' },
+              note: { type: 'string', description: 'Optional tip or warning' },
+            },
+            required: ['text'],
+          },
+          description: 'Array of guide steps',
+        },
+      },
+      required: ['title', 'steps'],
+    },
+  },
+  {
+    name: 'create_findings',
+    description: 'Create a diagnostic findings artifact showing system check results. Use after running diagnostics.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Title, e.g. "Battery Health Check"' },
+        findings: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              label: { type: 'string' },
+              value: { type: 'string' },
+              status: { type: 'string', enum: ['good', 'warning', 'bad'] },
+            },
+          },
+        },
+      },
+      required: ['title', 'findings'],
+    },
+  },
+  {
+    name: 'start_practice',
+    description: 'Start an interactive practice session for a skill. Built-in tasks: send_email, copy_paste, open_browser. Or provide custom steps.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        task_id: { type: 'string', description: 'Built-in task ID or "custom"' },
+        custom_title: { type: 'string', description: 'Title for custom practice' },
+        custom_steps: { type: 'array', items: { type: 'object' }, description: 'Custom practice steps' },
+      },
+      required: ['task_id'],
     },
   },
   {
@@ -736,6 +799,55 @@ async function handleFunctionCall(name, args, userId, sessionId) {
       console.error('[agentOrchestrator] Failed to log emergency:', err.message);
       result = 'Failed to log emergency event';
     }
+  } else if (name === 'create_guide') {
+    try {
+      const uiReferenceLibrary = require('./uiReferenceLibrary');
+      const expandedSteps = (args.steps || []).map(step => {
+        const out = { text: step.text, command: step.command, note: step.note };
+        if (step.image_id) {
+          const img = uiReferenceLibrary.getById(step.image_id);
+          if (img) {
+            out.image = img;
+            if (img.hotspots && img.hotspots.length > 0) {
+              out.hotspot = { xPercent: img.hotspots[0].x, yPercent: img.hotspots[0].y };
+            }
+          }
+        }
+        return out;
+      });
+      const guide = { title: args.title, description: args.description || null, source: args.source || null, steps: expandedSteps };
+      // Store for extraction after the tool loop
+      const pcpalTools = require('../mcp/pcpalTools');
+      if (pcpalTools._setLastGuide) pcpalTools._setLastGuide(guide);
+      else { /* fallback: store locally */ _createdGuide = guide; }
+      result = `Guide created: "${args.title}" with ${expandedSteps.length} steps`;
+      console.log(`[agentOrchestrator] Guide created: "${args.title}" (${expandedSteps.length} steps)`);
+    } catch (err) {
+      console.error('[agentOrchestrator] create_guide error:', err.message);
+      result = 'Unable to create guide';
+    }
+  } else if (name === 'create_findings') {
+    try {
+      const findingsObj = { title: args.title, findings: args.findings || args.items || [] };
+      const pcpalTools = require('../mcp/pcpalTools');
+      if (pcpalTools._setLastFindings) pcpalTools._setLastFindings(findingsObj);
+      else { _createdFindings = findingsObj; }
+      result = `Findings created: "${args.title}" with ${findingsObj.findings.length} items`;
+    } catch (err) {
+      console.error('[agentOrchestrator] create_findings error:', err.message);
+      result = 'Unable to create findings';
+    }
+  } else if (name === 'start_practice') {
+    try {
+      const practiceObj = { taskId: args.task_id, title: args.custom_title, customSteps: args.custom_steps };
+      const pcpalTools = require('../mcp/pcpalTools');
+      if (pcpalTools._setLastPractice) pcpalTools._setLastPractice(practiceObj);
+      else { _createdPractice = practiceObj; }
+      result = `Practice started: "${args.custom_title || args.task_id}"`;
+    } catch (err) {
+      console.error('[agentOrchestrator] start_practice error:', err.message);
+      result = 'Unable to start practice';
+    }
   } else if (name === 'show_visual_guide') {
     if (VALID_GUIDE_IDS.includes(args.task_id)) {
       guideId = args.task_id;
@@ -1345,10 +1457,17 @@ async function processMessage(text, userId, context = {}) {
 
     trackQuality({ userId, sessionId, userMessage: text, agentResponse: filteredResponse, user });
 
+    // Extract artifacts created during the tool-use loop
+    const guide = getAndClearLastGuide();
+    const findings = getAndClearLastFindings();
+    const practice = getAndClearLastPractice();
     const screenshot = getAndClearLastScreenshot();
+    if (guide) console.log(`[agentOrchestrator] Guide artifact: "${guide.title}" (${guide.steps?.length || 0} steps)`);
+    if (findings) console.log(`[agentOrchestrator] Findings artifact: "${findings.title}" (${findings.findings?.length || 0} items)`);
+    if (practice) console.log(`[agentOrchestrator] Practice artifact: "${practice.taskId || practice.title}"`);
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, screenshot: screenshot || null, confidence: skillMatch ? 'high' : 'low' };
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, guide: guide || null, findings: findings || null, practice: practice || null, screenshot: screenshot || null, confidence: skillMatch ? 'high' : 'low' };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };

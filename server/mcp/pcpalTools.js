@@ -810,4 +810,9 @@ function createPcPalMcpServer() {
   });
 }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn };
+// Setters for fallback orchestrator (which can't use the MCP tool server directly)
+function _setLastGuide(g) { _lastGuide = g; }
+function _setLastFindings(f) { _lastFindings = f; }
+function _setLastPractice(p) { _lastPractice = p; }
+
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn, _setLastGuide, _setLastFindings, _setLastPractice };
