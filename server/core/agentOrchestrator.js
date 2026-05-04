@@ -201,6 +201,24 @@ const tools = [
     },
   },
   {
+    name: 'save_memory',
+    description: "Save an observation about the user for future sessions. Use this to remember their preferences, struggles, breakthroughs, personal context, or patterns. Call this at least once per conversation. Be specific and concise.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', enum: ['preference', 'struggle', 'breakthrough', 'context', 'pattern'], description: 'preference: how they like to learn. struggle: what confuses them. breakthrough: skills mastered. context: personal details. pattern: behavioral patterns.' },
+        content: { type: 'string', description: 'The observation — one specific sentence' },
+        relevance: { type: 'number', description: '1-10 importance for future interactions (default 5)' },
+      },
+      required: ['type', 'content'],
+    },
+  },
+  {
+    name: 'recall_memories',
+    description: "Retrieve what you know about the user from past sessions. Call this at the start of a conversation to personalize your responses.",
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
     name: 'share_progress_with_buddy',
     description: 'Share a skill completion with the user\'s learning buddy. Only call this if the user has an active buddy pair. Call after complete_step_sequence.',
     input_schema: {
@@ -634,6 +652,8 @@ Level 4 (fourth+ confusion or "I give up"): Offer human help. If they have a bud
 - get_user_notes: Show the user's saved notes and tips.
 - restart_conversation: Start a fresh conversation when user is lost.
 - save_user_goal: Save when the user mentions why they are learning (e.g. "I want to email my grandkids").
+- save_memory: IMPORTANT — call this at least once per conversation to save observations about the user (preferences, struggles, breakthroughs, personal context, behavioral patterns). This helps you personalize future sessions.
+- recall_memories: Retrieve what you know about the user from past sessions. Call this early in conversations.
 - schedule_skill_review: After completing a skill, schedule a review for later.
 - share_progress_with_buddy: Share a skill completion with the user's buddy (only if they have one).
 - ask_buddy_for_help: Send a help request to the user's buddy when they are stuck.
@@ -873,6 +893,31 @@ async function handleFunctionCall(name, args, userId, sessionId) {
     } catch (err) {
       console.error('[agentOrchestrator] Failed to schedule review:', err.message);
       result = 'Unable to schedule skill review';
+    }
+  } else if (name === 'save_memory') {
+    try {
+      const UserMemory = require('../models/UserMemory');
+      UserMemory.create({
+        user_id: userId,
+        type: args.type,
+        content: args.content,
+        source: 'agent_observation',
+        relevance: args.relevance ?? 5,
+      });
+      result = `Memory saved: [${args.type}] ${args.content}`;
+      console.log(`[agentOrchestrator] Memory saved for user ${userId}: [${args.type}] ${args.content}`);
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to save memory:', err.message);
+      result = 'Unable to save memory';
+    }
+  } else if (name === 'recall_memories') {
+    try {
+      const UserMemory = require('../models/UserMemory');
+      const summary = UserMemory.buildMemorySummary(userId);
+      result = summary || 'No memories saved yet for this user.';
+    } catch (err) {
+      console.error('[agentOrchestrator] Failed to recall memories:', err.message);
+      result = 'Unable to recall memories';
     }
   } else if (name === 'share_progress_with_buddy') {
     try {

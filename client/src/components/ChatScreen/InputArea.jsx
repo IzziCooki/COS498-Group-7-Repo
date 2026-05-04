@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './InputArea.css';
 
 const MAX_INPUT_LENGTH = 4000;
+const HAS_SPEECH = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
 /**
  * InputArea -- Textarea + send button + Get Help ghost button (D2 S2/S6/S7).
@@ -19,6 +20,8 @@ function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onS
   const textareaRef = useRef(null);
   const [value, setValue] = useState('');
   const [helpLoading, setHelpLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   const hasText = value.trim().length > 0;
 
@@ -91,6 +94,32 @@ function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onS
     setTimeout(() => setHelpLoading(false), 3000);
   };
 
+  // ── Speech-to-text (STT) ──
+  const toggleMic = useCallback(() => {
+    if (listening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setListening(false);
+      return;
+    }
+    if (!HAS_SPEECH) return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setValue((prev) => prev ? prev + ' ' + transcript : transcript);
+      setListening(false);
+      if (textareaRef.current) textareaRef.current.focus();
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
+  }, [listening]);
+
   // Do NOT submit on Enter — only the send button submits
   // This is a deliberate design choice for elderly users
   const handleKeyDown = (e) => {
@@ -147,6 +176,17 @@ function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onS
           autoComplete="off"
           aria-label="Type your question here"
         />
+        {HAS_SPEECH && (
+          <button
+            type="button"
+            className={`pcp-input-area__mic${listening ? ' pcp-input-area__mic--active' : ''}`}
+            onClick={toggleMic}
+            aria-label={listening ? 'Stop listening' : 'Speak your question'}
+            title={listening ? 'Tap to stop' : 'Tap to speak'}
+          >
+            {listening ? '\uD83D\uDD34' : '\uD83C\uDF99\uFE0F'}
+          </button>
+        )}
         <button
           type="button"
           className={sendBtnClass}

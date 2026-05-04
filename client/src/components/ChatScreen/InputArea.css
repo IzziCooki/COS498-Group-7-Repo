@@ -47,6 +47,39 @@
   box-shadow: 0 0 0 3px var(--color-focus-shadow);
 }
 
+/* Mic button: 48x48, next to send */
+.pcp-input-area__mic {
+  width: var(--tap-comfort);
+  height: var(--tap-comfort);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  transition: background-color var(--duration-quick), border-color var(--duration-quick);
+}
+.pcp-input-area__mic:hover {
+  background: var(--color-surface-3);
+}
+.pcp-input-area__mic--active {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger);
+  animation: pcp-mic-pulse 1.5s ease-in-out infinite;
+}
+@keyframes pcp-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 48, 48, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(197, 48, 48, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcp-input-area__mic--active { animation: none; }
+}
+
 /* Send button: 56x56 circle */
 .pcp-input-area__send {
   width: var(--tap-primary);                 /* 56px */

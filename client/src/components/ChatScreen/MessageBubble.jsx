@@ -133,6 +133,7 @@ function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage, onR
   const isUser = role === 'user';
   const isAI = !isUser;
   const [rated, setRated] = React.useState(null); // 'up' | 'down' | null
+  const [speaking, setSpeaking] = React.useState(false);
 
   // ── Inline-expanded artifact state ──
   const [inlineExpanded, setInlineExpanded] = useState({});
@@ -298,6 +299,31 @@ function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage, onR
             <time className="pcp-message__timestamp" dateTime={timestamp}>
               {formattedTime}
             </time>
+          )}
+          {isAI && text && (
+            <div className="pcp-message__rate">
+              <button
+                type="button"
+                className={`pcp-message__rate-btn${speaking ? ' pcp-message__rate-btn--active' : ''}`}
+                onClick={() => {
+                  if (speaking) {
+                    window.speechSynthesis.cancel();
+                    setSpeaking(false);
+                  } else if (text && 'speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.onend = () => setSpeaking(false);
+                    utterance.onerror = () => setSpeaking(false);
+                    window.speechSynthesis.speak(utterance);
+                    setSpeaking(true);
+                  }
+                }}
+                aria-label={speaking ? 'Stop reading' : 'Read aloud'}
+                title={speaking ? 'Stop' : 'Read aloud'}
+              >
+                {speaking ? '\uD83D\uDD07' : '\uD83D\uDD0A'}
+              </button>
+            </div>
           )}
           {isAI && text && (
             <div className="pcp-message__rate">
