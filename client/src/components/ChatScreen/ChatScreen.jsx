@@ -189,6 +189,22 @@ function ChatScreen({
     setOpenArtifact(null);
   }, []);
 
+  // ── Thumbs up/down handler — saves to server as quality feedback ──
+  const handleRate = useCallback((messageId, rating) => {
+    if (!conversationId) return;
+    fetch('/api/quality/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        conversationId,
+        messageId,
+        rating: rating === 'up' ? 5 : rating === 'down' ? 1 : 3,
+        comment: rating === 'up' ? 'Thumbs up on message' : rating === 'down' ? 'Thumbs down on message' : '',
+      }),
+    }).catch(() => {});
+  }, [conversationId]);
+
   // ── Long-press handler ──
   const handleLongPress = useCallback((message) => {
     setContextMessage(message);
@@ -201,6 +217,8 @@ function ChatScreen({
         <ChatTopBar
           onOpenOptions={() => setOptionsOpen(true)}
           buddyObserving={buddyObserving}
+          onEndChatAndRate={endChat}
+          hasMessages={hasUserMessage}
         />
       </div>
 
@@ -233,6 +251,7 @@ function ChatScreen({
           onSafetyAction={handleSafetyAction}
           onSafetyDismiss={handleSafetyDismiss}
           isViewingPast={isViewingPast}
+          onRate={handleRate}
         />
       )}
 

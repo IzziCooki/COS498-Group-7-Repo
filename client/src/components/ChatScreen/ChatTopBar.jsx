@@ -11,7 +11,7 @@ import React from 'react';
  *
  * @param {{ onOpenOptions: () => void, buddyObserving: object|null }} props
  */
-function ChatTopBar({ onOpenOptions, buddyObserving }) {
+function ChatTopBar({ onOpenOptions, buddyObserving, onEndChatAndRate, hasMessages }) {
   return (
     <div className="pcp-chat-topbar" style={{
       display: 'flex',
@@ -30,6 +30,28 @@ function ChatTopBar({ onOpenOptions, buddyObserving }) {
         }}>
           {buddyObserving.buddyName} is helping you
         </div>
+      )}
+      {hasMessages && onEndChatAndRate && (
+        <button
+          type="button"
+          onClick={onEndChatAndRate}
+          aria-label="End chat and leave feedback"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-1)',
+            padding: '0 var(--space-3)',
+            minHeight: 'var(--tap-comfort)',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-xl)',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-text-2)',
+            cursor: 'pointer',
+          }}
+        >
+          End &amp; Rate
+        </button>
       )}
       <button
         type="button"

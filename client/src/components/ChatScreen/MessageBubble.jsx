@@ -128,10 +128,11 @@ function InlineArtifact({ type, data, onClose, onSendMessage, onOpenInPanel }) {
  *
  * @param {{ message: object, onArtifactTap: (type:string, data:any) => void, onLongPress: (message:object) => void, onSendMessage?: (text:string) => void }} props
  */
-function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage }) {
+function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage, onRate }) {
   const { role, text, timestamp, images, buddyTerminal, screenshot } = message;
   const isUser = role === 'user';
   const isAI = !isUser;
+  const [rated, setRated] = React.useState(null); // 'up' | 'down' | null
 
   // ── Inline-expanded artifact state ──
   const [inlineExpanded, setInlineExpanded] = useState({});
@@ -292,11 +293,43 @@ function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage }) {
           </div>
         )}
 
-        {formattedTime && (
-          <time className="pcp-message__timestamp" dateTime={timestamp}>
-            {formattedTime}
-          </time>
-        )}
+        <div className="pcp-message__meta-row">
+          {formattedTime && (
+            <time className="pcp-message__timestamp" dateTime={timestamp}>
+              {formattedTime}
+            </time>
+          )}
+          {isAI && text && (
+            <div className="pcp-message__rate">
+              <button
+                type="button"
+                className={`pcp-message__rate-btn${rated === 'up' ? ' pcp-message__rate-btn--active' : ''}`}
+                onClick={() => {
+                  const next = rated === 'up' ? null : 'up';
+                  setRated(next);
+                  if (onRate) onRate(message.id, next);
+                }}
+                aria-label={rated === 'up' ? 'Remove thumbs up' : 'Thumbs up - helpful'}
+                title="Helpful"
+              >
+                {rated === 'up' ? '\uD83D\uDC4D' : '\uD83D\uDC4D\uD83C\uDFFB'}
+              </button>
+              <button
+                type="button"
+                className={`pcp-message__rate-btn${rated === 'down' ? ' pcp-message__rate-btn--active-down' : ''}`}
+                onClick={() => {
+                  const next = rated === 'down' ? null : 'down';
+                  setRated(next);
+                  if (onRate) onRate(message.id, next);
+                }}
+                aria-label={rated === 'down' ? 'Remove thumbs down' : 'Thumbs down - not helpful'}
+                title="Not helpful"
+              >
+                {rated === 'down' ? '\uD83D\uDC4E' : '\uD83D\uDC4E\uD83C\uDFFB'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

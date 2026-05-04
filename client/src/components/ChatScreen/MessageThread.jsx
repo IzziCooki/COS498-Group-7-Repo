@@ -38,6 +38,7 @@ function MessageThread({
   onSafetyAction,
   onSafetyDismiss,
   isViewingPast,
+  onRate,
 }) {
   const bottomRef = useRef(null);
   const [slowResponse, setSlowResponse] = useState(false);
@@ -130,6 +131,7 @@ function MessageThread({
             onArtifactTap={onArtifactTap}
             onLongPress={onLongPress}
             onSendMessage={onSendMessage}
+            onRate={onRate}
           />
         ))}
 
