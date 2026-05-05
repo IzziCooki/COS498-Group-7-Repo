@@ -34,6 +34,71 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* ── Inline tips bar — visible by default, dismissable ───────── */
+
+.pcp-tips-bar {
+  flex-shrink: 0;
+  position: relative;
+  background: var(--color-primary-soft);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-4);
+  padding-right: var(--space-7); /* room for close button */
+}
+
+.pcp-tips-bar__close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  min-width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  cursor: pointer;
+}
+.pcp-tips-bar__close:hover {
+  background: var(--color-surface);
+}
+
+.pcp-tips-bar__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pcp-tips-bar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-1);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.pcp-tips-bar__item strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+/* On small screens, stack vertically */
+@media (max-width: 639px) {
+  .pcp-tips-bar__items {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .pcp-tips-bar__item {
+    white-space: normal;
+  }
+}
+
 /* ConnectComputer / ScreenShare modal overlay */
 .pcp-chat-screen__overlay {
   position: fixed;
