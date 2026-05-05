@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 /**
  * PracticeStep -- Single practice step with instruction details.
@@ -11,6 +11,7 @@ import React from 'react';
  *     deviceInstructions: string,
  *     afterThis: string,
  *     confusedAlt: string|null,
+ *     image?: { url: string, altText?: string },
  *   },
  *   stepNumber: number,
  *   showAlt: boolean,
@@ -19,6 +20,19 @@ import React from 'react';
 function PracticeStep({ step, stepNumber, showAlt }) {
   return (
     <div className="pcp-practice-step">
+      {/* Step image */}
+      {step.image && step.image.url && (
+        <div className="pcp-practice-step__image-area">
+          <img
+            src={step.image.url}
+            alt={step.image.altText || 'Step illustration'}
+            className="pcp-practice-step__image"
+            loading="lazy"
+            onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+          />
+        </div>
+      )}
+
       {/* Step number + instruction */}
       <div className="pcp-practice-step__header">
         <span className="pcp-practice-step__number" aria-hidden="true">{stepNumber}</span>

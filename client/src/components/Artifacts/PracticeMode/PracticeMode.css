@@ -118,6 +118,126 @@
   font-size: var(--font-size-base);
 }
 
+/* ── Step image area ── */
+.pcp-practice-step__image-area {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+.pcp-practice-step__image {
+  width: 100%;
+  height: auto;
+  max-height: 40vh;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Task Picker ── */
+.pcp-practice-picker {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pcp-practice-picker__heading {
+  font-size: var(--font-size-xl, 1.75rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  text-align: center;
+  margin: 0;
+}
+
+.pcp-practice-picker__subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-success-text);
+  background: var(--color-success-soft);
+  text-align: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  margin: 0;
+}
+
+.pcp-practice-picker__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .pcp-practice-picker__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pcp-practice-picker__card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  min-height: var(--tap-hero, 64px);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background-color var(--duration-quick) var(--easing-standard),
+              border-color var(--duration-quick) var(--easing-standard);
+}
+
+.pcp-practice-picker__card:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.pcp-practice-picker__card:active {
+  background: var(--color-surface-3);
+}
+
+.pcp-practice-picker__card-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-md);
+}
+
+.pcp-practice-picker__card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pcp-practice-picker__card-title {
+  font-size: var(--font-size-md, 1.25rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.pcp-practice-picker__card-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  line-height: 1.4;
+}
+
+.pcp-practice-picker__card-arrow {
+  font-size: var(--font-size-xl, 1.75rem);
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
 /* ==========================================================================
    PracticeStep -- Single practice step
    ========================================================================== */

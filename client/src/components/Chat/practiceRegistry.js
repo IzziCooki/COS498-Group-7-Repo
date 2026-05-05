@@ -13,6 +13,7 @@ const practiceRegistry = {
         instruction: 'Find and open your email app',
         whereToLook: 'Look at the bottom of your screen',
         whatItLooksLike: 'A small picture of an envelope',
+        image: { url: '/ui-references/email/gmail-inbox-overview.png', altText: 'Gmail inbox showing list of emails' },
         variants: {
           Windows: 'Look for "Mail" or "Outlook" in your Start menu, or the envelope icon on your taskbar at the bottom.',
           Mac: 'Look for the "Mail" app in your dock — it\'s a blue stamp-shaped icon at the bottom of your screen.',
@@ -26,6 +27,7 @@ const practiceRegistry = {
         instruction: 'Start a new email',
         whereToLook: 'Look in the top-left area of your email app',
         whatItLooksLike: 'A button that says "New", "Compose", or shows a pencil icon',
+        image: { url: '/ui-references/email/gmail-compose-button.png', altText: 'The Compose button in Gmail' },
         variants: {
           Windows: 'Click the "+ New mail" button in the top-left corner.',
           Mac: 'Click the pencil-and-paper icon in the toolbar, or press Cmd+N.',
@@ -39,6 +41,7 @@ const practiceRegistry = {
         instruction: 'Type who you want to send it to',
         whereToLook: 'The very first line at the top, labeled "To"',
         whatItLooksLike: 'A text box where you type an email address',
+        image: { url: '/ui-references/email/email-to-field.png', altText: 'The To field where you type an email address' },
         variants: {
           Windows: 'Click in the "To" field and type the email address (like tom@email.com).',
           Mac: 'Click in the "To" field and type the email address.',
@@ -52,6 +55,7 @@ const practiceRegistry = {
         instruction: 'Write a subject and your message',
         whereToLook: 'Below the "To" line, you\'ll see "Subject", and below that a big empty area',
         whatItLooksLike: 'Two text areas — a short one for the subject and a big one for your message',
+        image: { url: '/ui-references/email/email-subject-field.png', altText: 'The Subject and message fields' },
         variants: {
           Windows: 'Click "Subject" and type what your email is about (like "Hello!"). Then click the big area below and type your message.',
           Mac: 'Click the "Subject" field, type a short title. Then click the big white area below and write your message.',
@@ -65,6 +69,7 @@ const practiceRegistry = {
         instruction: 'Send your email',
         whereToLook: 'Look for a Send button — usually at the top',
         whatItLooksLike: 'A button with an arrow pointing right, or the word "Send"',
+        image: { url: '/ui-references/email/email-send-button.png', altText: 'The Send button' },
         variants: {
           Windows: 'Click the "Send" button at the top of your email. It might have an arrow icon.',
           Mac: 'Click the paper airplane icon in the top-left of the email window, or press Cmd+Shift+D.',
@@ -85,6 +90,7 @@ const practiceRegistry = {
         instruction: 'Select the text you want to copy',
         whereToLook: 'The text you want to copy — it could be anywhere on screen',
         whatItLooksLike: 'Text that turns blue/highlighted when selected',
+        image: null,
         variants: {
           Windows: 'Click at the start of the text, hold the mouse button, drag to the end, then let go. The text turns blue.',
           Mac: 'Click at the start of the text, hold the mouse button, drag to the end, then let go. The text turns blue.',
@@ -98,6 +104,7 @@ const practiceRegistry = {
         instruction: 'Copy the selected text',
         whereToLook: 'Your keyboard',
         whatItLooksLike: 'You\'ll press two keys at the same time',
+        image: null,
         variants: {
           Windows: 'Hold down Ctrl (bottom-left of keyboard) and press C. Nothing visible happens — that\'s normal!',
           Mac: 'Hold down Cmd (⌘, next to spacebar) and press C. Nothing visible happens — that\'s normal!',
@@ -111,6 +118,7 @@ const practiceRegistry = {
         instruction: 'Go to where you want to paste',
         whereToLook: 'The place where you want to put the copied text',
         whatItLooksLike: 'Any text area — an email, a document, a search box',
+        image: null,
         variants: {
           Windows: 'Click in the place where you want the text to go. You should see a blinking cursor (a thin line).',
           Mac: 'Click where you want the text to go. Look for the blinking cursor.',
@@ -124,6 +132,7 @@ const practiceRegistry = {
         instruction: 'Paste the text',
         whereToLook: 'Your keyboard again',
         whatItLooksLike: 'Press two keys at the same time',
+        image: null,
         variants: {
           Windows: 'Hold down Ctrl and press V. Your copied text appears!',
           Mac: 'Hold down Cmd (⌘) and press V. Your copied text appears!',
@@ -144,6 +153,7 @@ const practiceRegistry = {
         instruction: 'Find your web browser',
         whereToLook: 'Look at the bottom of your screen (taskbar/dock)',
         whatItLooksLike: 'A colorful circle or compass icon',
+        image: null,
         variants: {
           Windows: 'Look for Microsoft Edge (blue swirl) or Google Chrome (colorful circle) on your taskbar at the bottom.',
           Mac: 'Look for Safari (blue compass) in your dock at the bottom, or Chrome (colorful circle).',
@@ -157,6 +167,7 @@ const practiceRegistry = {
         instruction: 'Find the address bar',
         whereToLook: 'The very top of the browser window',
         whatItLooksLike: 'A long white box that might say "Search or type a web address"',
+        image: { url: '/ui-references/browser/chrome-address-bar.png', altText: 'The address bar at the top of the browser' },
         variants: {
           Windows: 'Click the long white bar at the top. It might show a web address or say "Search."',
           Mac: 'Click the long bar at the top of the Safari/Chrome window.',
@@ -170,6 +181,7 @@ const practiceRegistry = {
         instruction: 'Type a website address and go',
         whereToLook: 'The address bar you just clicked',
         whatItLooksLike: 'Type a web address like google.com',
+        image: { url: '/ui-references/browser/chrome-address-bar.png', altText: 'Typing a web address in the address bar' },
         variants: {
           Windows: 'Type google.com and press Enter on your keyboard.',
           Mac: 'Type google.com and press Return on your keyboard.',
@@ -190,6 +202,7 @@ const practiceRegistry = {
         instruction: 'Open your settings',
         whereToLook: 'Look at the bottom-right of your screen (or your home screen on a phone)',
         whatItLooksLike: 'A gear icon or a small set of sliders',
+        image: { url: '/ui-references/system-windows/windows-wifi-icon.png', altText: 'The Wi-Fi icon in the taskbar' },
         variants: {
           Windows: 'Click the Wi-Fi icon (small curved lines) in the bottom-right corner of your screen, next to the clock.',
           Mac: 'Click the Wi-Fi icon (small curved lines) in the top-right corner of your screen, in the menu bar.',
@@ -203,6 +216,7 @@ const practiceRegistry = {
         instruction: 'Find the Wi-Fi section',
         whereToLook: 'Near the top of your settings list or in the menu that appeared',
         whatItLooksLike: 'The word "Wi-Fi" or "Network" next to a small picture of curved lines',
+        image: { url: '/ui-references/system-windows/windows-wifi-illustrated-step-2.png', altText: 'Wi-Fi settings showing available networks' },
         variants: {
           Windows: 'In the menu that appeared, make sure Wi-Fi is turned on (the switch should be blue or highlighted). You will see a list of networks below.',
           Mac: 'In the dropdown menu, make sure Wi-Fi is turned on. You will see a list of available networks below.',
@@ -216,6 +230,7 @@ const practiceRegistry = {
         instruction: 'Pick your Wi-Fi network from the list',
         whereToLook: 'In the list of network names that appeared',
         whatItLooksLike: 'A list of names — look for your home network name or the one you were told to use',
+        image: { url: '/ui-references/system-windows/windows-wifi-illustrated-step-3.png', altText: 'List of Wi-Fi networks to choose from' },
         variants: {
           Windows: 'Click on the name of the network you want to join. Then click "Connect." Check "Connect automatically" if you want it to remember this network.',
           Mac: 'Click on the name of the network you want to join from the dropdown list.',
@@ -229,6 +244,7 @@ const practiceRegistry = {
         instruction: 'Type the Wi-Fi password and connect',
         whereToLook: 'The password box that appeared on screen',
         whatItLooksLike: 'A text box where you type the password, and a button that says "Connect" or "Join"',
+        image: { url: '/ui-references/system-windows/windows-wifi-illustrated-step-4.png', altText: 'Wi-Fi password entry screen' },
         variants: {
           Windows: 'Type the Wi-Fi password in the box and click "Next." The password is case-sensitive — capital letters matter.',
           Mac: 'Type the Wi-Fi password in the box and click "Join."',
@@ -249,6 +265,7 @@ const practiceRegistry = {
         instruction: 'Open your video call app',
         whereToLook: 'Look on your home screen, taskbar, or dock at the bottom of your screen',
         whatItLooksLike: 'A small picture of a video camera — it might be blue (Zoom), purple (Teams), or green (FaceTime)',
+        image: null,
         variants: {
           Windows: 'Look for Zoom (blue camera icon) or Microsoft Teams (purple icon) on your taskbar at the bottom, or search for it in the Start menu.',
           Mac: 'Look for Zoom (blue camera icon), FaceTime (green camera icon), or Teams in your dock at the bottom of your screen.',
@@ -262,6 +279,7 @@ const practiceRegistry = {
         instruction: 'Find the button to join a meeting',
         whereToLook: 'Look in the middle or top area of the app',
         whatItLooksLike: 'A button that says "Join" or "Join a Meeting," or a place to type a meeting link or code',
+        image: { url: '/ui-references/video-call/zoom-illustrated-step-1.png', altText: 'The Join a Meeting button in Zoom' },
         variants: {
           Windows: 'Click "Join a Meeting" or "Join." If someone sent you a link, you can click that link instead — it will open the app for you.',
           Mac: 'Click "Join a Meeting" or "Join." You can also click a meeting link someone sent you in an email or message.',
@@ -275,6 +293,7 @@ const practiceRegistry = {
         instruction: 'Check your camera and microphone',
         whereToLook: 'Look at the bottom of the video call screen',
         whatItLooksLike: 'Small pictures of a camera and a microphone — they should not have a line through them',
+        image: { url: '/ui-references/video-call/zoom-illustrated-step-5.png', altText: 'Camera and microphone preview before joining' },
         variants: {
           Windows: 'Before joining, you should see a preview of yourself. Make sure the camera icon and microphone icon at the bottom do not have a red line through them. Click them to turn on or off.',
           Mac: 'Check the preview of your face. If the camera or microphone icons at the bottom have a line through them, click them to turn them on.',
@@ -288,6 +307,7 @@ const practiceRegistry = {
         instruction: 'Join the call',
         whereToLook: 'Look for a big green or blue button at the bottom or center of the screen',
         whatItLooksLike: 'A large button that says "Join," "Join Meeting," or "Join with Video"',
+        image: { url: '/ui-references/video-call/zoom-illustrated-step-6.png', altText: 'The Join button to enter the meeting' },
         variants: {
           Windows: 'Click the "Join" or "Join with Video" button. You may need to wait a moment for the host to let you in.',
           Mac: 'Click "Join" or "Join Meeting." The host may need to admit you — you will see a "Waiting for host" message.',
@@ -308,6 +328,7 @@ const practiceRegistry = {
         instruction: 'Find the right keys or buttons',
         whereToLook: 'Look at the top-right area of your keyboard (or use your phone buttons)',
         whatItLooksLike: 'A key that says "PrtScn" or "Print Screen" — or on a phone, the side buttons',
+        image: null,
         variants: {
           Windows: 'Find the "PrtScn" (Print Screen) key on the top-right area of your keyboard. On some keyboards it says "PrtSc" or "Print."',
           Mac: 'You will press three keys at the same time: Shift, Command, and the number 3. Find them first — Shift is the big arrow key on the left, Command has a clover shape, and 3 is on the top row.',
@@ -321,6 +342,7 @@ const practiceRegistry = {
         instruction: 'Press the buttons to take the screenshot',
         whereToLook: 'Your keyboard or phone buttons',
         whatItLooksLike: 'The screen may flash or you may hear a camera sound',
+        image: null,
         variants: {
           Windows: 'Hold the Windows key (bottom-left of keyboard, has the Windows logo) and press PrtScn at the same time. Your screen will flash briefly.',
           Mac: 'Press Shift + Command + 3 all at the same time. You will see a small thumbnail appear in the bottom-right corner of your screen.',
@@ -334,6 +356,7 @@ const practiceRegistry = {
         instruction: 'Find where your screenshot was saved',
         whereToLook: 'Look in your Pictures folder or your Photos app',
         whatItLooksLike: 'A folder called "Screenshots" or a new picture at the top of your photo list',
+        image: null,
         variants: {
           Windows: 'Open your "Pictures" folder (in File Explorer), then open the "Screenshots" folder inside it. Your picture is there.',
           Mac: 'Look on your Desktop — the screenshot is saved there as a file. It has the date and time in its name.',
@@ -354,6 +377,7 @@ const practiceRegistry = {
         instruction: 'Open the document you want to print',
         whereToLook: 'Look in your files, email, or wherever the document is',
         whatItLooksLike: 'The document open on your screen — you should see the text or picture you want to print',
+        image: { url: '/ui-references/printing/print-document-illustrated-step-1.png', altText: 'A document open on screen' },
         variants: {
           Windows: 'Find the file on your computer and double-click it to open it. It might be on your Desktop, in Documents, or in an email attachment.',
           Mac: 'Find the file and double-click it to open it. Check your Desktop, Documents folder, or Downloads.',
@@ -367,6 +391,7 @@ const practiceRegistry = {
         instruction: 'Find the print option',
         whereToLook: 'Look at the top-left of your screen or in the menu',
         whatItLooksLike: 'The word "Print" or a small picture of a printer',
+        image: { url: '/ui-references/printing/print-document-illustrated-step-2.png', altText: 'File menu with Print option highlighted' },
         variants: {
           Windows: 'Click "File" in the top-left corner of the window, then click "Print" from the list. Or press Ctrl and P at the same time.',
           Mac: 'Click "File" in the top-left corner of the screen, then click "Print." Or press Command and P at the same time.',
@@ -380,6 +405,7 @@ const practiceRegistry = {
         instruction: 'Choose your printer',
         whereToLook: 'Near the top of the print window that just appeared',
         whatItLooksLike: 'A dropdown box showing a printer name, or a list of available printers',
+        image: { url: '/ui-references/printing/print-document-illustrated-step-3.png', altText: 'Printer selection in print dialog' },
         variants: {
           Windows: 'Click the dropdown under "Printer" and select your printer from the list. If your printer is on and connected, it should appear here.',
           Mac: 'Click the dropdown next to "Printer" and select your printer. If you do not see it, make sure the printer is turned on.',
@@ -393,6 +419,7 @@ const practiceRegistry = {
         instruction: 'Press the Print button',
         whereToLook: 'Look at the bottom-right of the print window',
         whatItLooksLike: 'A button that says "Print"',
+        image: { url: '/ui-references/printing/print-document-illustrated-step-4.png', altText: 'The Print button at the bottom of the dialog' },
         variants: {
           Windows: 'Click the "Print" button at the bottom of the print window. Your printer should start making noise within a few seconds.',
           Mac: 'Click the "Print" button at the bottom-right of the print window.',
@@ -413,6 +440,7 @@ const practiceRegistry = {
         instruction: 'Open your settings',
         whereToLook: 'Look at the bottom-left of your screen (or your home screen on a phone)',
         whatItLooksLike: 'A gear icon — a small circle with teeth around it',
+        image: { url: '/ui-references/system-windows/windows-settings-gear.png', altText: 'The Settings gear icon' },
         variants: {
           Windows: 'Click the Start button (Windows logo) in the bottom-left corner, then click the gear icon to open Settings.',
           Mac: 'Click the Apple logo in the very top-left corner of your screen, then click "System Settings."',
@@ -426,6 +454,7 @@ const practiceRegistry = {
         instruction: 'Find the Display or Accessibility section',
         whereToLook: 'Look through the list in your settings — it is usually near the top',
         whatItLooksLike: 'The word "Display," "Accessibility," or a small picture of a screen or a person',
+        image: null,
         variants: {
           Windows: 'Click "Accessibility" on the left side of the Settings window, then click "Text size."',
           Mac: 'Click "Accessibility" in the left sidebar, then click "Display" on the right side.',
@@ -439,6 +468,7 @@ const practiceRegistry = {
         instruction: 'Move the text size slider to make text bigger',
         whereToLook: 'Look for a slider bar in the middle of the screen',
         whatItLooksLike: 'A bar with a small dot or handle you can drag — sliding it to the right makes text bigger',
+        image: null,
         variants: {
           Windows: 'Drag the "Text size" slider to the right to make text bigger. You will see a preview that changes as you drag. Click "Apply" when you are happy with the size.',
           Mac: 'Look for "Text size" or "Text" and use the dropdown or slider to choose a larger size. Changes may apply right away.',

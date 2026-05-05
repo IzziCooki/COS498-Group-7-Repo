@@ -39,6 +39,7 @@ function MessageThread({
   onSafetyDismiss,
   isViewingPast,
   onRate,
+  onPractice,
 }) {
   const bottomRef = useRef(null);
   const [slowResponse, setSlowResponse] = useState(false);
@@ -111,7 +112,7 @@ function MessageThread({
 
         {/* Empty state */}
         {isEmpty && !isViewingPast && (
-          <EmptyState onSendMessage={onSendMessage} />
+          <EmptyState onSendMessage={onSendMessage} onPractice={onPractice} />
         )}
 
         {isEmpty && isViewingPast && (

@@ -16,7 +16,7 @@ const HAS_SPEECH = typeof window !== 'undefined' && ('SpeechRecognition' in wind
  *
  * @param {{ onSend: (text:string) => void, onGatherResources: (text:string) => void, isTyping: boolean, hasMessages: boolean }} props
  */
-function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onScreenShare, agentConnected }) {
+function InputArea({ onSend, onGatherResources, isTyping, onPractice, onConnectComputer, onScreenShare, agentConnected }) {
   const textareaRef = useRef(null);
   const [value, setValue] = useState('');
   const [helpLoading, setHelpLoading] = useState(false);
@@ -202,7 +202,7 @@ function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onS
         <button
           type="button"
           className="pcp-input-area__action-btn"
-          onClick={() => onSend('I want to practice first')}
+          onClick={() => onPractice ? onPractice() : onSend('I want to practice first')}
           disabled={isTyping}
           aria-label="Start a practice session"
         >

@@ -202,6 +202,11 @@ function ChatScreen({
     setOpenArtifact(null);
   }, []);
 
+  // ── Practice mode: open picker directly, no AI round-trip ──
+  const handlePractice = useCallback((taskId) => {
+    handleArtifactTap('practice', { taskId: taskId || '__picker__' });
+  }, [handleArtifactTap]);
+
   // ── Thumbs up/down handler — saves to server as quality feedback ──
   const handleRate = useCallback((messageId, rating) => {
     if (!conversationId) return;
@@ -304,6 +309,7 @@ function ChatScreen({
           onSafetyDismiss={handleSafetyDismiss}
           isViewingPast={isViewingPast}
           onRate={handleRate}
+          onPractice={handlePractice}
         />
       )}
 
@@ -317,6 +323,7 @@ function ChatScreen({
           onSend={sendMessage}
           onGatherResources={gatherResources}
           isTyping={isTyping}
+          onPractice={handlePractice}
           onConnectComputer={() => setShowConnect(true)}
           onScreenShare={() => setShowScreenShare(true)}
           agentConnected={agentConnected}
