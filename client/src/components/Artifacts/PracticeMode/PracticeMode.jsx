@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import PracticeStep from './PracticeStep';
 import PracticeChecklist from './PracticeChecklist';
 import practiceRegistry from '../../Chat/practiceRegistry';
@@ -34,6 +34,7 @@ function getSteps(taskId, practice, osType) {
         afterThis: s.afterThis,
         confusedAlt: s.confusedAlt || null,
         image: s.image || null,
+        screen: s.screen || null,
       })),
     };
   }
@@ -52,6 +53,7 @@ function getSteps(taskId, practice, osType) {
       afterThis: s.afterThis,
       confusedAlt: s.confusedAlt || null,
       image: s.image || null,
+      screen: s.screen || null,
     })),
   };
 }
@@ -75,12 +77,14 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [showAlt, setShowAlt] = useState({});
+  const [wrongTap, setWrongTap] = useState(false);
 
   const data = practice && selectedTaskId ? getSteps(selectedTaskId, practice) : null;
   const title = data?.title;
   const steps = data?.steps;
   const totalSteps = steps?.length ?? 0;
   const step = steps?.[currentStep];
+  const isSimStep = step?.screen && step.screen.url;
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -117,6 +121,17 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
     setCompleted(false);
     setShowAlt({});
   };
+
+  const handleHotspotTap = useCallback((result) => {
+    if (result === 'wrong') {
+      setWrongTap(true);
+      setTimeout(() => setWrongTap(false), 1500);
+      return;
+    }
+    // Correct tap -- advance
+    handleNext();
+    setWrongTap(false);
+  }, [handleNext]);
 
   if (!practice) return null;
 
@@ -267,32 +282,31 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
           step={step}
           stepNumber={currentStep + 1}
           showAlt={!!showAlt[currentStep]}
+          onHotspotTap={handleHotspotTap}
+          wrongTap={wrongTap}
         />
       </div>
 
       {/* Navigation */}
       <div className="pcp-practice__nav">
-        <button
-          className="pcp-btn pcp-btn--primary pcp-practice__nav-next"
-          onClick={handleNext}
-        >
-          {currentStep < totalSteps - 1
-            ? 'I understand -- next'
-            : 'I understand -- finish!'}
-        </button>
-        <button
-          className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain"
-          onClick={handleExplainDifferently}
-        >
-          Explain differently
-        </button>
-        {currentStep > 0 && (
-          <button
-            className="pcp-btn pcp-btn--ghost pcp-practice__nav-back"
-            onClick={handleBack}
-          >
-            Go back
-          </button>
+        {isSimStep ? (
+          <>
+            <p className="pcp-practice__nav-hint">Tap the glowing circle on the image above to continue</p>
+            <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain" onClick={handleExplainDifferently}>Explain differently</button>
+            {currentStep > 0 && (
+              <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-back" onClick={handleBack}>Go back</button>
+            )}
+          </>
+        ) : (
+          <>
+            <button className="pcp-btn pcp-btn--primary pcp-practice__nav-next" onClick={handleNext}>
+              {currentStep < totalSteps - 1 ? 'I understand -- next' : 'I understand -- finish!'}
+            </button>
+            <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain" onClick={handleExplainDifferently}>Explain differently</button>
+            {currentStep > 0 && (
+              <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-back" onClick={handleBack}>Go back</button>
+            )}
+          </>
         )}
       </div>
     </div>

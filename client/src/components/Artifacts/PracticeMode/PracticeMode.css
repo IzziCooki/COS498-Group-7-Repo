@@ -406,3 +406,141 @@
   min-height: var(--tap-comfort);
   font-size: var(--font-size-base);
 }
+
+/* ==========================================================================
+   Simulation mode
+   ========================================================================== */
+
+.pcp-practice-step--sim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pcp-practice-step__screen {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--color-surface-2);
+}
+
+.pcp-practice-step__screen-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.pcp-practice-step__screen--shake {
+  animation: pcp-sim-shake 0.4s ease-out;
+}
+
+@keyframes pcp-sim-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Instruction tooltip floating at bottom of screenshot */
+.pcp-practice-step__tooltip {
+  position: absolute;
+  bottom: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #FFFFFF;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pcp-practice-step__tooltip-num {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+/* Wrong tap feedback */
+.pcp-practice-step__wrong-tap {
+  text-align: center;
+  color: var(--color-warning-text, #92400E);
+  background: var(--color-warning-soft, #FEF3C7);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  animation: fadeIn var(--duration-base) var(--easing-decel);
+}
+
+/* Hint toggle */
+.pcp-practice-step__hint-toggle {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.pcp-practice-step__hint-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Hint content (collapsible) */
+.pcp-practice-step__hint {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--color-text-2);
+  animation: fadeIn var(--duration-base) var(--easing-decel);
+}
+
+.pcp-practice-step__hint p {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.pcp-practice-step__hint p:last-child {
+  margin-bottom: 0;
+}
+
+/* Nav hint for simulation mode */
+.pcp-practice__nav-hint {
+  text-align: center;
+  color: var(--color-text-2);
+  font-size: var(--font-size-base);
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcp-practice-step__screen--shake {
+    animation: none;
+  }
+}
