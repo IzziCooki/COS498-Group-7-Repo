@@ -176,3 +176,39 @@
 .pcp-options-sheet__toggle--on .pcp-options-sheet__toggle-knob {
   transform: translateX(20px);
 }
+
+/* ── Tips section ──────────────────────────────────────────────── */
+
+.pcp-options-sheet__tips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.pcp-options-sheet__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary);
+}
+
+.pcp-options-sheet__tip-icon {
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.pcp-options-sheet__tip-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-1);
+  line-height: var(--line-height-base);
+}
+
+.pcp-options-sheet__tip-text strong {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}

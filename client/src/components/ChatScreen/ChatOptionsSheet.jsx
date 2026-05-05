@@ -88,6 +88,49 @@ function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectCo
           </button>
         </div>
 
+        <div className="pcp-options-sheet__section-label">Tips for using PC Pal</div>
+
+        <div className="pcp-options-sheet__tips">
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F517;</span>
+            <span className="pcp-options-sheet__tip-text">
+              Tap <strong>Get External Resources</strong> below the chat to find videos, articles, and official guides about any topic.
+            </span>
+          </div>
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F4D6;</span>
+            <span className="pcp-options-sheet__tip-text">
+              When PC Pal creates a <strong>guide</strong>, tap the card in chat to open it with step-by-step pictures.
+            </span>
+          </div>
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F3AF;</span>
+            <span className="pcp-options-sheet__tip-text">
+              Try <strong>Practice Mode</strong> to safely rehearse tasks like sending email before doing it for real.
+            </span>
+          </div>
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F3A4;</span>
+            <span className="pcp-options-sheet__tip-text">
+              Tap the <strong>microphone</strong> to speak your question instead of typing it.
+            </span>
+          </div>
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F50A;</span>
+            <span className="pcp-options-sheet__tip-text">
+              Tap the <strong>speaker</strong> on any answer to have it read aloud to you.
+            </span>
+          </div>
+          <div className="pcp-options-sheet__tip">
+            <span className="pcp-options-sheet__tip-icon" aria-hidden="true">&#x1F44D;</span>
+            <span className="pcp-options-sheet__tip-text">
+              Use <strong>thumbs up or down</strong> on answers to help PC Pal learn what works for you.
+            </span>
+          </div>
+        </div>
+
+        <div className="pcp-options-sheet__section-label">Chat</div>
+
         <div className="pcp-options-sheet__items">
           <button
             type="button"

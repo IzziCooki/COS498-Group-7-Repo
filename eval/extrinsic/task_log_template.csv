@@ -1,0 +1,7 @@
+participant_id,condition,task,success,time_sec,clarifications,notes
+P01,pcpal,wifi,,,,
+P01,chatgpt,wifi,,,,
+P01,pcpal,scam,,,,
+P01,chatgpt,scam,,,,
+P01,pcpal,freeform,,,,
+P01,chatgpt,freeform,,,,
