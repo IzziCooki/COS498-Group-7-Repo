@@ -24,7 +24,7 @@
 /* ── Rotating hint pill ──────────────────────────────────────── */
 
 .pcp-chat-topbar__hint {
-  flex: 1;
+  flex-shrink: 1;
   min-width: 0;
   display: flex;
   align-items: center;

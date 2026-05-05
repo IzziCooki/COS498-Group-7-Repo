@@ -32,7 +32,10 @@ function ChatTopBar({ onOpenOptions, buddyObserving, onEndChatAndRate, hasMessag
         </div>
       )}
 
-      {/* Rotating hint — sits in the middle of the bar */}
+      {/* Spacer pushes everything after it to the right */}
+      <span className="pcp-chat-topbar__spacer" />
+
+      {/* Rotating hint — right side of the bar */}
       {tipsVisible && (
         <div className="pcp-chat-topbar__hint" aria-live="polite">
           <span className="pcp-chat-topbar__hint-icon" aria-hidden="true">{tip.icon}</span>
@@ -45,10 +48,6 @@ function ChatTopBar({ onOpenOptions, buddyObserving, onEndChatAndRate, hasMessag
             type="button"
           >&#10005;</button>
         </div>
-      )}
-
-      {!tipsVisible && !buddyObserving && (
-        <span className="pcp-chat-topbar__spacer" />
       )}
 
       {hasMessages && onEndChatAndRate && (
