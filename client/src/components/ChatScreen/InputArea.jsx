@@ -201,6 +201,16 @@ function InputArea({ onSend, onGatherResources, isTyping, onConnectComputer, onS
       <div className="pcp-input-area__actions">
         <button
           type="button"
+          className="pcp-input-area__action-btn"
+          onClick={() => onSend('I want to practice first')}
+          disabled={isTyping}
+          aria-label="Start a practice session"
+        >
+          <span aria-hidden="true">&#x1F3AF;</span>
+          Practice Mode
+        </button>
+        <button
+          type="button"
           className={helpBtnClass}
           onClick={handleGetHelp}
           disabled={isTyping}

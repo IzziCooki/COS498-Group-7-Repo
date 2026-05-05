@@ -582,13 +582,13 @@ function getAndClearLastPractice() {
   return p;
 }
 
-const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
+const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser', 'wifi', 'video_call', 'take_screenshot', 'print_document', 'change_text_size'];
 
 const startPractice = tool(
   'start_practice',
-  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser. For ANY other task, set task_id to 'custom' and provide custom_steps — the agent generates practice steps for whatever the user wants to learn. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous.",
+  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser, wifi, video_call, take_screenshot, print_document, change_text_size. For ANY other task, set task_id to 'custom' and provide custom_steps. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous. PROACTIVELY offer practice to comfort level 1-2 users before new tasks.",
   {
-    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser) or 'custom' for agent-generated practice"),
+    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser, wifi, video_call, take_screenshot, print_document, change_text_size) or 'custom' for agent-generated practice"),
     custom_title: z.string().optional().describe("Title for custom practice (required when task_id is 'custom')"),
     custom_steps: z.array(z.object({
       instruction: z.string().describe('What this step does'),

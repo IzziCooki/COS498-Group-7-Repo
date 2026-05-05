@@ -8,6 +8,17 @@ import './EmptyState.css';
  */
 const CATEGORIES = [
   {
+    heading: 'Practice first (nothing happens to your computer!)',
+    items: [
+      { icon: '\u270D\uFE0F', label: 'Let me practice sending an email' },
+      { icon: '\uD83D\uDCCB', label: 'Let me practice copy and paste' },
+      { icon: '\uD83C\uDF10', label: 'Let me practice opening the internet' },
+      { icon: '\uD83D\uDCF6', label: 'Let me practice connecting to Wi-Fi' },
+      { icon: '\uD83D\uDCDE', label: 'Let me practice joining a video call' },
+      { icon: '\uD83D\uDDA8\uFE0F', label: 'Let me practice printing something' },
+    ],
+  },
+  {
     heading: 'Email',
     items: [
       { icon: '\uD83D\uDCE7', label: 'How do I send an email?' },

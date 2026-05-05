@@ -122,7 +122,7 @@ const tools = [
   },
   {
     name: 'start_practice',
-    description: 'Start an interactive practice session for a skill. Built-in tasks: send_email, copy_paste, open_browser. Or provide custom steps.',
+    description: 'Start an interactive practice session for a skill. Built-in tasks: send_email, copy_paste, open_browser, wifi, video_call, take_screenshot, print_document, change_text_size. Or set task_id to "custom" and provide custom_steps. PROACTIVELY offer practice to comfort level 1-2 users before new tasks.',
     input_schema: {
       type: 'object',
       properties: {
