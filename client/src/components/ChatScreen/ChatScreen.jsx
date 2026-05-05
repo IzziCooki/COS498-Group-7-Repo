@@ -237,47 +237,10 @@ function ChatScreen({
           buddyObserving={buddyObserving}
           onEndChatAndRate={endChat}
           hasMessages={hasUserMessage}
+          tipsVisible={tipsVisible}
+          onDismissTips={dismissTips}
         />
       </div>
-
-      {/* Inline tips bar — visible by default, user can dismiss */}
-      {tipsVisible && !isViewingPast && (
-        <div className="pcp-tips-bar" role="complementary" aria-label="Tips for using PC Pal">
-          <button
-            className="pcp-tips-bar__close"
-            onClick={dismissTips}
-            aria-label="Hide tips"
-            title="Hide tips"
-            type="button"
-          >&#10005;</button>
-          <div className="pcp-tips-bar__items">
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F517;</span>
-              <span>Tap <strong>Get External Resources</strong> below for videos and guides</span>
-            </div>
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F4D6;</span>
-              <span>Tap a <strong>guide card</strong> in chat to see step-by-step pictures</span>
-            </div>
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F3AF;</span>
-              <span>Try <strong>Practice Mode</strong> to safely rehearse before doing it for real</span>
-            </div>
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F3A4;</span>
-              <span>Tap the <strong>microphone</strong> to speak instead of type</span>
-            </div>
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F50A;</span>
-              <span>Tap the <strong>speaker</strong> on any answer to hear it read aloud</span>
-            </div>
-            <div className="pcp-tips-bar__item">
-              <span aria-hidden="true">&#x1F44D;</span>
-              <span>Use <strong>thumbs up/down</strong> on answers to help PC Pal improve</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Loading past conversation */}
       {loadingPast && (
