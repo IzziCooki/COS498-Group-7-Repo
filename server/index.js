@@ -693,6 +693,61 @@ wss.on('connection', (ws, req) => {
           // Buddy forwarding is optional — don't fail
         }
 
+      } else if (msg.type === 'autofix_run') {
+        // Auto-Fix Sandbox: autonomous diagnose-and-fix sweep.
+        // Only available in Electron desktop mode where the server IS the
+        // user's machine. Web users would only fix the server container.
+        if (!userId) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Not initialized. Send init message first.' }));
+          }
+          return;
+        }
+        if (!process.env.ELECTRON_MODE) {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'autofix_summary',
+              ok: false,
+              error: 'Auto-Fix Sandbox is only available in the desktop app. Open PC Pal Desktop to use this feature.',
+            }));
+          }
+          return;
+        }
+        if (typeof agentOrchestrator.processAutofixSandbox !== 'function') {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'autofix_summary', ok: false, error: 'Sandbox is not available in this build.' }));
+          }
+          return;
+        }
+
+        const onToolEvent = (event) => {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'autofix_progress', ...event }));
+          }
+        };
+
+        try {
+          const result = await agentOrchestrator.processAutofixSandbox(userId, {
+            osType: msg.osType || null,
+            onToolEvent,
+          });
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'autofix_summary',
+              ok: true,
+              text: result.response,
+              findings: result.findings,
+              sessionId: result.sessionId,
+              toolCallCount: result.toolCallCount || 0,
+              fixesAttempted: result.fixesAttempted || 0,
+            }));
+          }
+        } catch (err) {
+          console.error('[server] autofix_run error:', err);
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'autofix_summary', ok: false, error: err.message || 'Sandbox run failed.' }));
+          }
+        }
       } else if (msg.type === 'chat') {
         // Process the chat message through the agent orchestrator
         if (!userId) {

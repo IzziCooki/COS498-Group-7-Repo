@@ -12,6 +12,7 @@ const VIEW_MATCHERS = [
   { match: /^\/chat\/([^/]+)$/,         view: 'chat'            },
   { match: /^\/chat\/([^/]+)\/guide$/,  view: 'guide'           },
   { match: /^\/admin$/,                 view: 'admin'           },
+  { match: /^\/sandbox$/,               view: 'sandbox'         },
   { match: /^\/helper\/home$/,          view: 'helper-home'     },
   { match: /^\/helper\/sessions$/,      view: 'helper-sessions' },
   { match: /^\/helper\/tools$/,         view: 'helper-tools'    },

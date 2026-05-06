@@ -71,4 +71,33 @@ db.exec(`
   )
 `);
 
+// Auto-Fix Sandbox audit tables.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS autofix_session (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    fixes_attempted INTEGER DEFAULT 0,
+    fixes_succeeded INTEGER DEFAULT 0,
+    summary_json TEXT
+  );
+  CREATE INDEX IF NOT EXISTS autofix_session_user
+    ON autofix_session(user_id, started_at DESC);
+
+  CREATE TABLE IF NOT EXISTS fix_log (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    user_id TEXT,
+    tool_name TEXT NOT NULL,
+    command TEXT NOT NULL,
+    exit_code INTEGER,
+    stdout_tail TEXT,
+    stderr_tail TEXT,
+    ran_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS fix_log_session
+    ON fix_log(session_id, ran_at);
+`);
+
 module.exports = db;

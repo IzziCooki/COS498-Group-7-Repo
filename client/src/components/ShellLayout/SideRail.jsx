@@ -64,6 +64,18 @@ const ToolsIcon = () => (
   </svg>
 );
 
+const SandboxIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 2v6" />
+    <path d="M12 22v-6" />
+    <path d="M4.93 4.93l4.24 4.24" />
+    <path d="M14.83 14.83l4.24 4.24" />
+    <path d="M2 12h6" />
+    <path d="M22 12h-6" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
 const CollapseIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <polyline points="15 18 9 12 15 6" />
@@ -72,7 +84,8 @@ const CollapseIcon = () => (
 
 // Tab definitions per role
 const LEARNER_ITEMS = [
-  { id: 'chat',    label: 'Chat',    path: '/',        Icon: ChatIcon    },
+  { id: 'chat',    label: 'Chat',    path: '/',         Icon: ChatIcon    },
+  { id: 'sandbox', label: 'Sandbox', path: '/sandbox',  Icon: SandboxIcon },
   { id: 'history', label: 'History', path: '/history',  Icon: HistoryIcon },
   { id: 'helper',  label: 'Helper',  path: '/helper',   Icon: HelperIcon  },
   { id: 'me',      label: 'Me',      path: '/me',       Icon: MeIcon      },

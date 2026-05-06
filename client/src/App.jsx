@@ -26,6 +26,9 @@ import PairingFlow from './components/Helper/PairingFlow';
 /* ── Me tab (Phase 9) ──────────────────────────────────────────── */
 import MeScreen from './components/Profile/MeScreen';
 
+/* ── Sandbox tab ───────────────────────────────────────────────── */
+import SandboxPanel from './components/Sandbox/SandboxPanel';
+
 /* ── Placeholder components for views not yet built ────────────── */
 
 function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation }) {
@@ -124,6 +127,7 @@ function HelperPlaceholder() {
 
 const VIEW_TITLES = {
   chat: 'Chat with PC Pal',
+  sandbox: 'Auto-Fix Sandbox',
   history: 'My Conversations',
   helper: 'My Helper',
   me: 'Me',
@@ -209,7 +213,7 @@ function AppContent() {
 
   // ── Auto-redirect helper to helper-home when on learner routes ──
   useEffect(() => {
-    if (role === 'helper' && (view === 'chat' || view === 'history' || view === 'helper')) {
+    if (role === 'helper' && (view === 'chat' || view === 'history' || view === 'helper' || view === 'sandbox')) {
       navigate('/helper/home', { replace: true });
     }
   }, [role, view, navigate]);
@@ -381,6 +385,10 @@ function AppContent() {
             chatData={chatData}
             onArtifactOpen={setActiveArtifact}
           />
+        )}
+
+        {view === 'sandbox' && (
+          <SandboxPanel chatData={chatData} />
         )}
 
         {view === 'history' && (

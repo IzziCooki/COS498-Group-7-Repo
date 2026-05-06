@@ -111,7 +111,7 @@ function Onboarding({ createUser, completeOnboarding, existingUser, onBuddyCode 
         const comfortLevel = comfortMap[comfort] || 2;
 
         // Map device to os_type for backward compatibility
-        const osMap = { mac: 'Mac', windows: 'Windows', iphone: 'iPhone', android: 'Android', unknown: 'unknown' };
+        const osMap = { mac: 'Mac', windows: 'Windows', iphone: 'iPhone', android: 'Android', debian: 'Debian', unknown: 'unknown' };
         const osType = osMap[device] || 'unknown';
 
         // Create or update the user profile
