@@ -120,6 +120,7 @@ function ScreenNameDevice({
               { id: 'windows', emoji: '\uD83E\uDE9F', name: 'Windows', desc: 'Windows PC' },
               { id: 'iphone', emoji: '\uD83D\uDCF1', name: 'iPhone / iPad', desc: 'Apple phone or tablet' },
               { id: 'android', emoji: '\uD83E\uDD16', name: 'Android', desc: 'Android phone or tablet' },
+              { id: 'debian', emoji: '\uD83D\uDC27', name: 'Debian', desc: 'Debian Linux' },
             ].map((d) => (
               <button
                 key={d.id}

@@ -111,6 +111,94 @@ const MEMORY_TYPES = ['preference', 'struggle', 'breakthrough', 'context', 'patt
 const RISK_LEVELS = ['high', 'medium', 'low'];
 const FINDING_STATUSES = ['good', 'warning', 'bad'];
 
+// ─── Auto-Fix Sandbox: Killable Process Allowlist ────────────────
+// Per-OS allowlist of process names that fix_kill_process_by_name may target.
+// The agent picks a name, but it MUST appear in this list before being passed
+// to taskkill/pkill. Anything else is rejected. Hardcoded to prevent the
+// agent from killing critical system processes.
+
+const KILLABLE_PROCESS_ALLOWLIST = {
+  windows: [
+    'chrome', 'firefox', 'msedge', 'opera', 'brave',
+    'spotify', 'discord', 'slack', 'teams', 'zoom',
+    'notepad', 'mspaint', 'calc', 'wordpad',
+    'winword', 'excel', 'powerpnt', 'outlook',
+    'vlc', 'iTunes', 'AcroRd32',
+  ],
+  mac: [
+    'Google Chrome', 'firefox', 'Safari', 'Microsoft Edge', 'Opera',
+    'Spotify', 'Discord', 'Slack', 'Microsoft Teams', 'zoom.us',
+    'TextEdit', 'Preview', 'Calculator',
+    'Microsoft Word', 'Microsoft Excel', 'Microsoft PowerPoint', 'Microsoft Outlook',
+    'VLC', 'iTunes', 'Music',
+  ],
+  linux: [
+    'chrome', 'chromium', 'firefox', 'opera', 'brave',
+    'spotify', 'discord', 'slack', 'zoom',
+    'gedit', 'libreoffice', 'thunderbird', 'evince', 'vlc',
+  ],
+};
+
+// ─── Auto-Fix Sandbox: Installable Package Allowlist (Debian) ────
+// Hardcoded list of well-known, user-facing, vetted-by-Debian packages
+// that fix_install_safe_package may install via `apt-get install -y`.
+// The agent picks one of these by name; anything else is rejected before
+// reaching the shell. Adding an entry is a code-reviewed PR — never
+// build this list from agent input.
+
+const INSTALLABLE_PACKAGE_ALLOWLIST = [
+  'firefox-esr',       // browser (long-term-support build)
+  'chromium',
+  'thunderbird',       // email
+  'libreoffice',       // office suite
+  'vlc',               // media player
+  'gimp',              // image editor
+  'inkscape',          // vector graphics
+  'audacity',          // audio editor
+  'evince',            // PDF viewer
+  'gnome-calculator',
+  'gedit',             // text editor
+  'transmission-gtk',  // torrent client
+  'rhythmbox',         // music player
+  'gthumb',            // photo viewer
+];
+
+// ─── Auto-Fix Sandbox: Fix-Mode Block List ───────────────────────
+// A narrower block list than BLOCKED_PATTERNS, applied by runFixCommand.
+// Still rejects shell-injection vectors and irrecoverable disk ops, but
+// permits the specific fix verbs (rm, del, taskkill, sudo) that the curated
+// fix_* tool wrappers need. Safe because every fix_* command string is
+// hardcoded in the wrapper; no agent input is interpolated except the
+// per-OS-allowlisted process name in fix_kill_process_by_name.
+
+const FIX_BLOCKED_PATTERNS = [
+  /[;&|`$]/,              // shell chaining / injection — never allowed even in fix mode
+  /\bformat\b/i,          // disk format
+  /\bmkfs\b/i,             // make filesystem
+  /\bdd\b/i,               // disk dump
+  />\s*/,                  // output redirection
+  /\bcurl\b/i,             // download
+  /\bwget\b/i,             // download
+  /\bnpm\b/i,              // package manager
+  /\bpip\b/i,              // package manager
+  // NOTE: \bapt\b is INTENTIONALLY NOT blocked here. The Debian fix tools
+  //       (fix_apt_update, fix_apt_safe_upgrade, fix_clear_apt_cache,
+  //       fix_apt_autoremove, fix_install_safe_package) all wrap hardcoded
+  //       'apt-get ...' strings, with the only variable input being a package
+  //       name validated against INSTALLABLE_PACKAGE_ALLOWLIST. The
+  //       hardcoded-string + per-tool-allowlist invariants are tested in
+  //       autofixSandbox.test.js.
+  /\bbrew\b/i,             // package manager
+  /\byum\b/i,              // package manager
+  /\bdnf\b/i,              // package manager
+  /\bshutdown\b/i,         // shutdown
+  /\breboot\b/i,           // reboot
+  /\bhalt\b/i,             // halt
+  /\binit\s+0\b/i,         // halt
+  /\binit\s+6\b/i,         // reboot
+  /\brunas\b/i,            // win privesc
+];
+
 // ─── Intermediate Vocabulary Keys ────────────────────────────────
 // Subset of jargon terms applied at the 'intermediate' level.
 // Used by vocabularyFilter and vocabularyProgression.
@@ -147,6 +235,9 @@ function buildWordRegex(term) {
 module.exports = {
   VALID_GUIDE_IDS,
   BLOCKED_PATTERNS,
+  FIX_BLOCKED_PATTERNS,
+  KILLABLE_PROCESS_ALLOWLIST,
+  INSTALLABLE_PACKAGE_ALLOWLIST,
   buildComfortGuidelines,
   VOCAB_LEVELS,
   VALID_TASK_TYPES,

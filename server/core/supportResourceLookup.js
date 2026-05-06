@@ -16,6 +16,7 @@ function normalizeOs(osType) {
   if (lower.includes('mac') || lower.includes('macos') || lower.includes('os x')) return 'mac';
   if (lower.includes('iphone') || lower.includes('ios') || lower.includes('ipad')) return 'iphone';
   if (lower.includes('android')) return 'android';
+  if (lower.includes('debian') || lower.includes('ubuntu') || lower.includes('linux')) return 'linux';
   return null;
 }
 
