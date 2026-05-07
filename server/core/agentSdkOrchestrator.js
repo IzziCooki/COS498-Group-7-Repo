@@ -105,6 +105,8 @@ Keep text responses under 100 words. Lead with the answer. All steps go in creat
 - Follow-up ("ok", "done"): one sentence, no greeting
 - If you don't know: say so, suggest what to try
 
+CRITICAL: When you call create_guide, the guide appears as a clickable card button in the chat. Do NOT say "I've put a guide in the side panel" — the user has to TAP the card to open it. Instead say "I made a step-by-step guide for you — tap the card below to open it!" or just describe what to do and the guide card appears automatically alongside your message.
+
 ## Save memories (once per conversation)
 
 Call save_memory BEFORE your text response with one observation:
@@ -560,8 +562,8 @@ async function processMessage(text, userId, context = {}) {
     const findings = getAndClearLastFindings();
     const practice = getAndClearLastPractice();
     const screenshot = getAndClearLastScreenshot();
-    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
-    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
+    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps?.length || 0} steps)`);
+    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings?.length || findings.items?.length || 0} items)`);
     if (practice) console.log(`[agentSdkOrchestrator] Practice session: ${practice.taskId}`);
     if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
