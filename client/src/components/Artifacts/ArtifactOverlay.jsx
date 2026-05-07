@@ -117,6 +117,7 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
   const titleId = 'pcp-overlay-title';
 
   const renderContent = () => {
+    if (!data) return <div style={{ padding: 'var(--space-5)', textAlign: 'center', color: 'var(--color-text-2)' }}>No content to display.</div>;
     switch (type) {
       case 'guide':
         return (

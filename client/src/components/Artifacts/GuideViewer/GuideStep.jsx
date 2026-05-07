@@ -21,6 +21,8 @@ function GuideStep({ step, onStuck }) {
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
+  if (!step) return null;
+
   const hasImage = step.image && step.image.url && !imgError;
   const hasCaption = !!step.caption;
   const hasNote = step.note && step.note.text;
