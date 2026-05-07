@@ -190,9 +190,9 @@ function ChatScreen({
     }
   }, [messages, dismissedAlerts]);
 
-  // ── Artifact tap handler: desktop → side panel, phone/tablet → overlay ──
+  // ── Artifact tap handler: tablet/desktop → side panel, phone → overlay ──
   const handleArtifactTap = useCallback((type, data) => {
-    if (breakpoint === 'desktop' && onArtifactOpen) {
+    if (breakpoint !== 'phone' && onArtifactOpen) {
       onArtifactOpen({ type, data });
     } else {
       setOpenArtifact({ type, data });

@@ -60,14 +60,10 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
     return () => clearTimeout(timeout);
   }, [onClose]);
 
-  // Attempt close -- may require confirmation for guides mid-step
+  // Close immediately — no confirmation needed
   const attemptClose = useCallback(() => {
-    if (type === 'guide' && guideStepRef.current > 0) {
-      setConfirmClose(true);
-      return;
-    }
     doClose();
-  }, [type, doClose]);
+  }, [doClose]);
 
   // Esc key handler
   useEffect(() => {

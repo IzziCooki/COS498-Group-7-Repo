@@ -37,7 +37,7 @@ function ShellLayout({
     `pcp-shell--${role}`,
     breakpoint === 'tablet' && railExpanded ? 'pcp-shell--rail-expanded' : '',
     breakpoint === 'desktop' && !railExpanded ? 'pcp-shell--rail-collapsed' : '',
-    breakpoint === 'desktop' && artifactOpen ? 'pcp-shell--artifact-open' : '',
+    breakpoint !== 'phone' && artifactOpen ? 'pcp-shell--artifact-open' : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -78,7 +78,7 @@ function ShellLayout({
         {children}
       </main>
 
-      {breakpoint === 'desktop' && artifactOpen && (
+      {breakpoint !== 'phone' && artifactOpen && (
         <div className="pcp-shell__artifact">
           <ArtifactPanel
             artifact={artifact}
