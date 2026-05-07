@@ -32,15 +32,24 @@ import SandboxPanel from './components/Sandbox/SandboxPanel';
 /* ── Placeholder components for views not yet built ────────────── */
 
 function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation }) {
-  const formatDate = (d) => {
+  const formatDateTime = (d) => {
     if (!d) return '';
     const date = new Date(d);
     const now = new Date();
     const diff = now - date;
-    if (diff < 86400000) return 'Today';
-    if (diff < 172800000) return 'Yesterday';
-    return date.toLocaleDateString();
+    const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diff < 86400000) return `Today at ${time}`;
+    if (diff < 172800000) return `Yesterday at ${time}`;
+    if (diff < 604800000) return `${date.toLocaleDateString([], { weekday: 'long' })} at ${time}`;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` at ${time}`;
   };
+
+  // Sort by most recent first
+  const sorted = [...conversations].sort((a, b) => {
+    const da = new Date(a.started_at || a.created_at || 0);
+    const db = new Date(b.started_at || b.created_at || 0);
+    return db - da;
+  });
 
   return (
     <div style={{ height: '100%', overflow: 'auto', background: 'var(--color-surface-2)' }}>
@@ -54,14 +63,14 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyCon
           + Start a new chat
         </button>
       </div>
-      {conversations.length === 0 ? (
+      {sorted.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-2)' }}>
           <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-3)' }}>No conversations yet</p>
           <p style={{ fontSize: 'var(--font-size-base)' }}>Start chatting and your history will appear here.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '0 var(--space-4)' }}>
-          {conversations.map((c) => (
+          {sorted.map((c) => (
             <div
               key={c.id}
               className="pcp-card pcp-card--interactive"
@@ -70,13 +79,13 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyCon
               <button
                 type="button"
                 style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}
-                onClick={() => { onSelect(c.id); navigate('/'); }}
+                onClick={() => onSelect(c.id, c)}
               >
                 <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
                   {c.context_summary || c.preview || c.task_type || 'Chat session'}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{formatDate(c.started_at || c.created_at)}</span>
+                  <span>{formatDateTime(c.started_at || c.created_at)}</span>
                   <span style={{ color: c.status === 'active' ? 'var(--color-success)' : 'var(--color-text-3)' }}>
                     {c.status === 'active' ? '\u25CF Active' : 'Ended'}
                   </span>
@@ -384,6 +393,19 @@ function AppContent() {
             onLogout={logout}
             chatData={chatData}
             onArtifactOpen={setActiveArtifact}
+            onContinueConversation={(convId) => {
+              // Reopen the conversation on the server and switch to live mode
+              fetch(`/api/conversations/${convId}/reopen`, {
+                method: 'POST',
+                credentials: 'include',
+              }).then(() => {
+                setViewingConversationId(null);
+                refreshConversations();
+              }).catch(() => {
+                // Even if reopen fails, let them type (server will create new session)
+                setViewingConversationId(null);
+              });
+            }}
           />
         )}
 
@@ -394,8 +416,14 @@ function AppContent() {
         {view === 'history' && (
           <HistoryScreen
             conversations={conversations}
-            onSelect={(convId) => {
-              setViewingConversationId(convId);
+            onSelect={(convId, conv) => {
+              if (conv && conv.status === 'active') {
+                // Active conversation — just switch to it
+                setViewingConversationId(null);
+              } else {
+                // Past conversation — view it (read-only with option to continue)
+                setViewingConversationId(convId);
+              }
               navigate('/');
             }}
             onNewChat={() => {
@@ -465,7 +493,7 @@ function AppContent() {
         {view === 'helper-sessions' && (
           <HelperSessions
             learnerName={learnerName}
-            conversations={conversations.map((c) => ({
+            conversations={sorted.map((c) => ({
               id: c.id,
               title: c.title || c.topic || 'Chat session',
               preview: c.last_message || '',

@@ -47,6 +47,7 @@ function ChatScreen({
   onBuddySessionChange,
   navigate,
   onLogout,
+  onContinueConversation,
   chatData,
   onArtifactOpen,
 }) {
@@ -280,6 +281,16 @@ function ChatScreen({
       {isViewingPast ? (
         <div className="pcp-chat-screen__readonly">
           This is a past conversation.
+          {onContinueConversation && (
+            <button
+              type="button"
+              className="pcp-btn pcp-btn--primary"
+              style={{ marginTop: 'var(--space-3)', display: 'block', width: '100%' }}
+              onClick={() => onContinueConversation(viewingConversationId)}
+            >
+              Continue this conversation
+            </button>
+          )}
         </div>
       ) : (
         <InputArea
