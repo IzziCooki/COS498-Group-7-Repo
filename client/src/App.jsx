@@ -31,7 +31,7 @@ import SandboxPanel from './components/Sandbox/SandboxPanel';
 
 /* ── Placeholder components for views not yet built ────────────── */
 
-function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation }) {
+function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation, onRefresh }) {
   const formatDateTime = (d) => {
     if (!d) return '';
     const date = new Date(d);
@@ -62,6 +62,16 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyCon
         >
           + Start a new chat
         </button>
+        {onRefresh && (
+          <button
+            type="button"
+            className="pcp-btn pcp-btn--ghost"
+            style={{ width: '100%' }}
+            onClick={onRefresh}
+          >
+            Refresh
+          </button>
+        )}
       </div>
       {sorted.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-2)' }}>
@@ -206,10 +216,22 @@ function AppContent() {
     prevViewRef.current = view;
   }, [view, refreshConversations]);
 
-  // Also refresh when chat gets a new conversation or sends a message
+  // Refresh when chat gets a new conversation ID
   useEffect(() => {
     if (chatData.conversationId) refreshConversations();
   }, [chatData.conversationId, refreshConversations]);
+
+  // Refresh after each message exchange (user sends → AI responds)
+  const prevMsgCount = useRef(0);
+  useEffect(() => {
+    const count = chatData.messages?.length || 0;
+    if (count > prevMsgCount.current && count > 0) {
+      // Debounce: only refresh if the count actually grew
+      const timer = setTimeout(refreshConversations, 1000);
+      prevMsgCount.current = count;
+      return () => clearTimeout(timer);
+    }
+  }, [chatData.messages?.length, refreshConversations]);
 
   const chatWindowRef = useRef(null);
 
@@ -433,6 +455,7 @@ function AppContent() {
             }}
             navigate={navigate}
             onCopyConversation={handleCopyConversation}
+            onRefresh={refreshConversations}
           />
         )}
         {view === 'helper' && <HelperPlaceholder />}
