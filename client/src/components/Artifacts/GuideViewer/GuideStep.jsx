@@ -72,13 +72,18 @@ function GuideStep({ step, onStuck }) {
         </p>
       )}
 
-      {/* Step text */}
+      {/* Step text — accepts both 'body' (spec) and 'text' (create_guide tool) */}
       <div className="pcp-guide-step__text">
         {step.title && (
           <h2 className="pcp-guide-step__heading">{step.title}</h2>
         )}
-        {step.body && (
-          <p className="pcp-guide-step__body">{step.body}</p>
+        {(step.body || step.text) && (
+          <p className="pcp-guide-step__body">{step.body || step.text}</p>
+        )}
+        {step.command && (
+          <div className="pcp-guide-step__command">
+            <code>{step.command}</code>
+          </div>
         )}
       </div>
 

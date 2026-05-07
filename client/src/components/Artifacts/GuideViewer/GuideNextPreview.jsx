@@ -16,7 +16,7 @@ import './GuideNextPreview.css';
 function GuideNextPreview({ nextStep, nextStepNumber, isOpen, onToggle, onSkip }) {
   if (!nextStep) return null;
 
-  const label = nextStep.title || nextStep.body || '';
+  const label = nextStep.title || nextStep.body || nextStep.text || '';
   const truncatedLabel = label.length > 40 ? label.slice(0, 40) + '...' : label;
 
   return (
@@ -76,9 +76,9 @@ function GuideNextPreview({ nextStep, nextStepNumber, isOpen, onToggle, onSkip }
               </div>
             )}
 
-            {nextStep.body && nextStep.title && (
+            {(nextStep.body || nextStep.text) && nextStep.title && (
               <p className="pcp-next-preview__panel-body">
-                {nextStep.body.length > 80 ? nextStep.body.slice(0, 80) + '...' : nextStep.body}
+                {(() => { const b = nextStep.body || nextStep.text || ''; return b.length > 80 ? b.slice(0, 80) + '...' : b; })()}
               </p>
             )}
 

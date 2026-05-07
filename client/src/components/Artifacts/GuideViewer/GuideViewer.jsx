@@ -101,7 +101,7 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
       return;
     }
     if (!step) return;
-    const textParts = [step.title, step.body, step.caption].filter(Boolean);
+    const textParts = [step.title, step.body || step.text, step.caption].filter(Boolean);
     const text = textParts.join('. ');
     if (window.speechSynthesis && text) {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -211,7 +211,7 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
     <div className="pcp-guide">
       {/* Screen reader announcement on step change */}
       <div ref={announceRef} className="sr-only" aria-live="polite" role="status">
-        Step {currentStep + 1} of {totalSteps}. {step.title || step.body}
+        Step {currentStep + 1} of {totalSteps}. {step.title || step.body || step.text}
       </div>
 
       {/* Top bar */}
@@ -315,7 +315,7 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
         <GuideStuckSheet
           guideTitle={guide.title}
           stepNumber={currentStep + 1}
-          stepTitle={step.title || step.body}
+          stepTitle={step.title || step.body || step.text}
           onClose={handleStuckClose}
           onSendMessage={onSendMessage}
         />

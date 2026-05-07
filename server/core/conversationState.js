@@ -21,9 +21,11 @@ const ephemeralMessages = new Map();
 const ephemeralByUser = new Map();
 
 function isAnonymousUser(userId) {
+  // All users get persistent conversations now — even anonymous ones.
+  // As long as they have a session cookie, their chats persist in SQLite.
+  // Only truly missing users (no DB row at all) go ephemeral.
   const user = User.findById(userId);
-  // If the row is missing, treat as anonymous (safer default — don't persist).
-  return !user || user.is_anonymous === 1;
+  return !user;
 }
 
 function isEphemeral(sessionId) {
