@@ -16,7 +16,7 @@ import './GuideNextPreview.css';
 function GuideNextPreview({ nextStep, nextStepNumber, isOpen, onToggle, onSkip }) {
   if (!nextStep) return null;
 
-  const label = nextStep.title || nextStep.body;
+  const label = nextStep.title || nextStep.body || '';
   const truncatedLabel = label.length > 40 ? label.slice(0, 40) + '...' : label;
 
   return (
