@@ -5,5 +5,10 @@
   "triggers": ["scam", "fraud", "phishing", "suspicious", "virus", "hacked", "someone called", "pop up", "popup", "warning on screen", "you've been infected", "call this number", "gift card"],
   "category": "security",
   "difficulty": "important",
+  "quickHelp": true,
+  "quickHelpLabel": "Is this a scam?",
+  "quickHelpEmoji": "🛡️",
+  "quickHelpStarter": "I think I might be looking at a scam — can you help me check?",
+  "quickHelpOrder": 7,
   "prompt": "The user may be encountering a scam or asking about scam protection. Take this VERY seriously. If they describe an active scam (popup, phone call, email asking for money), tell them clearly: STOP, do NOT click anything, do NOT call any number on screen, do NOT send money or gift cards. Real companies never ask for gift cards or remote access. Walk them through closing the popup or hanging up. If they are asking generally, teach the top 3 warning signs of scams."
 }

@@ -10,7 +10,11 @@ import { collectBrowserSystemInfo } from '../utils/collectBrowserSystemInfo';
  * @param {string|null} userId
  * @returns {{ messages: Array, sendMessage: (text: string) => void, gatherResources: (extraText: string) => void, pairAgent: (code: string, callback: Function) => void, agentConnected: boolean, runCommand: (command: string) => void, isConnected: boolean, isTyping: boolean, connectionFailed: boolean, activeSequence: object|null, welcomeBack: { reviewSkills: Array, pendingHelp: Array }|null, dismissWelcomeBack: () => void, conversationId: string|null, feedbackPrompt: { conversationId: string }|null, startNewChat: () => void, endChat: () => void, submitFeedback: (payload: { rating: number, comment?: string }) => Promise<{ ok: boolean, error?: string }>, skipFeedback: () => Promise<void>, terminalHistory: Array, terminalCwd: string|null, sendTerminalCommand: (command: string) => void, buddySession: object|null, buddyObserving: { buddyName: string }|null, joinBuddySession: (learnerId: string) => void, leaveBuddySession: (learnerId: string) => void, sendBuddyCommand: (learnerId: string, command: string) => void, sendScreenFrame: (imageBase64: string) => void, wsRef: React.MutableRefObject<WebSocket|null> }}
  */
-export function useChat(userId) {
+export function useChat(userId, options = {}) {
+  const { onAssistantResponse } = options;
+  // Stable ref so callback identity changes don't reconnect the WebSocket.
+  const onAssistantResponseRef = useRef(onAssistantResponse);
+  useEffect(() => { onAssistantResponseRef.current = onAssistantResponse; }, [onAssistantResponse]);
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -124,6 +128,12 @@ export function useChat(userId) {
           }
           if (data.endedConversationId) {
             setFeedbackPrompt({ conversationId: data.endedConversationId });
+          }
+          {
+            const cb = onAssistantResponseRef.current;
+            if (typeof cb === 'function' && typeof data.text === 'string' && data.text.length > 0) {
+              cb(data.text);
+            }
           }
           break;
 

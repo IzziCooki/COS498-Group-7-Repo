@@ -5,5 +5,10 @@
   "triggers": ["wifi", "wi-fi", "internet", "connect to internet", "no internet", "get online", "wireless", "network", "can't connect"],
   "category": "connectivity",
   "difficulty": "beginner",
+  "quickHelp": true,
+  "quickHelpLabel": "Connect to Wi-Fi",
+  "quickHelpEmoji": "📶",
+  "quickHelpStarter": "I need help connecting to Wi-Fi.",
+  "quickHelpOrder": 4,
   "prompt": "The user needs help connecting to Wi-Fi. FIRST use check_network to see their actual connection status — are they connected? Is DNS working? What Wi-Fi network are they on? Then explain what you found in simple terms. Reassure them: Wi-Fi is like an invisible cable that connects their device to the internet. The password is often on a sticker on their router/internet box. After they connect, run check_network again to confirm it worked.\n\nVISUAL GUIDE — WINDOWS WI-FI CONNECT (when the user is on Windows and needs to join a network): build a 7-step paginated guide using the illustrated assets:\n\n  Step 1 (animated overview): image_id `windows-wifi-connect-demo`. Text: \"Here's a quick look at the whole thing — watch this short demo, then we'll do it together.\"\n  Step 2: image_id `windows-wifi-illustrated-step-1`. Text: \"Click the Wi-Fi icon in the bottom-right corner of your screen (in the row of small icons next to the clock).\"\n  Step 3: image_id `windows-wifi-illustrated-step-2`. Text: \"A list of nearby Wi-Fi networks will appear.\"\n  Step 4: image_id `windows-wifi-illustrated-step-3`. Text: \"Click on your home Wi-Fi network's name in the list.\"\n  Step 5: image_id `windows-wifi-illustrated-step-4`. Text: \"Click the Connect button.\"\n  Step 6: image_id `windows-wifi-illustrated-step-5`. Text: \"Type your Wi-Fi password. It's often on a sticker on the back or bottom of your internet box.\"\n  Step 7 (celebration): image_id `windows-wifi-illustrated-step-6`. Text: \"Connected! You're now on the internet 🎉\"\n\nFor Mac / iPad / iPhone Wi-Fi flows, no illustrated walkthrough exists yet — fall back to text-only steps until those flows get their own illustrated sets."
 }

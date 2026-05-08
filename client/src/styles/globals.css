@@ -197,6 +197,7 @@
      ======================================================================== */
   --layout-max-width:        100%;
   --layout-content-max:      640px;     /* phone full; tablet artifact pane uses */
+
   --layout-sidebar-w:        260px;     /* desktop sidebar */
   --layout-sidebar-collapsed: 64px;
   --layout-artifact-w:       480px;     /* desktop artifact panel */
@@ -215,6 +216,64 @@
      - tablet:   640px – 1024px
      - desktop:  > 1024px
      ======================================================================== */
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: TEXT-SIZE SCALING
+   Per-user accessibility preference. The 'normal' tier matches the base
+   :root values above. Larger tiers proportionally scale every font-size
+   token so any layout using var(--font-size-*) follows along automatically.
+   ========================================================================== */
+
+:root[data-text-size="large"] {
+  --font-size-xs:    1rem;        /* 16px */
+  --font-size-sm:    1.125rem;    /* 18px */
+  --font-size-base:  1.3125rem;   /* 21px */
+  --font-size-md:    1.4375rem;   /* 23px */
+  --font-size-lg:    1.75rem;     /* 28px */
+  --font-size-xl:    2.1875rem;   /* 35px */
+  --font-size-2xl:   2.625rem;    /* 42px */
+}
+
+:root[data-text-size="xlarge"] {
+  --font-size-xs:    1.125rem;    /* 18px */
+  --font-size-sm:    1.25rem;     /* 20px */
+  --font-size-base:  1.5rem;      /* 24px */
+  --font-size-md:    1.6875rem;   /* 27px */
+  --font-size-lg:    2rem;        /* 32px */
+  --font-size-xl:    2.5rem;      /* 40px */
+  --font-size-2xl:   3rem;        /* 48px */
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: HIGH-CONTRAST THEME
+   Black on white with thicker borders. Overrides the surface, text, primary,
+   and border tokens; component CSS that uses these tokens picks up the change
+   automatically — no per-component changes needed.
+   ========================================================================== */
+
+:root[data-contrast="high"] {
+  --color-surface:        #FFFFFF;
+  --color-surface-2:      #F0F0F0;
+  --color-surface-3:      #E0E0E0;
+  --color-surface-inset:  #F5F5F5;
+  --color-text-1:         #000000;
+  --color-text-2:         #1A1A1A;
+  --color-text-3:         #333333;
+  --color-border:         #000000;
+  --color-border-strong:  #000000;
+  --color-primary:        #003EB8;
+  --color-primary-hover:  #002A82;
+  --color-primary-active: #001F60;
+  --color-primary-soft:   #E0E8FF;
+  --color-success:        #006625;
+  --color-warning:        #8A4500;
+  --color-danger:         #A30000;
+}
+
+:root[data-contrast="high"] button {
+  border-width: 2px;
+  border-style: solid;
 }
 
 /* ==========================================================================
