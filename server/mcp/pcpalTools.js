@@ -58,6 +58,9 @@ const ScamCheckEvent = require('../models/ScamCheckEvent');
 const conversationState = require('../core/conversationState');
 const userProfileManager = require('../core/userProfileManager');
 const supportResourceLookup = require('../core/supportResourceLookup');
+const docsCacheSearch = require('../core/docsCacheSearch');
+const allowlistedFetchModule = require('../core/allowlistedFetch');
+const webSearchModule = require('../core/webSearch');
 
 function textResult(text) {
   return { content: [{ type: 'text', text: String(text) }] };
@@ -768,6 +771,56 @@ const lookupSupportResources = tool(
   }
 );
 
+// ── Tier 3: cached docs search ─────────────────────────────
+
+const searchDocsCache = tool(
+  'search_docs_cache',
+  'TIER 3 grounding: search the bundled offline corpus of curated Microsoft / Apple / Google / Mozilla support pages. Use this BEFORE allowlisted_web_fetch or web_search — it is instant, citable, and works offline. Returns the top matching chunks with their source URL and heading path so you can cite them in your answer.',
+  {
+    query: z.string().describe('Free-text query built from the user\'s question, e.g. "connect bluetooth headphones", "change text size windows 11"'),
+    os: z.string().optional().describe('Filter to "windows-11" or "macos" if you know the user\'s OS'),
+    limit: z.number().optional().describe('Max chunks to return (default 5, max 10)'),
+  },
+  async (args) => {
+    const payload = docsCacheSearch.searchDocsCache(args.query, {
+      os: args.os || null,
+      limit: args.limit,
+    });
+    return textResult(docsCacheSearch.formatResults(payload));
+  }
+);
+
+// ── Tier 4: allowlisted web fetch ──────────────────────────
+
+const allowlistedWebFetch = tool(
+  'allowlisted_web_fetch',
+  'TIER 4 grounding: fetch a single URL from the trusted-domain allowlist (support.microsoft.com, support.apple.com, support.google.com, support.mozilla.org) and return ~2000 chars of extracted main text. Use this when search_docs_cache misses but you have a specific official URL. URLs from any other domain are rejected — never try to bypass this.',
+  {
+    url: z.string().describe('The exact URL to fetch (must be HTTPS and on the allowlist).'),
+  },
+  async (args) => {
+    const payload = await allowlistedFetchModule.allowlistedFetch(args.url);
+    return textResult(allowlistedFetchModule.formatResult(payload));
+  }
+);
+
+// ── Tier 5: live web search ────────────────────────────────
+
+const webSearch = tool(
+  'web_search',
+  'TIER 5 grounding: run a live web search via Anthropic\'s first-party search tool. Use this only after the curated skill, search_docs_cache, and allowlisted_web_fetch have all failed. Returns ranked URLs and titles you can then summarize for the user — always cite the source URL when answering.',
+  {
+    query: z.string().describe('Search query, e.g. "iphone 15 pro low battery threshold setting"'),
+    max_results: z.number().optional().describe('Cap on results returned (default 5, max 10)'),
+  },
+  async (args) => {
+    const payload = await webSearchModule.webSearch(args.query, {
+      max_results: args.max_results,
+    });
+    return textResult(webSearchModule.formatResults(payload));
+  }
+);
+
 // ─── Auto-Fix Sandbox Tools (mode 'autofix-sandbox' only) ────────────
 //
 // Every fix_* tool below wraps a HARDCODED command string (or a hardcoded
@@ -1383,6 +1436,9 @@ function createPcPalMcpServer(opts = {}) {
     startPractice,
     createGuide,
     lookupSupportResources,
+    searchDocsCache,
+    allowlistedWebFetch,
+    webSearch,
   ];
 
   // Sandbox-mode-only tools: the curated fix_* tool set.

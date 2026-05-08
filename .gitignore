@@ -13,6 +13,9 @@ server/db/pcpal.db-shm
 # Generated guide images (regenerated on startup)
 server/assets/generated/
 
+# Generated docs-cache index — rebuilt by `node scripts/ingest-docs.js`
+server/docs-cache/.index.json
+
 # Build output
 client/dist/
 
