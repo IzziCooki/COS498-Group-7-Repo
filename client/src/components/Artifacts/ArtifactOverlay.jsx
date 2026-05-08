@@ -19,7 +19,7 @@ import './ArtifactOverlay.css';
  *   triggerRef?: React.RefObject,
  * }} props
  */
-function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
+function ArtifactOverlay({ type, data, meta, onClose, onSendMessage, triggerRef }) {
   const overlayRef = useRef(null);
   const previousFocusRef = useRef(null);
   const [confirmClose, setConfirmClose] = useState(false);
@@ -123,6 +123,8 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
             onSendMessage={onSendMessage}
             onStepChange={handleGuideStepChange}
             titleId={titleId}
+            systemModifying={!!meta?.systemModifying}
+            systemModifyingMatches={meta?.systemModifyingMatches || null}
           />
         );
       case 'diagnostic':

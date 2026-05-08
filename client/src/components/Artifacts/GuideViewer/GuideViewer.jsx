@@ -4,6 +4,7 @@ import GuideTerminalStep from './GuideTerminalStep';
 import GuideCompletionStep from './GuideCompletionStep';
 import GuideStuckSheet from './GuideStuckSheet';
 import GuideNextPreview from './GuideNextPreview';
+import DisclaimerCard from '../DisclaimerCard';
 import './GuideViewer.css';
 
 /**
@@ -19,7 +20,7 @@ import './GuideViewer.css';
  *   titleId: string,
  * }} props
  */
-function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
+function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId, systemModifying = false, systemModifyingMatches = null }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [stuckOpen, setStuckOpen] = useState(false);
@@ -244,15 +245,45 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
             {renderDots()}
           </div>
         )}
-        {guide.source && (
+        {(guide.source || (Array.isArray(guide.citations) && guide.citations.length > 0)) && (
           <div className="pcp-guide__source">
-            Source: {(() => { try { return new URL(guide.source).hostname.replace('www.', ''); } catch { return guide.source; } })()}
+            <span className="pcp-guide__source-label">Source:</span>
+            {guide.source && (
+              <span className="pcp-guide__source-text">
+                {(() => { try { return new URL(guide.source).hostname.replace('www.', ''); } catch { return guide.source; } })()}
+              </span>
+            )}
+            {Array.isArray(guide.citations) && guide.citations.map((cite, i) => {
+              if (!cite || typeof cite.url !== 'string') return null;
+              let domain = cite.source;
+              if (!domain) {
+                try { domain = new URL(cite.url).hostname.replace('www.', ''); }
+                catch { domain = cite.url; }
+              }
+              return (
+                <a
+                  key={`cite-${i}`}
+                  className="pcp-guide__source-chip"
+                  href={cite.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={cite.title || cite.url}
+                  aria-label={`Open source: ${domain}`}
+                >
+                  {domain}
+                  <span className="pcp-guide__source-chip-icon" aria-hidden="true"> ↗</span>
+                </a>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Step content (scrollable) */}
       <div className="pcp-guide__content" ref={contentRef}>
+        {systemModifying && (
+          <DisclaimerCard matches={systemModifyingMatches} />
+        )}
         {isTerminalStep ? (
           <GuideTerminalStep
             step={step}

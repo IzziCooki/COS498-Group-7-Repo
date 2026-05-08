@@ -42,6 +42,52 @@ function cleanResponseMarkers(text) {
   return { text: cleaned, videos: videos && videos.length > 0 ? videos : null };
 }
 
+/**
+ * Build the system-message preamble that warns the model the user just
+ * signalled the previous instruction failed. Prepended to the system prompt
+ * so the model pivots strategy instead of regenerating a similar guess.
+ * Sprint C: failure-signal handler.
+ */
+function buildFailurePreamble(failureContext) {
+  if (!failureContext || !failureContext.lastStepFailed) return '';
+  const lines = [
+    "The user's last attempt to follow your instructions failed. Do NOT retry the same approach. Either ask a clarifying question, escalate to web search via web_search, or hand off to the buddy system.",
+  ];
+  if (Array.isArray(failureContext.failedSteps) && failureContext.failedSteps.length > 0) {
+    const recent = failureContext.failedSteps.slice(-3);
+    const summary = recent
+      .map((s, i) => `  ${i + 1}. ${s.instruction || '(no text)'} — signalled "${s.signal || 'failure'}"`)
+      .join('\n');
+    lines.push(`Steps already known to have failed this session:\n${summary}`);
+  }
+  return `## FAILURE-SIGNAL CONTEXT\n${lines.join('\n\n')}\n\n`;
+}
+
+/**
+ * Pull a representative step descriptor from whatever the agent just said.
+ * Prefers the first guide step (most concrete) but falls back to the chat
+ * response itself when no guide was created. Used to populate lastIssuedStep
+ * after each assistant turn so the next user turn can attribute failure.
+ * Sprint C: failure-signal handler.
+ */
+function deriveIssuedStep({ guide, response, matchedSkillId }) {
+  let instruction = '';
+  const stepIndex = 0;
+  if (guide && Array.isArray(guide.steps) && guide.steps.length > 0) {
+    const first = guide.steps[0];
+    instruction = `${guide.title}: ${first.text || ''}`.trim();
+  } else if (typeof response === 'string' && response.trim().length > 0) {
+    instruction = response.trim().slice(0, 280);
+  }
+  if (!instruction) return null;
+  return {
+    skillId: matchedSkillId || null,
+    stepIndex,
+    instruction,
+    issuedAt: new Date().toISOString(),
+  };
+}
+
 function trackQuality({ userId, sessionId, userMessage, agentResponse, user }) {
   try {
     const allMessages = conversationState.getSessionMessages(sessionId, 50);
@@ -66,4 +112,6 @@ module.exports = {
   filterResponse,
   cleanResponseMarkers,
   trackQuality,
+  buildFailurePreamble,
+  deriveIssuedStep,
 };

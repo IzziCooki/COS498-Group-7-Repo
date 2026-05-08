@@ -1,0 +1,68 @@
+/* DisclaimerCard — amber inline warning for system-modifying step sequences.
+   Reuses MessageBubble's confidence-badge palette so the visual cue is
+   already learned. */
+
+.pcp-disclaimer-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  background: var(--color-warning-soft, #FEEBC8);
+  color: var(--color-warning-text, #7B341E);
+  border: 1px solid var(--color-warning-border, #F6AD55);
+  border-radius: var(--radius-md, 10px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  margin: var(--space-3, 12px) 0;
+  line-height: 1.45;
+}
+
+.pcp-disclaimer-card--compact {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  font-size: var(--font-size-sm, 0.9rem);
+}
+
+.pcp-disclaimer-card__icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pcp-disclaimer-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-disclaimer-card__title {
+  font-weight: 600;
+  font-size: var(--font-size-base, 1rem);
+  margin-bottom: var(--space-1, 4px);
+}
+
+.pcp-disclaimer-card__text {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.95rem);
+}
+
+.pcp-disclaimer-card__why {
+  margin-top: var(--space-2, 8px);
+  font-size: var(--font-size-xs, 0.8rem);
+  opacity: 0.85;
+}
+
+.pcp-disclaimer-card__why summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.pcp-disclaimer-card__why summary:focus {
+  outline: 2px solid var(--color-warning-text, #7B341E);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Honor reduced-motion / high-contrast preferences. */
+@media (prefers-contrast: more) {
+  .pcp-disclaimer-card {
+    border-width: 2px;
+  }
+}

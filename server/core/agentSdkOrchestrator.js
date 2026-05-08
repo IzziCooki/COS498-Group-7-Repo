@@ -21,7 +21,8 @@ const youtubeSearch = require('./youtubeSearch');
 const { buildComfortGuidelines } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const vocabularyProgression = require('./vocabularyProgression');
-const { loadCoachingNotes, buildScreenContext, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
+const { loadCoachingNotes, buildScreenContext, filterResponse, cleanResponseMarkers, trackQuality, buildFailurePreamble, deriveIssuedStep } = require('./orchestratorShared');
+const { detectSystemModifying, flattenGuideText } = require('./systemModifyingDetector');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -437,6 +438,10 @@ async function processMessage(text, userId, context = {}) {
     const session = conversationState.getOrCreateSession(userId);
     const sessionId = session.id;
     conversationState.addMessage(sessionId, 'user', text);
+    // Sprint C: detect "didn't work" / "I don't see" style failure signals
+    // on the incoming user turn so the system prompt can pivot strategy.
+    conversationState.noteUserTurn(sessionId, text);
+    const failureContext = conversationState.consumeFailureContext(sessionId);
 
     const [profileString, classification] = await Promise.all([
       Promise.resolve(userProfileManager.getProfileForPrompt(userId)),
@@ -486,7 +491,8 @@ async function processMessage(text, userId, context = {}) {
 
     const screenContext = buildScreenContext(context);
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext);
+    const baseSystemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext);
+    const systemPrompt = `${buildFailurePreamble(failureContext)}${baseSystemPrompt}`;
 
     // Format history as clearly labeled turns to prevent confusion
     const historyContext = dbMessages
@@ -577,6 +583,18 @@ async function processMessage(text, userId, context = {}) {
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
     trackQuality({ userId, sessionId, userMessage: text, agentResponse: filteredResponse, user });
 
+    // Sprint C: capture what we just told the user so the next user turn
+    // can attribute a failure signal to it and push it into failedSteps.
+    const issuedStep = deriveIssuedStep({ guide, response: filteredResponse, matchedSkillId });
+    if (issuedStep) conversationState.recordIssuedStep(sessionId, issuedStep);
+
+    // Detect system-modifying intent so the client can render a DisclaimerCard
+    // next to the step sequence. Run over both the chat text and any guide
+    // step content — see systemModifyingDetector.js for the rule list.
+    const sysModCheck = detectSystemModifying(
+      `${filteredResponse}\n${flattenGuideText(guide)}`
+    );
+
     return {
       response: filteredResponse,
       safetyAlert,
@@ -591,6 +609,8 @@ async function processMessage(text, userId, context = {}) {
       practice: practice || null,
       screenshot: screenshot || null,
       confidence: skillMatch ? 'high' : 'low',
+      systemModifying: sysModCheck.isModifying,
+      systemModifyingMatches: sysModCheck.isModifying ? sysModCheck.matched : null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

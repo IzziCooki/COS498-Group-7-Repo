@@ -38,6 +38,7 @@ function runMigrations() {
     'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0',
     'ALTER TABLE conversation_feedback ADD COLUMN ai_suggestion TEXT',
     'ALTER TABLE conversation_feedback ADD COLUMN ai_suggestion_generated_at TEXT',
+    "ALTER TABLE conversations ADD COLUMN failed_steps TEXT DEFAULT '[]'",
   ];
   for (const sql of migrations) {
     try {

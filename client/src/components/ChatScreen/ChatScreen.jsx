@@ -191,11 +191,11 @@ function ChatScreen({
   }, [messages, dismissedAlerts]);
 
   // ── Artifact tap handler: tablet/desktop → side panel, phone → overlay ──
-  const handleArtifactTap = useCallback((type, data) => {
+  const handleArtifactTap = useCallback((type, data, meta) => {
     if (breakpoint !== 'phone' && onArtifactOpen) {
-      onArtifactOpen({ type, data });
+      onArtifactOpen({ type, data, meta });
     } else {
-      setOpenArtifact({ type, data });
+      setOpenArtifact({ type, data, meta });
     }
   }, [breakpoint, onArtifactOpen]);
 
@@ -337,6 +337,7 @@ function ChatScreen({
         <ArtifactOverlay
           type={openArtifact.type}
           data={openArtifact.data}
+          meta={openArtifact.meta}
           onClose={handleArtifactClose}
           onSendMessage={sendMessage}
         />
