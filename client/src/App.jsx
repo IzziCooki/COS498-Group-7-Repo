@@ -534,7 +534,11 @@ function AppContent() {
         {view === 'helper-sessions' && (
           <HelperSessions
             learnerName={learnerName}
-            conversations={sorted.map((c) => ({
+            conversations={[...conversations].sort((a, b) => {
+              const da = new Date(a.started_at || a.created_at || 0);
+              const db = new Date(b.started_at || b.created_at || 0);
+              return db - da;
+            }).map((c) => ({
               id: c.id,
               title: c.title || c.topic || 'Chat session',
               preview: c.last_message || '',

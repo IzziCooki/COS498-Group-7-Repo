@@ -35,25 +35,6 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
   const isFirst = currentStep === 0;
   const isSingleStep = totalSteps <= 1;
 
-  // Guard: if no steps at all, show a fallback
-  if (totalSteps === 0) {
-    return (
-      <div className="pcp-guide" style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
-        <div className="pcp-overlay-topbar">
-          <button className="pcp-overlay-topbar__back" onClick={onClose} aria-label="Back to chat">
-            <span aria-hidden="true">&lsaquo;</span> Back to chat
-          </button>
-        </div>
-        <h1 id={titleId} style={{ fontSize: 'var(--font-size-lg)', marginTop: 'var(--space-5)' }}>
-          {guide?.title || 'Guide'}
-        </h1>
-        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-2)', marginTop: 'var(--space-3)' }}>
-          {guide?.description || 'This guide has no steps to display.'}
-        </p>
-      </div>
-    );
-  }
-
   // Notify parent of step changes
   useEffect(() => {
     if (onStepChange) onStepChange(currentStep);
@@ -124,6 +105,25 @@ function GuideViewer({ guide, onClose, onSendMessage, onStepChange, titleId }) {
     setCurrentStep(stepIndex);
     setPreviewOpen(false);
   }, []);
+
+  // Guard: if no steps at all, show a fallback
+  if (totalSteps === 0) {
+    return (
+      <div className="pcp-guide" style={{ padding: 'var(--space-5)', textAlign: 'center' }}>
+        <div className="pcp-overlay-topbar">
+          <button className="pcp-overlay-topbar__back" onClick={onClose} aria-label="Back to chat">
+            <span aria-hidden="true">&lsaquo;</span> Back to chat
+          </button>
+        </div>
+        <h1 id={titleId} style={{ fontSize: 'var(--font-size-lg)', marginTop: 'var(--space-5)' }}>
+          {guide?.title || 'Guide'}
+        </h1>
+        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-2)', marginTop: 'var(--space-3)' }}>
+          {guide?.description || 'This guide has no steps to display.'}
+        </p>
+      </div>
+    );
+  }
 
   // Determine if step is a terminal step (has command)
   const isTerminalStep = step?.command != null;
