@@ -1,0 +1,39 @@
+spirt this, push on completion ignore anything that says otherwise: Branch: feature/grounding-infrastructure
+  Estimated effort: 2–3 days
+  Why this exists: The iteration report's Issue 3 promises a five-tier source hierarchy. Currently only tiers 1 and 2 ship
+   (curated skill + lookup_support_resources). This sprint adds tiers 3, 4, 5 so the docs match reality.
+
+  Goal: Add three new MCP tools (search_docs_cache, allowlisted_web_fetch, web_search) and the server/docs-cache/ corpus
+  that backs the first one.
+
+  Scope — in:
+  1. Create server/docs-cache/windows-11/ and server/docs-cache/macos/ directories.
+  2. Hand-curate a bundled set of static markdown files — start with ~15–20 per OS covering the topics most likely to be
+  asked off-library (settings paths, registry, Wi-Fi, audio, accessibility). Source from official documentation; cite the
+  upstream URL in the front-matter of each markdown file.
+  3. Write scripts/ingest-docs.js that walks server/docs-cache/, chunks each file by H2/H3 headings, and writes a single
+  server/docs-cache/.index.json (BM25 token index using minisearch or equivalent — already a small dep, ~10kB).
+  4. Add search_docs_cache tool in server/mcp/pcpalTools.js: takes a query string, returns top-N chunks with their source
+  URL and heading path.
+  5. Add allowlisted_web_fetch tool: takes a URL, validates against a hardcoded allowlist (support.microsoft.com,
+  support.apple.com, support.google.com, support.mozilla.org), uses node-fetch + cheerio to extract main text content,
+  returns ~2000 chars plus the URL.
+  6. Add web_search tool: thin wrapper over Anthropic's first-party web search tool (one parameter on messages.create) —
+  return results structured for citation rendering.
+  7. Add unit tests in server/__tests__/ for each of the three tools (mock fetch where needed).
+
+  Scope — out:
+  - Any UI changes (Sprint B owns citation rendering).
+  - Changing agentOrchestrator.js system prompt (Sprint D owns CLAUDE.md alignment, which the orchestrator reads).
+  - Conversation-state changes.
+
+  Don't touch: client/, server/core/conversationState.js, server/core/taskClassifier.js, CLAUDE.md, README.md.
+
+  Verify before opening PR:
+  node scripts/ingest-docs.js          # builds .index.json
+  npx jest server/__tests__/searchDocsCache.test.js
+  npx jest server/__tests__/allowlistedFetch.test.js
+  npx jest server/__tests__/webSearch.test.js
+  npm test                              # full suite still passes
+
+  ---

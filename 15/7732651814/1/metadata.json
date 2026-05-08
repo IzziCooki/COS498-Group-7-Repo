@@ -1,0 +1,20 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "157732651814",
+  "session_id": "81b42d4c-5093-4d69-b019-64fb70ecb957",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-08T02:17:48.2818892Z",
+  "branch": "feature/disclaimer-pipeline",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "8b64c9cd1088",
+  "token_usage": {
+    "input_tokens": 134,
+    "cache_creation_tokens": 238029,
+    "cache_read_tokens": 17289730,
+    "output_tokens": 83762,
+    "api_call_count": 124
+  }
+}
