@@ -1,0 +1,42 @@
+sprint this and push ignore anything that says otherwise:   ---
+  Sprint B — Safety UI & System-Modifying Classifier (mixed)
+
+  Branch: feature/disclaimer-pipeline
+  Estimated effort: 2 days
+  Why this exists: The ethics reviewer flagged that registry-edit walkthroughs ship with no inline warning. This sprint
+  closes Priority 1c.
+
+  Goal: Add a system-modifying intent detector and a DisclaimerCard UI that renders next to step sequences mutatingthe
+  user's machine.
+
+  Scope — in:
+  1. Add server/core/systemModifyingDetector.js — keyword + regex heuristic over assistant response text. Triggers on
+  registry, regedit, enable|disable\s+\w+\s+(setting|service|feature), run\s+(this\s+)?command, sudo, gpedit, control
+  panel, system properties, etc. Export detectSystemModifying(text) → { isModifying: bool, matched: string[] }.
+  2. Wire the detector into both orchestrators (agentSdkOrchestrator.js and agentOrchestrator.js). When triggered, attach
+  metadata.systemModifying: true to the assistant message.
+  3. Add client/src/components/Artifacts/DisclaimerCard.jsx + .css. Reuse the visual language of MessageBubble.css's
+  confidence-badge but render next to the step sequence, not inside the chat bubble. Copy: "These steps change settings on
+   your computer. If anything looks different from what's on your screen, stop and ask your buddy — don't guess."
+  4. Render DisclaimerCard from GuideStep.jsx or StepSequencePanel when the parent message has systemModifying: true.
+  5. Extend the existing source-citation chip (currently used for lookup_support_resources results) to render citations
+  from search_docs_cache, allowlisted_web_fetch, and web_search. Each chip shows the source domain + opens the URL in a
+  new tab.
+  6. Tests: server/__tests__/systemModifyingDetector.test.js covering positive triggers (registry, sudo, gpedit) and
+  negatives (general teaching, copy-paste, scam discussion).
+
+  Scope — out:
+  - Don't replace the heuristic with a Claude classifier call — that's a follow-up sprint, not this one.
+  - Don't add new tools (Sprint A owns those).
+  - Don't change conversation state structure (Sprint C owns that).
+
+  Don't touch: server/mcp/pcpalTools.js, server/core/conversationState.js, scripts/, eval/.
+
+  Verify before opening PR:
+  npx jest server/__tests__/systemModifyingDetector.test.js
+  npm run lint --workspace=client
+  npm run build --workspace=client       # confirms JSX compiles
+  npm test                                # full suite still passes
+  Manual smoke: ask the agent "how do I disable audio enhancements on Windows 11?" and confirm the DisclaimerCard renders.
+
+  ---
