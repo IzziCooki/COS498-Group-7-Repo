@@ -2,8 +2,8 @@
   "cli_version": "dev",
   "checkpoint_id": "157732651814",
   "strategy": "manual-commit",
-  "branch": "feature/disclaimer-pipeline",
-  "checkpoints_count": 3,
+  "branch": "main",
+  "checkpoints_count": 4,
   "files_touched": [
     "server/__tests__/conversationStateFailure.test.js",
     "server/core/agentOrchestrator.js",
@@ -26,13 +26,19 @@
       "transcript": "/15/7732651814/1/full.jsonl",
       "content_hash": "/15/7732651814/1/content_hash.txt",
       "prompt": "/15/7732651814/1/prompt.txt"
+    },
+    {
+      "metadata": "/15/7732651814/2/metadata.json",
+      "transcript": "/15/7732651814/2/full.jsonl",
+      "content_hash": "/15/7732651814/2/content_hash.txt",
+      "prompt": "/15/7732651814/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 291,
-    "cache_creation_tokens": 472684,
-    "cache_read_tokens": 37596833,
-    "output_tokens": 134919,
-    "api_call_count": 271
+    "input_tokens": 439,
+    "cache_creation_tokens": 689908,
+    "cache_read_tokens": 57073905,
+    "output_tokens": 211443,
+    "api_call_count": 409
   }
 }

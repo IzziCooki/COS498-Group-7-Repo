@@ -1,0 +1,37 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "157732651814",
+  "session_id": "8a50f38f-e549-405e-a6ab-a33b270adac0",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-08T02:18:08.4893164Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "server/core/conversationState.js",
+    "server/models/Conversation.js",
+    "server/db/database.js",
+    "server/db/schema.sql",
+    "server/core/orchestratorShared.js",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/agentOrchestrator.js"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "c5bb4cd39a07",
+  "token_usage": {
+    "input_tokens": 148,
+    "cache_creation_tokens": 217224,
+    "cache_read_tokens": 19477072,
+    "output_tokens": 76524,
+    "api_call_count": 138
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-08T02:17:51.925474Z",
+    "agent_lines": 237,
+    "human_added": 304,
+    "human_modified": 2420,
+    "human_removed": 0,
+    "total_committed": 2961,
+    "agent_percentage": 8.00405268490375
+  }
+}
