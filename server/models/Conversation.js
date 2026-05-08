@@ -60,6 +60,37 @@ const Conversation = {
   },
 
   /**
+   * Read the JSON-encoded failed_steps column.
+   * Sprint C: failure-signal handler.
+   */
+  getFailedSteps(id) {
+    const row = db.prepare('SELECT failed_steps FROM conversations WHERE id = ?').get(id);
+    if (!row || !row.failed_steps) return [];
+    try {
+      const parsed = JSON.parse(row.failed_steps);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  /**
+   * Append a step descriptor to the conversation's failed_steps array.
+   * Read-modify-write under SQLite — safe because writes are serialized
+   * through better-sqlite3 in this single-process server.
+   * Sprint C: failure-signal handler.
+   */
+  appendFailedStep(id, step) {
+    if (!id || !step) return;
+    const list = this.getFailedSteps(id);
+    list.push(step);
+    db.prepare('UPDATE conversations SET failed_steps = ? WHERE id = ?').run(
+      JSON.stringify(list),
+      id
+    );
+  },
+
+  /**
    * Mark active conversations with no recent activity as abandoned.
    * @param {number} cutoffMinutes  conversations idle longer than this are abandoned
    * @returns {number} count of conversations abandoned

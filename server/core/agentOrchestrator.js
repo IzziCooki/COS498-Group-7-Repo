@@ -30,7 +30,7 @@ const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const ollamaClient = require('./ollamaClient');
 const screenshotAnnotator = require('./screenshotAnnotator');
 const { lookupDll, formatDllDiagnosis } = require('./dllLookup');
-const { loadCoachingNotes, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
+const { loadCoachingNotes, filterResponse, cleanResponseMarkers, trackQuality, buildFailurePreamble, deriveIssuedStep } = require('./orchestratorShared');
 const { detectSystemModifying, flattenGuideText } = require('./systemModifyingDetector');
 
 // Injected from server/index.js — captures screenshot from relay agent or browser screen share
@@ -1320,6 +1320,10 @@ async function processMessage(text, userId, context = {}) {
     const sessionId = session.id;
 
     conversationState.addMessage(sessionId, 'user', text);
+    // Sprint C: detect failure signals on the incoming user turn before
+    // building the system prompt so we can pivot strategy.
+    conversationState.noteUserTurn(sessionId, text);
+    const failureContext = conversationState.consumeFailureContext(sessionId);
 
     const dbMessages = conversationState.getSessionMessages(sessionId, 20);
     const messages = dbMessages.map(msg => ({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.body }));
@@ -1350,7 +1354,8 @@ async function processMessage(text, userId, context = {}) {
       screenContext = `\n\n## COMPUTER CONNECTED\nThe user's computer is connected via the relay agent. You can capture their screen by calling take_screenshot if they need help finding something on screen.`;
     }
 
-    const systemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes, screenContext);
+    const baseSystemPrompt = buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, coachingNotes, screenContext);
+    const systemPrompt = `${buildFailurePreamble(failureContext)}${baseSystemPrompt}`;
 
     // When screen share is active, attach the latest frame to the user's message
     // so Claude can literally see their screen without needing to call a tool
@@ -1465,6 +1470,11 @@ async function processMessage(text, userId, context = {}) {
     if (findings) console.log(`[agentOrchestrator] Findings artifact: "${findings.title}" (${findings.findings?.length || 0} items)`);
     if (practice) console.log(`[agentOrchestrator] Practice artifact: "${practice.taskId || practice.title}"`);
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
+
+    // Sprint C: capture the issued instruction so the next user turn can
+    // attribute a failure signal to it.
+    const issuedStep = deriveIssuedStep({ guide, response: filteredResponse, matchedSkillId });
+    if (issuedStep) conversationState.recordIssuedStep(sessionId, issuedStep);
 
     // Flag system-modifying responses so the client can render a DisclaimerCard.
     // See server/core/systemModifyingDetector.js for the rule list.

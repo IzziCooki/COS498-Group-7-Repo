@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   task_type TEXT,
   status TEXT DEFAULT 'active',
   context_summary TEXT,
+  failed_steps TEXT DEFAULT '[]',
   started_at TEXT DEFAULT (datetime('now')),
   ended_at TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id)
