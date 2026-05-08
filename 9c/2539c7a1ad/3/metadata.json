@@ -1,0 +1,44 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "9c2539c7a1ad",
+  "session_id": "8a50f38f-e549-405e-a6ab-a33b270adac0",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-08T02:10:15.8904839Z",
+  "branch": "feature/disclaimer-pipeline",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "client/src/components/Artifacts/ArtifactOverlay.jsx",
+    "client/src/components/Artifacts/DisclaimerCard.css",
+    "client/src/components/Artifacts/DisclaimerCard.jsx",
+    "client/src/components/Artifacts/GuideViewer/GuideViewer.css",
+    "client/src/components/ChatScreen/ChatScreen.jsx",
+    "client/src/hooks/useChat.js",
+    "server/__tests__/systemModifyingDetector.test.js",
+    "server/core/agentOrchestrator.js",
+    "client/src/components/Artifacts/GuideViewer/GuideViewer.jsx",
+    "client/src/components/ChatScreen/MessageBubble.jsx",
+    "client/src/components/ShellLayout/ArtifactPanel.jsx",
+    "server/core/agentSdkOrchestrator.js",
+    "server/core/systemModifyingDetector.js",
+    "server/index.js"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "c5bb4cd39a07",
+  "token_usage": {
+    "input_tokens": 116,
+    "cache_creation_tokens": 190578,
+    "cache_read_tokens": 13065844,
+    "output_tokens": 61813,
+    "api_call_count": 106
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-08T02:10:06.1421932Z",
+    "agent_lines": 0,
+    "human_added": 507,
+    "human_modified": 336,
+    "human_removed": 0,
+    "total_committed": 834,
+    "agent_percentage": 0
+  }
+}
