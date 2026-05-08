@@ -31,6 +31,7 @@ const ollamaClient = require('./ollamaClient');
 const screenshotAnnotator = require('./screenshotAnnotator');
 const { lookupDll, formatDllDiagnosis } = require('./dllLookup');
 const { loadCoachingNotes, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
+const { detectSystemModifying, flattenGuideText } = require('./systemModifyingDetector');
 
 // Injected from server/index.js — captures screenshot from relay agent or browser screen share
 let _requestScreenshotFn = null;
@@ -1465,7 +1466,13 @@ async function processMessage(text, userId, context = {}) {
     if (practice) console.log(`[agentOrchestrator] Practice artifact: "${practice.taskId || practice.title}"`);
     if (screenshot) console.log(`[agentOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
-    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, guide: guide || null, findings: findings || null, practice: practice || null, screenshot: screenshot || null, confidence: skillMatch ? 'high' : 'low' };
+    // Flag system-modifying responses so the client can render a DisclaimerCard.
+    // See server/core/systemModifyingDetector.js for the rule list.
+    const sysModCheck = detectSystemModifying(
+      `${filteredResponse}\n${flattenGuideText(guide)}`
+    );
+
+    return { response: filteredResponse, safetyAlert, guideId, stepSequence, endedConversationId, conversationId: sessionId, matchedSkillId: matchedSkillId || guideId, userOsType: user?.os_type, videos: videos && videos.length > 0 ? videos : null, guide: guide || null, findings: findings || null, practice: practice || null, screenshot: screenshot || null, confidence: skillMatch ? 'high' : 'low', systemModifying: sysModCheck.isModifying, systemModifyingMatches: sysModCheck.isModifying ? sysModCheck.matched : null };
   } catch (err) {
     console.error('[agentOrchestrator] Unexpected error:', err.message);
     return { response: FALLBACK_RESPONSE, safetyAlert: null, guideId: null, stepSequence: null, endedConversationId: null, conversationId: null };

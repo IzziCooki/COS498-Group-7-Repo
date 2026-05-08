@@ -807,6 +807,8 @@ wss.on('connection', (ws, req) => {
             endedConversationId: result.endedConversationId || null,
             conversationId: result.conversationId || null,
             confidence: result.confidence || null,
+            systemModifying: !!result.systemModifying,
+            systemModifyingMatches: result.systemModifyingMatches || null,
           }));
         }
 

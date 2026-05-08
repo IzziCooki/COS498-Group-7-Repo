@@ -22,6 +22,7 @@ const { buildComfortGuidelines } = require('./sharedConstants');
 const { resolveModel, DEFAULT_MODEL } = require('./modelProvider');
 const vocabularyProgression = require('./vocabularyProgression');
 const { loadCoachingNotes, buildScreenContext, filterResponse, cleanResponseMarkers, trackQuality } = require('./orchestratorShared');
+const { detectSystemModifying, flattenGuideText } = require('./systemModifyingDetector');
 
 const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
@@ -577,6 +578,13 @@ async function processMessage(text, userId, context = {}) {
     conversationState.addMessage(sessionId, 'assistant', filteredResponse);
     trackQuality({ userId, sessionId, userMessage: text, agentResponse: filteredResponse, user });
 
+    // Detect system-modifying intent so the client can render a DisclaimerCard
+    // next to the step sequence. Run over both the chat text and any guide
+    // step content — see systemModifyingDetector.js for the rule list.
+    const sysModCheck = detectSystemModifying(
+      `${filteredResponse}\n${flattenGuideText(guide)}`
+    );
+
     return {
       response: filteredResponse,
       safetyAlert,
@@ -591,6 +599,8 @@ async function processMessage(text, userId, context = {}) {
       practice: practice || null,
       screenshot: screenshot || null,
       confidence: skillMatch ? 'high' : 'low',
+      systemModifying: sysModCheck.isModifying,
+      systemModifyingMatches: sysModCheck.isModifying ? sysModCheck.matched : null,
     };
   } catch (err) {
     console.error('[agentSdkOrchestrator] Unexpected error:', err.message);

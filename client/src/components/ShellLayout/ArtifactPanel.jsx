@@ -52,6 +52,8 @@ function ArtifactPanel({ artifact, onClose, onSendMessage, onMoveInline }) {
             onSendMessage={onSendMessage}
             onStepChange={() => {}}
             titleId={titleId}
+            systemModifying={!!artifact.meta?.systemModifying}
+            systemModifyingMatches={artifact.meta?.systemModifyingMatches || null}
           />
         );
       case 'video':

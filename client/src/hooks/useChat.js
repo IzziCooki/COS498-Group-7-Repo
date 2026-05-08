@@ -114,6 +114,8 @@ export function useChat(userId, options = {}) {
               practice: data.practice || null,
               screenshot: data.screenshot || null,
               confidence: data.confidence || null,
+              systemModifying: !!data.systemModifying,
+              systemModifyingMatches: data.systemModifyingMatches || null,
             },
           ]);
           if (data.stepSequence) {

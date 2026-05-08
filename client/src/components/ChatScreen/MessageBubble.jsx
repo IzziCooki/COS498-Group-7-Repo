@@ -50,7 +50,13 @@ function formatMessage(text) {
 
 function getArtifactEntries(message) {
   const entries = [];
-  if (message.guide) entries.push({ key: 'guide', type: 'guide', data: message.guide });
+  // The systemModifying flag rides on the parent message and is forwarded
+  // only to the guide entry — DisclaimerCard renders next to step sequences.
+  const guideMeta = {
+    systemModifying: !!message.systemModifying,
+    systemModifyingMatches: message.systemModifyingMatches || null,
+  };
+  if (message.guide) entries.push({ key: 'guide', type: 'guide', data: message.guide, meta: guideMeta });
   if (message.findings) entries.push({ key: 'diagnostic', type: 'diagnostic', data: message.findings });
   if (message.videos) entries.push({ key: 'video', type: 'video', data: message.videos });
   if (message.resources) entries.push({ key: 'resources', type: 'resources', data: message.resources });
@@ -60,7 +66,7 @@ function getArtifactEntries(message) {
 
 /* ── Inline artifact renderer ──────────────────────────────── */
 
-function InlineArtifact({ type, data, onClose, onSendMessage, onOpenInPanel }) {
+function InlineArtifact({ type, data, meta, onClose, onSendMessage, onOpenInPanel }) {
   const titleId = `pcp-inline-artifact-${type}`;
   return (
     <div className="pcp-message__inline-artifact">
@@ -92,6 +98,8 @@ function InlineArtifact({ type, data, onClose, onSendMessage, onOpenInPanel }) {
             onSendMessage={onSendMessage}
             onStepChange={() => {}}
             titleId={titleId}
+            systemModifying={!!meta?.systemModifying}
+            systemModifyingMatches={meta?.systemModifyingMatches || null}
           />
         )}
         {type === 'video' && (
@@ -281,18 +289,19 @@ function MessageBubble({ message, onArtifactTap, onLongPress, onSendMessage, onR
                   <InlineArtifact
                     type={entry.type}
                     data={entry.data}
+                    meta={entry.meta}
                     onClose={() => collapseInline(entry.key)}
                     onSendMessage={onSendMessage}
                     onOpenInPanel={() => {
                       collapseInline(entry.key);
-                      onArtifactTapSafe(entry.type, entry.data);
+                      onArtifactTapSafe(entry.type, entry.data, entry.meta);
                     }}
                   />
                 ) : (
                   <ArtifactCard
                     type={entry.type}
                     data={entry.data}
-                    onTap={() => onArtifactTapSafe(entry.type, entry.data)}
+                    onTap={() => onArtifactTapSafe(entry.type, entry.data, entry.meta)}
                     onShowInline={() => toggleInline(entry.key)}
                   />
                 )}
