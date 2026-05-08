@@ -1,0 +1,37 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "e9d0755cee61",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "server/core/allowlistedFetch.js",
+    "server/core/docsCacheSearch.js",
+    "server/core/webSearch.js",
+    "server/docs-cache/macos/audio-output.md",
+    "server/docs-cache/macos/bluetooth.md",
+    "server/docs-cache/macos/display-zoom.md",
+    "server/docs-cache/macos/printer-setup.md",
+    "server/docs-cache/macos/system-settings.md",
+    "server/docs-cache/macos/wifi-setup.md",
+    "server/docs-cache/windows-11/default-apps.md",
+    "server/docs-cache/windows-11/environment-variables.md",
+    "server/docs-cache/windows-11/virtual-desktops.md",
+    "server/mcp/pcpalTools.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e9/d0755cee61/0/metadata.json",
+      "transcript": "/e9/d0755cee61/0/full.jsonl",
+      "content_hash": "/e9/d0755cee61/0/content_hash.txt",
+      "prompt": "/e9/d0755cee61/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 170,
+    "cache_creation_tokens": 242922,
+    "cache_read_tokens": 22026083,
+    "output_tokens": 53522,
+    "api_call_count": 155
+  }
+}
