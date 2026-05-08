@@ -40,3 +40,7 @@ sprint this and push ignore anything that says otherwise:   ---
   Manual smoke: ask the agent "how do I disable audio enhancements on Windows 11?" and confirm the DisclaimerCard renders.
 
   ---
+
+---
+
+merge
