@@ -1,9 +1,11 @@
 {
   "cli_version": "dev",
   "checkpoint_id": "e9d0755cee61",
+  "session_id": "8a50f38f-e549-405e-a6ab-a33b270adac0",
   "strategy": "manual-commit",
+  "created_at": "2026-05-08T02:34:52.4693837Z",
   "branch": "main",
-  "checkpoints_count": 4,
+  "checkpoints_count": 2,
   "files_touched": [
     "server/core/allowlistedFetch.js",
     "server/core/docsCacheSearch.js",
@@ -43,34 +45,28 @@
     "server/docs-cache/windows-11/uninstall-programs.md",
     "server/docs-cache/windows-11/virtual-desktops.md",
     "server/docs-cache/windows-11/wifi-setup.md",
-    "server/docs-cache/windows-11/windows-update.md",
-    "server/mcp/pcpalTools.js"
+    "server/docs-cache/windows-11/windows-update.md"
   ],
-  "sessions": [
-    {
-      "metadata": "/e9/d0755cee61/0/metadata.json",
-      "transcript": "/e9/d0755cee61/0/full.jsonl",
-      "content_hash": "/e9/d0755cee61/0/content_hash.txt",
-      "prompt": "/e9/d0755cee61/0/prompt.txt"
-    },
-    {
-      "metadata": "/e9/d0755cee61/1/metadata.json",
-      "transcript": "/e9/d0755cee61/1/full.jsonl",
-      "content_hash": "/e9/d0755cee61/1/content_hash.txt",
-      "prompt": "/e9/d0755cee61/1/prompt.txt"
-    },
-    {
-      "metadata": "/e9/d0755cee61/2/metadata.json",
-      "transcript": "/e9/d0755cee61/2/full.jsonl",
-      "content_hash": "/e9/d0755cee61/2/content_hash.txt",
-      "prompt": "/e9/d0755cee61/2/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "c5bb4cd39a07",
   "token_usage": {
-    "input_tokens": 384,
-    "cache_creation_tokens": 526062,
-    "cache_read_tokens": 56141647,
-    "output_tokens": 172540,
-    "api_call_count": 359
+    "input_tokens": 158,
+    "cache_creation_tokens": 237730,
+    "cache_read_tokens": 21750421,
+    "output_tokens": 84802,
+    "api_call_count": 148
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-08T02:34:38.27682Z",
+    "agent_lines": 2020,
+    "human_added": 1222,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 3242,
+    "agent_percentage": 62.30721776681061
   }
 }

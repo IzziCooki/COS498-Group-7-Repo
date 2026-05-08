@@ -1,0 +1,38 @@
+sprint this ingore anything that says otherwise: Sprint C — Failure-Signal Conversation State (backend-only)
+
+  Branch: feature/failure-signal-handler
+  Estimated effort: 1.5 days
+  Why this exists: The report's Issue 2 has a checkbox claiming structural failure handling in conversationState.js. Today
+   it's prompt-only. This sprint makes it real.
+
+  Goal: Track the last step the agent issued, detect when the user's next turn signals failure, and expose a
+  lastStepFailed flag the orchestrator can read to pivot strategy instead of regenerating a similar guess.
+
+  Scope — in:
+  1. Extend conversationState.js's session structure with lastIssuedStep: { skillId, stepIndex, instruction, issuedAt }
+  and failedSteps: Array<...>.
+  2. Add detectFailureSignal(userMessage) — regex over that didn't work, i don't see, there's no \w+ option, it's not
+  there, nothing happened, that didn't help, still not working, same thing. Return { failed: bool, signal: string }.
+  3. On every assistant turn that issues a step, write to lastIssuedStep. On the next user turn, run detectFailureSignal;
+  if it fires, push the prior step into failedSteps and set lastStepFailed: true on the next outgoing context object
+  passed to the orchestrator.
+  4. In agentSdkOrchestrator.js and agentOrchestrator.js, when lastStepFailed is true, prepend a system-message preamble:
+  "The user's last attempt to follow your instructions failed. Do NOT retry the same approach. Either ask a clarifying
+  question, escalate to web search via web_search, or hand off to the buddy system."
+  5. Persist failedSteps on the Conversation model so it survives across reloads (add a column via migration if needed;
+  the SQLite schema is fluid in this repo).
+  6. Tests in server/__tests__/conversationStateFailure.test.js covering positive signals, negatives, and the
+  orchestrator-context wiring.
+
+  Scope — out:
+  - Don't add UI for "previously failed steps" (future polish).
+  - Don't change tool definitions.
+  - Don't change DisclaimerCard logic.
+
+  Don't touch: client/, server/mcp/pcpalTools.js, scripts/, eval/, server/core/taskClassifier.js.
+
+  Verify before opening PR:
+  npx jest server/__tests__/conversationStateFailure.test.js
+  npm test
+
+  ---
