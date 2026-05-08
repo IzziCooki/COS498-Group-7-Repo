@@ -11,9 +11,10 @@ const { execSync } = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const { BLOCKED_PATTERNS } = require('./sharedConstants');
+const { BLOCKED_PATTERNS, FIX_BLOCKED_PATTERNS, KILLABLE_PROCESS_ALLOWLIST } = require('./sharedConstants');
 
 const COMMAND_TIMEOUT = 10000; // 10 seconds max per command
+const FIX_COMMAND_TIMEOUT = 90000; // 90 seconds for fix tools (sfc/DISM need this)
 
 /** Safely execute a command with timeout and size limits. */
 function safeExec(cmd, timeoutMs = COMMAND_TIMEOUT, cwd) {
@@ -431,12 +432,106 @@ function getBatteryStatus() {
   }
 }
 
+// ─── Auto-Fix Sandbox Execution Path ─────────────────────────────
+//
+// runFixCommand is a SEPARATE execution path used ONLY by the fix_*
+// tools registered when the orchestrator is in mode 'autofix-sandbox'.
+//
+// It applies a narrower block list (FIX_BLOCKED_PATTERNS) than runSafeCommand
+// — still rejecting shell injection / chaining / disk-format / downloads
+// / package managers / shutdowns — but permits the specific fix verbs
+// (rm, del, taskkill, pkill, sudo) that hardcoded fix-tool command
+// strings need. The ALLOWED_COMMANDS regex used by runSafeCommand is NOT
+// used here. Safety relies on:
+//   1. FIX_BLOCKED_PATTERNS catching the dangerous shapes.
+//   2. Every command string being hardcoded in the calling fix_* tool.
+//   3. The single piece of agent-supplied input (process name in
+//      fix_kill_process_by_name) being validated against
+//      KILLABLE_PROCESS_ALLOWLIST before this function ever sees it.
+//
+// Returns a structured result so callers can report success/failure to
+// the activity log instead of a string.
+
+function runFixCommand(command, opts = {}) {
+  if (!command || typeof command !== 'string') {
+    return { ok: false, exitCode: -1, stdout: '', stderr: 'No command provided.' };
+  }
+  const cmd = command.trim();
+
+  for (const pattern of FIX_BLOCKED_PATTERNS) {
+    if (pattern.test(cmd)) {
+      return {
+        ok: false,
+        exitCode: -1,
+        stdout: '',
+        stderr: `Blocked by fix-mode safety filter: "${cmd}" matches restricted pattern ${pattern}.`,
+      };
+    }
+  }
+
+  const timeout = opts.timeout || FIX_COMMAND_TIMEOUT;
+  try {
+    const stdout = execSync(cmd, {
+      timeout,
+      maxBuffer: 1024 * 512,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return { ok: true, exitCode: 0, stdout: (stdout || '').trim(), stderr: '' };
+  } catch (err) {
+    return {
+      ok: false,
+      exitCode: typeof err.status === 'number' ? err.status : -1,
+      stdout: (err.stdout || '').toString().trim(),
+      stderr: err.killed
+        ? `Timed out after ${timeout}ms`
+        : ((err.stderr || '').toString().trim() || err.message),
+    };
+  }
+}
+
+// Detect whether the current process is running with admin/root privileges.
+// Used by Tier 4 fix tools to refuse early instead of half-running.
+
+function isElevated() {
+  const platform = getPlatform();
+  try {
+    if (platform === 'windows') {
+      // `net session` returns exit 0 only when run as admin; otherwise it errors.
+      execSync('net session', { stdio: 'pipe', timeout: 3000 });
+      return true;
+    }
+    // POSIX: euid 0 is root.
+    if (typeof process.geteuid === 'function') {
+      return process.geteuid() === 0;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// Check if a process name is allowed to be killed by fix_kill_process_by_name.
+
+function isKillableProcessName(name) {
+  if (!name || typeof name !== 'string') return false;
+  const platform = getPlatform();
+  const allowed = KILLABLE_PROCESS_ALLOWLIST[platform] || [];
+  // Case-insensitive exact match (process names are not case-sensitive on
+  // Windows/macOS in practice, and the agent may send variant casings).
+  const lower = name.trim().toLowerCase();
+  return allowed.some(p => p.toLowerCase() === lower);
+}
+
 module.exports = {
   getSystemInfo,
   checkNetwork,
   listRunningApps,
   readErrorLog,
   runSafeCommand,
+  runFixCommand,
+  isElevated,
+  isKillableProcessName,
   checkDiskHealth,
   checkInstalledSoftware,
   getBatteryStatus,

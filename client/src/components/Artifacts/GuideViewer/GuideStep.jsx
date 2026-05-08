@@ -21,6 +21,8 @@ function GuideStep({ step, onStuck }) {
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
+  if (!step) return null;
+
   const hasImage = step.image && step.image.url && !imgError;
   const hasCaption = !!step.caption;
   const hasNote = step.note && step.note.text;
@@ -70,13 +72,18 @@ function GuideStep({ step, onStuck }) {
         </p>
       )}
 
-      {/* Step text */}
+      {/* Step text — accepts both 'body' (spec) and 'text' (create_guide tool) */}
       <div className="pcp-guide-step__text">
         {step.title && (
           <h2 className="pcp-guide-step__heading">{step.title}</h2>
         )}
-        {step.body && (
-          <p className="pcp-guide-step__body">{step.body}</p>
+        {(step.body || step.text) && (
+          <p className="pcp-guide-step__body">{step.body || step.text}</p>
+        )}
+        {step.command && (
+          <div className="pcp-guide-step__command">
+            <code>{step.command}</code>
+          </div>
         )}
       </div>
 

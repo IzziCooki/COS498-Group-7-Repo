@@ -10,7 +10,7 @@ import './ChatOptionsSheet.css';
  *
  * @param {{ isOpen: boolean, onClose: () => void, onEndChat: () => void, hasMessages: boolean }} props
  */
-function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectComputer, onScreenShare, agentConnected, navigate, onLogout }) {
+function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectComputer, onScreenShare, agentConnected, navigate, onLogout, tipsHidden, onShowTips }) {
   const [readAloud, setReadAloud] = useState(false);
   const sheetRef = useRef(null);
 
@@ -89,6 +89,17 @@ function ChatOptionsSheet({ isOpen, onClose, onEndChat, hasMessages, onConnectCo
         </div>
 
         <div className="pcp-options-sheet__items">
+          {tipsHidden && onShowTips && (
+            <button
+              type="button"
+              className="pcp-options-sheet__item"
+              onClick={onShowTips}
+              aria-label="Show usage tips"
+            >
+              <span className="pcp-options-sheet__item-icon" aria-hidden="true">&#x1F4A1;</span>
+              <span className="pcp-options-sheet__item-label">Show tips for using PC Pal</span>
+            </button>
+          )}
           <button
             type="button"
             className="pcp-options-sheet__item"

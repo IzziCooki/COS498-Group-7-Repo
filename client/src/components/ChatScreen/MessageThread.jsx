@@ -40,6 +40,7 @@ function MessageThread({
   onSafetyDismiss,
   isViewingPast,
   onRate,
+  onPractice,
 }) {
   const bottomRef = useRef(null);
   const [slowResponse, setSlowResponse] = useState(false);
@@ -115,7 +116,7 @@ function MessageThread({
         {isEmpty && !isViewingPast && (
           <>
             <QuickHelpGrid onSelect={onSendMessage} />
-            <EmptyState onSendMessage={onSendMessage} />
+            <EmptyState onSendMessage={onSendMessage} onPractice={onPractice} />
           </>
         )}
 

@@ -29,18 +29,30 @@ import PairingFlow from './components/Helper/PairingFlow';
 /* ── Me tab (Phase 9) ──────────────────────────────────────────── */
 import MeScreen from './components/Profile/MeScreen';
 
+/* ── Sandbox tab ───────────────────────────────────────────────── */
+import SandboxPanel from './components/Sandbox/SandboxPanel';
+
 /* ── Placeholder components for views not yet built ────────────── */
 
-function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation }) {
-  const formatDate = (d) => {
+function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyConversation, onRefresh }) {
+  const formatDateTime = (d) => {
     if (!d) return '';
     const date = new Date(d);
     const now = new Date();
     const diff = now - date;
-    if (diff < 86400000) return 'Today';
-    if (diff < 172800000) return 'Yesterday';
-    return date.toLocaleDateString();
+    const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diff < 86400000) return `Today at ${time}`;
+    if (diff < 172800000) return `Yesterday at ${time}`;
+    if (diff < 604800000) return `${date.toLocaleDateString([], { weekday: 'long' })} at ${time}`;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` at ${time}`;
   };
+
+  // Sort by most recent first
+  const sorted = [...conversations].sort((a, b) => {
+    const da = new Date(a.started_at || a.created_at || 0);
+    const db = new Date(b.started_at || b.created_at || 0);
+    return db - da;
+  });
 
   return (
     <div style={{ height: '100%', overflow: 'auto', background: 'var(--color-surface-2)' }}>
@@ -53,15 +65,25 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyCon
         >
           + Start a new chat
         </button>
+        {onRefresh && (
+          <button
+            type="button"
+            className="pcp-btn pcp-btn--ghost"
+            style={{ width: '100%' }}
+            onClick={onRefresh}
+          >
+            Refresh
+          </button>
+        )}
       </div>
-      {conversations.length === 0 ? (
+      {sorted.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--color-text-2)' }}>
           <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--space-3)' }}>No conversations yet</p>
           <p style={{ fontSize: 'var(--font-size-base)' }}>Start chatting and your history will appear here.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', padding: '0 var(--space-4)' }}>
-          {conversations.map((c) => (
+          {sorted.map((c) => (
             <div
               key={c.id}
               className="pcp-card pcp-card--interactive"
@@ -70,13 +92,13 @@ function HistoryScreen({ conversations, onSelect, onNewChat, navigate, onCopyCon
               <button
                 type="button"
                 style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}
-                onClick={() => { onSelect(c.id); navigate('/'); }}
+                onClick={() => onSelect(c.id, c)}
               >
                 <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-1)', marginBottom: 'var(--space-1)' }}>
                   {c.context_summary || c.preview || c.task_type || 'Chat session'}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-2)', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{formatDate(c.started_at || c.created_at)}</span>
+                  <span>{formatDateTime(c.started_at || c.created_at)}</span>
                   <span style={{ color: c.status === 'active' ? 'var(--color-success)' : 'var(--color-text-3)' }}>
                     {c.status === 'active' ? '\u25CF Active' : 'Ended'}
                   </span>
@@ -127,6 +149,7 @@ function HelperPlaceholder() {
 
 const VIEW_TITLES = {
   chat: 'Chat with PC Pal',
+  sandbox: 'Auto-Fix Sandbox',
   history: 'My Conversations',
   helper: 'My Helper',
   me: 'Me',
@@ -204,10 +227,22 @@ function AppContent() {
     prevViewRef.current = view;
   }, [view, refreshConversations]);
 
-  // Also refresh when chat gets a new conversation or sends a message
+  // Refresh when chat gets a new conversation ID
   useEffect(() => {
     if (chatData.conversationId) refreshConversations();
   }, [chatData.conversationId, refreshConversations]);
+
+  // Refresh after each message exchange (user sends → AI responds)
+  const prevMsgCount = useRef(0);
+  useEffect(() => {
+    const count = chatData.messages?.length || 0;
+    if (count > prevMsgCount.current && count > 0) {
+      // Debounce: only refresh if the count actually grew
+      const timer = setTimeout(refreshConversations, 1000);
+      prevMsgCount.current = count;
+      return () => clearTimeout(timer);
+    }
+  }, [chatData.messages?.length, refreshConversations]);
 
   const chatWindowRef = useRef(null);
 
@@ -220,7 +255,7 @@ function AppContent() {
 
   // ── Auto-redirect helper to helper-home when on learner routes ──
   useEffect(() => {
-    if (role === 'helper' && (view === 'chat' || view === 'history' || view === 'helper')) {
+    if (role === 'helper' && (view === 'chat' || view === 'history' || view === 'helper' || view === 'sandbox')) {
       navigate('/helper/home', { replace: true });
     }
   }, [role, view, navigate]);
@@ -398,14 +433,37 @@ function AppContent() {
             onLogout={logout}
             chatData={chatData}
             onArtifactOpen={setActiveArtifact}
+            onContinueConversation={(convId) => {
+              // Reopen the conversation on the server and switch to live mode
+              fetch(`/api/conversations/${convId}/reopen`, {
+                method: 'POST',
+                credentials: 'include',
+              }).then(() => {
+                setViewingConversationId(null);
+                refreshConversations();
+              }).catch(() => {
+                // Even if reopen fails, let them type (server will create new session)
+                setViewingConversationId(null);
+              });
+            }}
           />
+        )}
+
+        {view === 'sandbox' && (
+          <SandboxPanel chatData={chatData} />
         )}
 
         {view === 'history' && (
           <HistoryScreen
             conversations={conversations}
-            onSelect={(convId) => {
-              setViewingConversationId(convId);
+            onSelect={(convId, conv) => {
+              if (conv && conv.status === 'active') {
+                // Active conversation — just switch to it
+                setViewingConversationId(null);
+              } else {
+                // Past conversation — view it (read-only with option to continue)
+                setViewingConversationId(convId);
+              }
               navigate('/');
             }}
             onNewChat={() => {
@@ -415,6 +473,7 @@ function AppContent() {
             }}
             navigate={navigate}
             onCopyConversation={handleCopyConversation}
+            onRefresh={refreshConversations}
           />
         )}
         {view === 'helper' && <HelperPlaceholder />}
@@ -475,7 +534,7 @@ function AppContent() {
         {view === 'helper-sessions' && (
           <HelperSessions
             learnerName={learnerName}
-            conversations={conversations.map((c) => ({
+            conversations={sorted.map((c) => ({
               id: c.id,
               title: c.title || c.topic || 'Chat session',
               preview: c.last_message || '',

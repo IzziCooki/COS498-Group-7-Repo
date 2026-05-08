@@ -47,6 +47,7 @@ function ChatScreen({
   onBuddySessionChange,
   navigate,
   onLogout,
+  onContinueConversation,
   chatData,
   onArtifactOpen,
 }) {
@@ -77,6 +78,19 @@ function ChatScreen({
   // ── Sheet state ──
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [contextMessage, setContextMessage] = useState(null);
+
+  // ── Tips bar: visible by default, dismissable, re-openable from ⋯ menu ──
+  const [tipsVisible, setTipsVisible] = useState(() => {
+    return localStorage.getItem('pcpal-tips-dismissed') !== 'true';
+  });
+  const dismissTips = useCallback(() => {
+    setTipsVisible(false);
+    localStorage.setItem('pcpal-tips-dismissed', 'true');
+  }, []);
+  const showTips = useCallback(() => {
+    setTipsVisible(true);
+    localStorage.removeItem('pcpal-tips-dismissed');
+  }, []);
 
   // ── ConnectComputer / ScreenShare overlay state ──
   const [showConnect, setShowConnect] = useState(false);
@@ -176,9 +190,9 @@ function ChatScreen({
     }
   }, [messages, dismissedAlerts]);
 
-  // ── Artifact tap handler: desktop → side panel, phone/tablet → overlay ──
+  // ── Artifact tap handler: tablet/desktop → side panel, phone → overlay ──
   const handleArtifactTap = useCallback((type, data) => {
-    if (breakpoint === 'desktop' && onArtifactOpen) {
+    if (breakpoint !== 'phone' && onArtifactOpen) {
       onArtifactOpen({ type, data });
     } else {
       setOpenArtifact({ type, data });
@@ -188,6 +202,11 @@ function ChatScreen({
   const handleArtifactClose = useCallback(() => {
     setOpenArtifact(null);
   }, []);
+
+  // ── Practice mode: open picker directly, no AI round-trip ──
+  const handlePractice = useCallback((taskId) => {
+    handleArtifactTap('practice', { taskId: taskId || '__picker__' });
+  }, [handleArtifactTap]);
 
   // ── Thumbs up/down handler — saves to server as quality feedback ──
   const handleRate = useCallback((messageId, rating) => {
@@ -219,6 +238,8 @@ function ChatScreen({
           buddyObserving={buddyObserving}
           onEndChatAndRate={endChat}
           hasMessages={hasUserMessage}
+          tipsVisible={tipsVisible}
+          onDismissTips={dismissTips}
         />
       </div>
 
@@ -252,6 +273,7 @@ function ChatScreen({
           onSafetyDismiss={handleSafetyDismiss}
           isViewingPast={isViewingPast}
           onRate={handleRate}
+          onPractice={handlePractice}
         />
       )}
 
@@ -259,12 +281,23 @@ function ChatScreen({
       {isViewingPast ? (
         <div className="pcp-chat-screen__readonly">
           This is a past conversation.
+          {onContinueConversation && (
+            <button
+              type="button"
+              className="pcp-btn pcp-btn--primary"
+              style={{ marginTop: 'var(--space-3)', display: 'block', width: '100%' }}
+              onClick={() => onContinueConversation(viewingConversationId)}
+            >
+              Continue this conversation
+            </button>
+          )}
         </div>
       ) : (
         <InputArea
           onSend={sendMessage}
           onGatherResources={gatherResources}
           isTyping={isTyping}
+          onPractice={handlePractice}
           onConnectComputer={() => setShowConnect(true)}
           onScreenShare={() => setShowScreenShare(true)}
           agentConnected={agentConnected}
@@ -287,6 +320,8 @@ function ChatScreen({
         agentConnected={agentConnected}
         navigate={navigate}
         onLogout={onLogout}
+        tipsHidden={!tipsVisible}
+        onShowTips={() => { showTips(); setOptionsOpen(false); }}
       />
 
       {/* Long-press context sheet */}

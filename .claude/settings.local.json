@@ -20,7 +20,15 @@
       "Bash(fuser -k 3001/tcp)",
       "Bash(grep:*)",
       "WebFetch(domain:github.com)",
-      "Bash(python eval/run_eval.py --precomputed)"
+      "Bash(python eval/run_eval.py --precomputed)",
+      "Bash(npm run *)",
+      "Bash(npx eslint *)",
+      "Bash(kill 6480 7250)",
+      "Bash(pkill -9 -f electron)",
+      "Bash(npm rebuild *)",
+      "Bash(npx electron-rebuild *)",
+      "Bash(electron .)",
+      "Bash(npx electron *)"
     ]
   }
 }

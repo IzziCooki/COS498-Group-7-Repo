@@ -99,6 +99,25 @@ const SessionsIcon = ({ filled }) => (
   </svg>
 );
 
+// Sandbox = sun-like burst with center circle
+const SandboxIcon = ({ filled }) => (
+  <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={filled ? 0 : 2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {filled ? (
+      <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-7v3m0 16v3M4.22 4.22l2.12 2.12m11.32 11.32l2.12 2.12M1 12h3m16 0h3M4.22 19.78l2.12-2.12m11.32-11.32l2.12-2.12" />
+    ) : (
+      <>
+        <path d="M12 2v6" />
+        <path d="M12 22v-6" />
+        <path d="M4.93 4.93l4.24 4.24" />
+        <path d="M14.83 14.83l4.24 4.24" />
+        <path d="M2 12h6" />
+        <path d="M22 12h-6" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    )}
+  </svg>
+);
+
 // Tools = wrench (helper role)
 const ToolsIcon = ({ filled }) => (
   <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={filled ? 0 : 2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -112,7 +131,8 @@ const ToolsIcon = ({ filled }) => (
 
 // Tab definitions per role
 const LEARNER_TABS = [
-  { id: 'chat',    label: 'Chat',    path: '/',        Icon: ChatIcon    },
+  { id: 'chat',    label: 'Chat',    path: '/',         Icon: ChatIcon    },
+  { id: 'sandbox', label: 'Sandbox', path: '/sandbox',  Icon: SandboxIcon },
   { id: 'history', label: 'History', path: '/history',  Icon: HistoryIcon },
   { id: 'helper',  label: 'Helper',  path: '/helper',   Icon: HelperIcon  },
   { id: 'me',      label: 'Me',      path: '/me',       Icon: MeIcon      },

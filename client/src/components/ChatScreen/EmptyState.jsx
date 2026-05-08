@@ -8,6 +8,18 @@ import './EmptyState.css';
  */
 const CATEGORIES = [
   {
+    heading: 'Practice first (nothing happens to your computer!)',
+    isPractice: true,
+    items: [
+      { icon: '\u270D\uFE0F', label: 'Practice sending an email', practiceId: 'send_email' },
+      { icon: '\uD83D\uDCCB', label: 'Practice copy and paste', practiceId: 'copy_paste' },
+      { icon: '\uD83C\uDF10', label: 'Practice opening the internet', practiceId: 'open_browser' },
+      { icon: '\uD83D\uDCF6', label: 'Practice connecting to Wi-Fi', practiceId: 'wifi' },
+      { icon: '\uD83D\uDCDE', label: 'Practice joining a video call', practiceId: 'video_call' },
+      { icon: '\uD83D\uDDA8\uFE0F', label: 'Practice printing something', practiceId: 'print_document' },
+    ],
+  },
+  {
     heading: 'Email',
     items: [
       { icon: '\uD83D\uDCE7', label: 'How do I send an email?' },
@@ -74,7 +86,7 @@ const CATEGORIES = [
  * Displays mascot, heading, and a scrollable categorized list of
  * things the user can ask. Tapping a suggestion sends it as a message.
  */
-function EmptyState({ onSendMessage }) {
+function EmptyState({ onSendMessage, onPractice }) {
   return (
     <div className="pcp-empty">
       <div className="pcp-empty__mascot" aria-hidden="true">
@@ -95,7 +107,13 @@ function EmptyState({ onSendMessage }) {
                   key={s.label}
                   icon={s.icon}
                   label={s.label}
-                  onTap={() => onSendMessage(s.label)}
+                  onTap={() => {
+                    if (s.practiceId && onPractice) {
+                      onPractice(s.practiceId);
+                    } else {
+                      onSendMessage(s.label);
+                    }
+                  }}
                 />
               ))}
             </div>

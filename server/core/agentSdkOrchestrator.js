@@ -7,7 +7,8 @@
  */
 
 const { query } = require('@anthropic-ai/claude-agent-sdk');
-const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext } = require('../mcp/pcpalTools');
+const { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setActiveAutofixSession } = require('../mcp/pcpalTools');
+const AutofixSession = require('../models/AutofixSession');
 const safetyMonitor = require('./safetyMonitor');
 const UserMemory = require('../models/UserMemory');
 const conversationState = require('./conversationState');
@@ -26,11 +27,18 @@ const FALLBACK_RESPONSE =
   "I'm having a little trouble right now. Could you try asking me again in a moment?";
 
 let mcpServer;
+let sandboxMcpServer;
 try {
   mcpServer = createPcPalMcpServer();
   console.log('[agentSdkOrchestrator] MCP tool server created');
 } catch (err) {
   console.error('[agentSdkOrchestrator] Failed to create MCP server:', err.message);
+}
+try {
+  sandboxMcpServer = createPcPalMcpServer({ mode: 'autofix-sandbox' });
+  console.log('[agentSdkOrchestrator] Sandbox MCP tool server created');
+} catch (err) {
+  console.error('[agentSdkOrchestrator] Failed to create sandbox MCP server:', err.message);
 }
 
 function buildSystemPrompt(profileString, user, classification, confusionCtx, matchedSkillPrompt, conversationLength, memorySummary, skillImagePrompt, coachingNotes, screenContext) {
@@ -96,6 +104,8 @@ Keep text responses under 100 words. Lead with the answer. All steps go in creat
 - New topic: friendly sentence + answer + encouraging close
 - Follow-up ("ok", "done"): one sentence, no greeting
 - If you don't know: say so, suggest what to try
+
+CRITICAL: When you call create_guide, the guide appears as a clickable card button in the chat. Do NOT say "I've put a guide in the side panel" — the user has to TAP the card to open it. Instead say "I made a step-by-step guide for you — tap the card below to open it!" or just describe what to do and the guide card appears automatically alongside your message.
 
 ## Save memories (once per conversation)
 
@@ -205,6 +215,196 @@ GOOD: "You'll open Edge and go to zoom.us — I've put pictures in the side pane
 
 If you need to reference an action already described, NAME the action ("click Compose again") rather than its position ("the second step").
 ${matchedSkillPrompt ? `\n## Active Skill\n${matchedSkillPrompt}` : ''}`;
+}
+
+function buildSandboxSystemPrompt(user, osType) {
+  return `You are PC Pal in **AUTO-FIX SANDBOX MODE**.
+
+The user has explicitly opened the Sandbox tab and clicked "Run Diagnostics & Fix". They have authorized you to autonomously diagnose and repair their computer. You are NOT teaching here. You are NOT walking the user through steps. You are acting like a senior IT technician working unattended on their machine.
+
+User device: ${osType || user?.os_type || 'unknown'}
+Server platform: this orchestrator process is the user's machine (Electron desktop mode), so diagnostic tools read REAL data.
+
+## Workflow (follow strictly)
+
+1. **Survey** — Run the read-only diagnostic tools first to identify problems. At minimum check:
+   - check_network (DNS / connectivity / Wi-Fi)
+   - check_disk_health (disk pressure, large temp dirs)
+   - list_running_apps (frozen / runaway processes)
+   - get_battery_status (only if relevant)
+   You may also call get_system_info, read_error_log, run_safe_command for deeper checks.
+
+2. **Decide** — For each problem you find, pick the most appropriate fix_* tool. The fix_* tools available to you are:
+   - fix_flush_dns_cache
+   - fix_renew_dhcp_lease
+   - fix_reset_winsock (Windows only, needs admin)
+   - fix_restart_network_adapter (needs admin)
+   - fix_kill_process_by_name (only allowlisted apps — chrome, firefox, Spotify, etc.)
+   - fix_restart_explorer (Windows / macOS)
+   - fix_clear_temp_files
+   - fix_empty_recycle_bin
+   - fix_run_sfc_scannow (Windows, slow, needs admin)
+   - fix_run_dism_restore_health (Windows, slow, needs admin)
+   - fix_restart_print_spooler (needs admin)
+   - fix_restart_audio_service (needs admin)
+
+   **If the user is on Linux (Debian, Ubuntu, or derivative), you ALSO have:**
+   - fix_apt_update — refresh apt package lists (call this BEFORE upgrade or install)
+   - fix_apt_safe_upgrade — upgrade installed packages, no new recommends (slow, needs admin)
+   - fix_clear_apt_cache — purge cached `.deb` downloads to free disk space
+   - fix_apt_autoremove — remove orphaned dependencies
+   - fix_install_safe_package — install ONE package from the curated allowlist (firefox-esr, chromium, thunderbird, libreoffice, vlc, gimp, inkscape, audacity, evince, gnome-calculator, gedit, transmission-gtk, rhythmbox, gthumb). Anything else is rejected.
+
+   On Linux, always call fix_apt_update before fix_apt_safe_upgrade or fix_install_safe_package — stale package lists cause install failures.
+
+3. **Apply** — Invoke the fix tool. Do NOT ask permission. Do NOT explain to the user what you are about to do — just do it.
+
+4. **Verify** — After each fix, re-run the relevant diagnostic to confirm it actually helped. If a fix returned NEEDS_ADMIN or NOT_APPLICABLE, do not retry — note it for the summary and move on.
+
+5. **Stop** when:
+   - No more problems are detected, OR
+   - You have spent 10 tool calls (hard budget), OR
+   - The same fix has been attempted twice without resolving its target diagnostic.
+
+6. **Final summary** — Call create_findings ONCE with a structured report:
+   - Each finding label = the area checked (e.g. "Network", "DNS Cache", "Temp files")
+   - Each finding value = a short before/after sentence ("Was: stale cache. Now: flushed.")
+   - Each finding status = good / warning / bad
+   Then write a single short sentence in chat (under 30 words) like "Fixed 3 issues — DNS cache, frozen Spotify, 2.4 GB of temp files."
+
+## Hard rules
+
+- Use ONLY the tools provided. Never propose shell commands as text.
+- NEVER call create_guide, start_step_sequence, show_visual_guide, or start_practice — they are not registered in this mode and would fail. Sandbox is autonomous, not instructional.
+- If a fix tool returns NEEDS_ADMIN, list it in the summary as "needs admin — relaunch as administrator" and continue with the rest. Do not retry.
+- If a fix tool returns NOT_APPLICABLE (wrong OS), do not call it again — pick a different tool or skip.
+- Never invoke fix_run_sfc_scannow + fix_run_dism_restore_health in the same run unless you actually saw integrity errors in read_error_log. Both are slow.
+- If after fixes the system still appears unhealthy, say so plainly in the final sentence: "Some issues remain — see the summary card."
+- Do not fabricate diagnostic results. Only report what tools actually returned.
+- Do not include URLs, support links, or YouTube videos. Sandbox mode is action-only.
+
+## Hard budget
+
+- Maximum 10 tool calls total per session. Plan accordingly.
+
+You will receive a single user message that says "Run a full diagnose-and-fix sweep." That is your trigger to begin.`;
+}
+
+async function processAutofixSandbox(userId, context = {}) {
+  if (!anthropicApiKey || process.env.MOCK_MODE === 'true') {
+    return {
+      response: 'Auto-Fix Sandbox requires a Claude API key. Set ANTHROPIC_API_KEY and restart, or use Normal mode.',
+      findings: null,
+      sessionId: null,
+    };
+  }
+  if (!sandboxMcpServer) {
+    return {
+      response: 'Sandbox tool server failed to initialize. Check server logs.',
+      findings: null,
+      sessionId: null,
+    };
+  }
+
+  const user = userProfileManager.getOrCreateUser(userId);
+  const osType = context.osType || user?.os_type || null;
+
+  // Open an autofix_session row so every fix_log entry can be traced back.
+  const session = AutofixSession.create({ user_id: userId });
+  setActiveAutofixSession(session.id);
+  setActiveUserContext(userId, session.id);
+
+  const systemPrompt = buildSandboxSystemPrompt(user, osType);
+  const trigger = 'Run a full diagnose-and-fix sweep.';
+
+  const onToolEvent = typeof context.onToolEvent === 'function'
+    ? context.onToolEvent
+    : null;
+
+  let finalResponse = '';
+  let toolCallCount = 0;
+  const toolNames = [];
+
+  try {
+    for await (const message of query({
+      prompt: trigger,
+      options: {
+        systemPrompt,
+        model: resolveModel(user.model_preference).model || DEFAULT_MODEL,
+        maxTurns: 12,
+        allowedTools: [],
+        mcpServers: { 'pcpal-tools': sandboxMcpServer },
+        permissionMode: 'bypassPermissions',
+        allowDangerouslySkipPermissions: true,
+      },
+    })) {
+      // Forward tool-use events for streaming UI updates.
+      if (onToolEvent) {
+        const blocks = message?.message?.content;
+        if (Array.isArray(blocks)) {
+          for (const block of blocks) {
+            if (block.type === 'tool_use') {
+              toolCallCount += 1;
+              toolNames.push(block.name);
+              onToolEvent({
+                phase: 'tool_start',
+                toolName: block.name,
+                args: block.input || {},
+                ts: Date.now(),
+              });
+            } else if (block.type === 'tool_result') {
+              const text = Array.isArray(block.content)
+                ? block.content.map(c => c.text || '').join('\n')
+                : (block.content || '');
+              onToolEvent({
+                phase: 'tool_end',
+                toolName: toolNames[toolNames.length - 1] || null,
+                result: text,
+                isError: !!block.is_error,
+                ts: Date.now(),
+              });
+            }
+          }
+        }
+      }
+      if ('result' in message) {
+        finalResponse = message.result;
+      }
+    }
+  } catch (err) {
+    console.error('[agentSdkOrchestrator] Autofix sandbox error:', err.message);
+    finalResponse = `Sandbox run failed: ${err.message}`;
+  }
+
+  setActiveAutofixSession(null);
+
+  const findings = getAndClearLastFindings();
+  const fixToolCalls = toolNames.filter(n => n && n.startsWith('mcp__pcpal-tools__fix_'));
+  const fixesAttempted = fixToolCalls.length;
+
+  AutofixSession.finalize(session.id, {
+    fixes_attempted: fixesAttempted,
+    fixes_succeeded: fixesAttempted, // success/failure breakdown is in fix_log
+    summary_json: { findings, toolNames, response: finalResponse },
+  });
+
+  if (onToolEvent) {
+    onToolEvent({
+      phase: 'final',
+      toolCallCount,
+      fixesAttempted,
+      response: finalResponse,
+      ts: Date.now(),
+    });
+  }
+
+  return {
+    response: finalResponse,
+    findings: findings || null,
+    sessionId: session.id,
+    toolCallCount,
+    fixesAttempted,
+  };
 }
 
 async function processMessage(text, userId, context = {}) {
@@ -362,8 +562,8 @@ async function processMessage(text, userId, context = {}) {
     const findings = getAndClearLastFindings();
     const practice = getAndClearLastPractice();
     const screenshot = getAndClearLastScreenshot();
-    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps.length} steps)`);
-    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings.length} items)`);
+    if (guide) console.log(`[agentSdkOrchestrator] Guide artifact: "${guide.title}" (${guide.steps?.length || 0} steps)`);
+    if (findings) console.log(`[agentSdkOrchestrator] Findings artifact: "${findings.title}" (${findings.findings?.length || findings.items?.length || 0} items)`);
     if (practice) console.log(`[agentSdkOrchestrator] Practice session: ${practice.taskId}`);
     if (screenshot) console.log(`[agentSdkOrchestrator] Screenshot: ${screenshot.found ? 'target found' : 'no target'} (${Math.round((screenshot.imageBase64?.length || 0) / 1024)}KB)`);
 
@@ -398,4 +598,4 @@ async function processMessage(text, userId, context = {}) {
   }
 }
 
-module.exports = { processMessage };
+module.exports = { processMessage, processAutofixSandbox };

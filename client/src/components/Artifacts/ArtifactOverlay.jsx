@@ -60,14 +60,10 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
     return () => clearTimeout(timeout);
   }, [onClose]);
 
-  // Attempt close -- may require confirmation for guides mid-step
+  // Close immediately — no confirmation needed
   const attemptClose = useCallback(() => {
-    if (type === 'guide' && guideStepRef.current > 0) {
-      setConfirmClose(true);
-      return;
-    }
     doClose();
-  }, [type, doClose]);
+  }, [doClose]);
 
   // Esc key handler
   useEffect(() => {
@@ -117,6 +113,7 @@ function ArtifactOverlay({ type, data, onClose, onSendMessage, triggerRef }) {
   const titleId = 'pcp-overlay-title';
 
   const renderContent = () => {
+    if (!data) return <div style={{ padding: 'var(--space-5)', textAlign: 'center', color: 'var(--color-text-2)' }}>No content to display.</div>;
     switch (type) {
       case 'guide':
         return (

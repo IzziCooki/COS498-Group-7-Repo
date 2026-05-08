@@ -1,78 +1,71 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './ChatTopBar.css';
 
-/**
- * ChatTopBar -- Contextual top bar override for the chat screen (D2 S2).
- * Renders inside the ShellLayout's TopBar area via composition.
- *
- * Title: "Chat with PC" (20px medium), right-side ⋯ button (48x48).
- * The shell TopBar already renders; this component is currently a stub
- * that provides the ⋯ button and buddy-observing indicator.
- * In Phase 3 we wire the ⋯ button to ChatOptionsSheet.
- *
- * @param {{ onOpenOptions: () => void, buddyObserving: object|null }} props
- */
-function ChatTopBar({ onOpenOptions, buddyObserving, onEndChatAndRate, hasMessages }) {
+const TIPS = [
+  { icon: '\uD83D\uDD17', text: 'Tap "Get External Resources" for videos and guides' },
+  { icon: '\uD83D\uDCD6', text: 'Tap a guide card in chat to see step-by-step pictures' },
+  { icon: '\uD83C\uDFAF', text: 'Try Practice Mode to rehearse before doing it for real' },
+  { icon: '\uD83C\uDFA4', text: 'Tap the microphone to speak instead of type' },
+  { icon: '\uD83D\uDD0A', text: 'Tap the speaker icon to hear any answer read aloud' },
+  { icon: '\uD83D\uDC4D', text: 'Use thumbs up/down on answers to help PC Pal learn' },
+];
+
+function ChatTopBar({ onOpenOptions, buddyObserving, onEndChatAndRate, hasMessages, tipsVisible, onDismissTips }) {
+  const [tipIndex, setTipIndex] = useState(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (!tipsVisible) return;
+    timerRef.current = setInterval(() => {
+      setTipIndex((i) => (i + 1) % TIPS.length);
+    }, 30000);
+    return () => clearInterval(timerRef.current);
+  }, [tipsVisible]);
+
+  const tip = TIPS[tipIndex];
+
   return (
-    <div className="pcp-chat-topbar" style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      gap: 'var(--space-3)',
-      padding: '0 var(--space-2)',
-      height: '100%',
-    }}>
+    <div className="pcp-chat-topbar">
       {buddyObserving && (
-        <div style={{
-          fontSize: 'var(--font-size-sm)',
-          color: 'var(--color-primary)',
-          marginRight: 'auto',
-          paddingLeft: 'var(--space-2)',
-        }}>
+        <div className="pcp-chat-topbar__buddy">
           {buddyObserving.buddyName} is helping you
         </div>
       )}
+
+      {/* Spacer pushes everything after it to the right */}
+      <span className="pcp-chat-topbar__spacer" />
+
+      {/* Rotating hint — right side of the bar */}
+      {tipsVisible && (
+        <div className="pcp-chat-topbar__hint" aria-live="polite">
+          <span className="pcp-chat-topbar__hint-icon" aria-hidden="true">{tip.icon}</span>
+          <span className="pcp-chat-topbar__hint-text">{tip.text}</span>
+          <button
+            className="pcp-chat-topbar__hint-close"
+            onClick={onDismissTips}
+            aria-label="Hide tips"
+            title="Hide tips"
+            type="button"
+          >&#10005;</button>
+        </div>
+      )}
+
       {hasMessages && onEndChatAndRate && (
         <button
           type="button"
+          className="pcp-chat-topbar__end-btn"
           onClick={onEndChatAndRate}
           aria-label="End chat and leave feedback"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',
-            padding: '0 var(--space-3)',
-            minHeight: 'var(--tap-comfort)',
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-xl)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-text-2)',
-            cursor: 'pointer',
-          }}
         >
           End &amp; Rate
         </button>
       )}
       <button
         type="button"
+        className="pcp-chat-topbar__menu-btn"
         onClick={onOpenOptions}
         aria-label="More options"
         aria-haspopup="menu"
-        style={{
-          width: 'var(--tap-comfort)',
-          height: 'var(--tap-comfort)',
-          minHeight: 'var(--tap-comfort)',
-          minWidth: 'var(--tap-comfort)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'transparent',
-          border: 'none',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: 'var(--font-size-lg)',
-          color: 'var(--color-text-1)',
-          cursor: 'pointer',
-        }}
       >
         &#x22EF;
       </button>

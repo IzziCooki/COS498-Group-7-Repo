@@ -32,6 +32,21 @@ router.get('/:id/messages', requireOwnedConversation, (req, res) => {
   }
 });
 
+// POST /api/conversations/:id/reopen — reopen a completed conversation so user can continue
+router.post('/:id/reopen', requireOwnedConversation, (req, res) => {
+  try {
+    const Conversation = require('../models/Conversation');
+    const conv = Conversation.findById(req.params.id);
+    if (!conv) return res.status(404).json({ error: 'Conversation not found.' });
+    if (conv.status === 'active') return res.json({ ok: true, message: 'Already active.' });
+    Conversation.update(req.params.id, { status: 'active', ended_at: null });
+    res.json({ ok: true, message: 'Conversation reopened.' });
+  } catch (err) {
+    console.error('[export] POST /:id/reopen error:', err.message);
+    res.status(500).json({ error: 'Failed to reopen conversation.' });
+  }
+});
+
 // POST /api/conversations/:id/export — export a single conversation
 router.post('/:id/export', requireOwnedConversation, (req, res) => {
   try {

@@ -89,6 +89,23 @@
   margin: 0;
 }
 
+/* ── Command block ── */
+
+.pcp-guide-step__command {
+  background: var(--color-surface-3, #1a202c);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  overflow-x: auto;
+}
+
+.pcp-guide-step__command code {
+  font-family: monospace;
+  font-size: var(--font-size-base);
+  color: var(--color-text-1);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 /* ── Note callout ── */
 
 .pcp-guide-step__note {

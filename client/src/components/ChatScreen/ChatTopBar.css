@@ -1,0 +1,116 @@
+/* ==========================================================================
+   ChatTopBar — Top bar with rotating hint, End & Rate, and ⋯ menu
+   ========================================================================== */
+
+.pcp-chat-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  height: 100%;
+  min-height: var(--tap-primary);
+}
+
+.pcp-chat-topbar__buddy {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.pcp-chat-topbar__spacer {
+  flex: 1;
+}
+
+/* ── Rotating hint pill ──────────────────────────────────────── */
+
+.pcp-chat-topbar__hint {
+  flex-shrink: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.pcp-chat-topbar__hint-icon {
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+.pcp-chat-topbar__hint-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.pcp-chat-topbar__hint-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--color-text-3);
+  cursor: pointer;
+  padding: 0;
+}
+.pcp-chat-topbar__hint-close:hover {
+  background: var(--color-surface);
+  color: var(--color-text-1);
+}
+
+/* ── End & Rate button ───────────────────────────────────────── */
+
+.pcp-chat-topbar__end-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-3);
+  min-height: var(--tap-comfort);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pcp-chat-topbar__end-btn:hover {
+  background: var(--color-surface-3);
+}
+
+/* ── Menu (⋯) button ────────────────────────────────────────── */
+
+.pcp-chat-topbar__menu-btn {
+  width: var(--tap-comfort);
+  height: var(--tap-comfort);
+  min-height: var(--tap-comfort);
+  min-width: var(--tap-comfort);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-1);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.pcp-chat-topbar__menu-btn:hover {
+  background: var(--color-surface-3);
+}

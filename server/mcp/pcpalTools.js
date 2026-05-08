@@ -10,16 +10,28 @@ const { tool, createSdkMcpServer } = require('@anthropic-ai/claude-agent-sdk');
 const z = require('zod');
 
 const { VALID_GUIDE_IDS, VOCAB_LEVELS, MEMORY_TYPES, RISK_LEVELS, FINDING_STATUSES } = require('../core/sharedConstants');
+const FixLog = require('../models/FixLog');
+const fsp = require('fs/promises');
+const path = require('path');
+const os = require('os');
 const uiReferenceLibrary = require('../core/uiReferenceLibrary');
 
 // Active user context — set by the orchestrator before each query()
 // so tools can read user_id/session_id without the model passing them
 let _activeUserId = null;
 let _activeSessionId = null;
+// Active autofix session id — set only when the orchestrator is in
+// mode 'autofix-sandbox'. Threaded into every fix_log row so each row
+// can be traced back to a specific Sandbox tab run.
+let _activeAutofixSessionId = null;
 
 function setActiveUserContext(userId, sessionId) {
   _activeUserId = userId;
   _activeSessionId = sessionId;
+}
+
+function setActiveAutofixSession(sessionId) {
+  _activeAutofixSessionId = sessionId || null;
 }
 
 function getUserId() { return _activeUserId; }
@@ -582,13 +594,13 @@ function getAndClearLastPractice() {
   return p;
 }
 
-const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser'];
+const BUILTIN_PRACTICE_TASKS = ['send_email', 'copy_paste', 'open_browser', 'wifi', 'video_call', 'take_screenshot', 'print_document', 'change_text_size'];
 
 const startPractice = tool(
   'start_practice',
-  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser. For ANY other task, set task_id to 'custom' and provide custom_steps — the agent generates practice steps for whatever the user wants to learn. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous.",
+  "Start a practice session for a task. Built-in tasks: send_email, copy_paste, open_browser, wifi, video_call, take_screenshot, print_document, change_text_size. For ANY other task, set task_id to 'custom' and provide custom_steps. Use when the user says 'practice', 'let me try first', 'I'm scared', or seems nervous. PROACTIVELY offer practice to comfort level 1-2 users before new tasks.",
   {
-    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser) or 'custom' for agent-generated practice"),
+    task_id: z.string().describe("Built-in task ID (send_email, copy_paste, open_browser, wifi, video_call, take_screenshot, print_document, change_text_size) or 'custom' for agent-generated practice"),
     custom_title: z.string().optional().describe("Title for custom practice (required when task_id is 'custom')"),
     custom_steps: z.array(z.object({
       instruction: z.string().describe('What this step does'),
@@ -756,57 +768,629 @@ const lookupSupportResources = tool(
   }
 );
 
+// ─── Auto-Fix Sandbox Tools (mode 'autofix-sandbox' only) ────────────
+//
+// Every fix_* tool below wraps a HARDCODED command string (or a hardcoded
+// JS-native action). The agent only chooses *which* tool to call —
+// command content is never built from agent input. The single exception
+// is fix_kill_process_by_name's `name` argument, which is validated
+// against KILLABLE_PROCESS_ALLOWLIST before being interpolated.
+//
+// These tools are registered ONLY when createPcPalMcpServer is called
+// with { mode: 'autofix-sandbox' }. Normal-mode chat literally cannot
+// invoke them — they're not in the tool list.
+
+function runFixStep(toolName, command) {
+  const result = systemDiagnostics.runFixCommand(command);
+  try {
+    FixLog.create({
+      session_id: _activeAutofixSessionId,
+      user_id: _activeUserId,
+      tool_name: toolName,
+      command,
+      exit_code: result.exitCode,
+      stdout_tail: result.stdout,
+      stderr_tail: result.stderr,
+    });
+  } catch (err) {
+    console.error('[MCP] fix_log write failed:', err.message);
+  }
+  return result;
+}
+
+function fixSummary(toolName, results) {
+  const allOk = results.every(r => r.ok);
+  const lines = results.map((r, i) =>
+    r.ok
+      ? `[step ${i + 1}] OK — ${r.stdout || '(no output)'}`
+      : `[step ${i + 1}] FAILED (exit ${r.exitCode}) — ${r.stderr || '(no error message)'}`
+  );
+  return (allOk ? 'OK\n' : 'PARTIAL FAILURE\n') + lines.join('\n');
+}
+
+function adminRequiredResult(toolName) {
+  try {
+    FixLog.create({
+      session_id: _activeAutofixSessionId,
+      user_id: _activeUserId,
+      tool_name: toolName,
+      command: '(skipped: admin required)',
+      exit_code: -2,
+      stdout_tail: '',
+      stderr_tail: 'PC Pal is not running with admin/root privileges.',
+    });
+  } catch (_) { /* non-critical */ }
+  return textResult(
+    'NEEDS_ADMIN: This fix requires admin/root privileges and PC Pal is not running elevated. ' +
+    'Skipping this step. Tell the user to relaunch PC Pal as administrator (Windows) or with sudo (macOS/Linux) to enable system-integrity fixes.'
+  );
+}
+
+// ─── Tier 1: Network / WiFi / DNS ────────────────────────────────
+
+const fixFlushDnsCache = tool(
+  'fix_flush_dns_cache',
+  'AUTO-FIX: Flush the operating system DNS cache. Use when DNS resolution is failing or websites are not loading despite a working internet connection. Safe and instant.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      results.push(runFixStep('fix_flush_dns_cache', 'ipconfig /flushdns'));
+    } else if (platform === 'mac') {
+      results.push(runFixStep('fix_flush_dns_cache', 'dscacheutil -flushcache'));
+      results.push(runFixStep('fix_flush_dns_cache', 'killall -HUP mDNSResponder'));
+    } else {
+      results.push(runFixStep('fix_flush_dns_cache', 'resolvectl flush-caches'));
+    }
+    return textResult(fixSummary('fix_flush_dns_cache', results));
+  }
+);
+
+const fixRenewDhcpLease = tool(
+  'fix_renew_dhcp_lease',
+  'AUTO-FIX: Release and renew the DHCP lease so the computer asks the router for a fresh IP address. Use when the network shows "limited connectivity" or the user just connected to a new Wi-Fi.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      results.push(runFixStep('fix_renew_dhcp_lease', 'ipconfig /release'));
+      results.push(runFixStep('fix_renew_dhcp_lease', 'ipconfig /renew'));
+    } else if (platform === 'mac') {
+      results.push(runFixStep('fix_renew_dhcp_lease', 'ipconfig set en0 DHCP'));
+    } else {
+      results.push(runFixStep('fix_renew_dhcp_lease', 'dhclient -r'));
+      results.push(runFixStep('fix_renew_dhcp_lease', 'dhclient'));
+    }
+    return textResult(fixSummary('fix_renew_dhcp_lease', results));
+  }
+);
+
+const fixResetWinsock = tool(
+  'fix_reset_winsock',
+  'AUTO-FIX: Windows-only. Reset the Winsock catalog and TCP/IP stack — fixes corrupted network configuration after malware, VPN apps, or aborted Windows updates. A reboot is recommended after.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    if (platform !== 'windows') {
+      return textResult('NOT_APPLICABLE: fix_reset_winsock is Windows-only.');
+    }
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_reset_winsock');
+    const results = [];
+    results.push(runFixStep('fix_reset_winsock', 'netsh winsock reset'));
+    results.push(runFixStep('fix_reset_winsock', 'netsh int ip reset'));
+    return textResult(fixSummary('fix_reset_winsock', results) +
+      '\nNOTE: A computer restart is recommended for the reset to take effect.');
+  }
+);
+
+const fixRestartNetworkAdapter = tool(
+  'fix_restart_network_adapter',
+  'AUTO-FIX: Disable then re-enable the primary Wi-Fi network adapter. Often resolves stuck connections without rebooting. The internet briefly drops during the toggle.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_network_adapter');
+      results.push(runFixStep('fix_restart_network_adapter', 'netsh interface set interface "Wi-Fi" admin=disable'));
+      results.push(runFixStep('fix_restart_network_adapter', 'netsh interface set interface "Wi-Fi" admin=enable'));
+    } else if (platform === 'mac') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_network_adapter');
+      results.push(runFixStep('fix_restart_network_adapter', 'ifconfig en0 down'));
+      results.push(runFixStep('fix_restart_network_adapter', 'ifconfig en0 up'));
+    } else {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_network_adapter');
+      results.push(runFixStep('fix_restart_network_adapter', 'ip link set wlan0 down'));
+      results.push(runFixStep('fix_restart_network_adapter', 'ip link set wlan0 up'));
+    }
+    return textResult(fixSummary('fix_restart_network_adapter', results));
+  }
+);
+
+// ─── Tier 2: Slow PC / frozen apps ───────────────────────────────
+
+const fixKillProcessByName = tool(
+  'fix_kill_process_by_name',
+  'AUTO-FIX: Force-quit a frozen or runaway application by name. The name must be one of the known-safe app names (browsers, common productivity apps). System processes are NOT killable by this tool.',
+  {
+    name: z.string().describe(
+      'Process / app name. Must match an entry in the per-OS allowlist (e.g. "chrome", "firefox", "Spotify"). System processes are rejected.'
+    ),
+  },
+  async (args) => {
+    const name = (args.name || '').trim();
+    if (!systemDiagnostics.isKillableProcessName(name)) {
+      return textResult(
+        `REJECTED: "${name}" is not in the killable-process allowlist. ` +
+        `Only common end-user apps may be killed by this tool to protect system processes.`
+      );
+    }
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      // taskkill /IM expects an image name with .exe extension
+      const imageName = name.toLowerCase().endsWith('.exe') ? name : `${name}.exe`;
+      results.push(runFixStep('fix_kill_process_by_name', `taskkill /F /IM ${imageName}`));
+    } else if (platform === 'mac') {
+      // pkill matches against full process name; use exact-match flag
+      results.push(runFixStep('fix_kill_process_by_name', `pkill -9 -x "${name}"`));
+    } else {
+      results.push(runFixStep('fix_kill_process_by_name', `pkill -9 -x "${name}"`));
+    }
+    return textResult(fixSummary('fix_kill_process_by_name', results));
+  }
+);
+
+const fixRestartExplorer = tool(
+  'fix_restart_explorer',
+  'AUTO-FIX: Windows/macOS only. Restart the desktop shell (Explorer on Windows, Finder on macOS) to recover from a frozen taskbar / dock / desktop icons. Open File Explorer windows close.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      results.push(runFixStep('fix_restart_explorer', 'taskkill /F /IM explorer.exe'));
+      // Restart explorer — start without /B so it detaches.
+      results.push(runFixStep('fix_restart_explorer', 'start explorer.exe'));
+    } else if (platform === 'mac') {
+      results.push(runFixStep('fix_restart_explorer', 'killall Finder'));
+    } else {
+      return textResult('NOT_APPLICABLE: fix_restart_explorer is Windows / macOS only.');
+    }
+    return textResult(fixSummary('fix_restart_explorer', results));
+  }
+);
+
+// ─── Tier 3: Disk cleanup (use Node fs to avoid shell expansion) ───
+
+async function clearDirContents(dir) {
+  let removed = 0;
+  let kept = 0;
+  let bytes = 0;
+  let entries;
+  try {
+    entries = await fsp.readdir(dir, { withFileTypes: true });
+  } catch (err) {
+    if (err.code === 'ENOENT') return { removed: 0, kept: 0, bytes: 0, missing: true };
+    throw err;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    try {
+      const stat = await fsp.stat(full);
+      bytes += stat.size || 0;
+      await fsp.rm(full, { recursive: true, force: true });
+      removed += 1;
+    } catch (_) {
+      kept += 1;
+    }
+  }
+  return { removed, kept, bytes };
+}
+
+const fixClearTempFiles = tool(
+  'fix_clear_temp_files',
+  "AUTO-FIX: Clear the user's temp directory (Windows %TEMP%, /tmp, ~/.cache/thumbnails as appropriate). Reclaims disk space. Active files in use are skipped automatically.",
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const home = os.homedir();
+    const targets = [];
+    if (platform === 'windows') {
+      const tempEnv = process.env.TEMP || process.env.TMP;
+      if (tempEnv) targets.push(tempEnv);
+    } else if (platform === 'mac') {
+      targets.push(path.join(home, 'Library/Caches'));
+    } else {
+      targets.push(path.join(home, '.cache/thumbnails'));
+    }
+    const summaries = [];
+    let totalRemoved = 0, totalBytes = 0;
+    for (const dir of targets) {
+      try {
+        const out = await clearDirContents(dir);
+        totalRemoved += out.removed;
+        totalBytes += out.bytes;
+        summaries.push(out.missing
+          ? `${dir}: not present`
+          : `${dir}: removed ${out.removed} entries (${(out.bytes / (1024 * 1024)).toFixed(1)} MB), kept ${out.kept} in-use`);
+      } catch (err) {
+        summaries.push(`${dir}: error — ${err.message}`);
+      }
+    }
+    try {
+      FixLog.create({
+        session_id: _activeAutofixSessionId,
+        user_id: _activeUserId,
+        tool_name: 'fix_clear_temp_files',
+        command: `[fs.rm] ${targets.join(', ')}`,
+        exit_code: 0,
+        stdout_tail: summaries.join('\n'),
+        stderr_tail: '',
+      });
+    } catch (_) { /* non-critical */ }
+    return textResult(
+      `OK\nReclaimed ${(totalBytes / (1024 * 1024)).toFixed(1)} MB across ${totalRemoved} items.\n` +
+      summaries.join('\n')
+    );
+  }
+);
+
+const fixEmptyRecycleBin = tool(
+  'fix_empty_recycle_bin',
+  'AUTO-FIX: Empty the Recycle Bin / Trash to permanently delete already-deleted files and reclaim disk space.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      results.push(runFixStep('fix_empty_recycle_bin', 'powershell -NoProfile -Command Clear-RecycleBin -Force'));
+    } else if (platform === 'mac') {
+      results.push(runFixStep('fix_empty_recycle_bin',
+        'osascript -e \'tell application "Finder" to empty trash\''));
+    } else {
+      const trash = path.join(os.homedir(), '.local/share/Trash/files');
+      try {
+        const out = await clearDirContents(trash);
+        try {
+          FixLog.create({
+            session_id: _activeAutofixSessionId,
+            user_id: _activeUserId,
+            tool_name: 'fix_empty_recycle_bin',
+            command: `[fs.rm] ${trash}`,
+            exit_code: 0,
+            stdout_tail: `removed ${out.removed} items (${(out.bytes / (1024 * 1024)).toFixed(1)} MB)`,
+            stderr_tail: '',
+          });
+        } catch (_) { /* non-critical */ }
+        return textResult(`OK\nEmptied ${trash}: ${out.removed} entries removed.`);
+      } catch (err) {
+        return textResult(`FAILED: ${err.message}`);
+      }
+    }
+    return textResult(fixSummary('fix_empty_recycle_bin', results));
+  }
+);
+
+// ─── Tier 4: System integrity ────────────────────────────────────
+
+const fixRunSfcScannow = tool(
+  'fix_run_sfc_scannow',
+  'AUTO-FIX: Windows-only. Run System File Checker (sfc /scannow) to verify and repair Windows system files. SLOW — typically takes 5 to 15 minutes. Requires admin.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    if (platform !== 'windows') {
+      return textResult('NOT_APPLICABLE: fix_run_sfc_scannow is Windows-only.');
+    }
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_run_sfc_scannow');
+    // Override the default timeout for this slow tool — give it 15 min.
+    const r = systemDiagnostics.runFixCommand('sfc /scannow', { timeout: 15 * 60 * 1000 });
+    try {
+      FixLog.create({
+        session_id: _activeAutofixSessionId,
+        user_id: _activeUserId,
+        tool_name: 'fix_run_sfc_scannow',
+        command: 'sfc /scannow',
+        exit_code: r.exitCode,
+        stdout_tail: r.stdout,
+        stderr_tail: r.stderr,
+      });
+    } catch (_) { /* non-critical */ }
+    return textResult(r.ok
+      ? `OK\n${r.stdout || '(scan completed)'}`
+      : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixRunDism = tool(
+  'fix_run_dism_restore_health',
+  'AUTO-FIX: Windows-only. Run DISM /Online /Cleanup-Image /RestoreHealth to repair the underlying Windows component store. SLOW — typically 5 to 20 minutes. Run before sfc when both are needed. Requires admin.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    if (platform !== 'windows') {
+      return textResult('NOT_APPLICABLE: fix_run_dism_restore_health is Windows-only.');
+    }
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_run_dism_restore_health');
+    const r = systemDiagnostics.runFixCommand('DISM /Online /Cleanup-Image /RestoreHealth', { timeout: 20 * 60 * 1000 });
+    try {
+      FixLog.create({
+        session_id: _activeAutofixSessionId,
+        user_id: _activeUserId,
+        tool_name: 'fix_run_dism_restore_health',
+        command: 'DISM /Online /Cleanup-Image /RestoreHealth',
+        exit_code: r.exitCode,
+        stdout_tail: r.stdout,
+        stderr_tail: r.stderr,
+      });
+    } catch (_) { /* non-critical */ }
+    return textResult(r.ok ? `OK\n${r.stdout}` : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixRestartPrintSpooler = tool(
+  'fix_restart_print_spooler',
+  'AUTO-FIX: Restart the print spooler / CUPS service. Use when print jobs are stuck or the printer is not responding.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_print_spooler');
+      results.push(runFixStep('fix_restart_print_spooler', 'net stop spooler'));
+      results.push(runFixStep('fix_restart_print_spooler', 'net start spooler'));
+    } else if (platform === 'mac') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_print_spooler');
+      results.push(runFixStep('fix_restart_print_spooler', 'launchctl stop org.cups.cupsd'));
+      results.push(runFixStep('fix_restart_print_spooler', 'launchctl start org.cups.cupsd'));
+    } else {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_print_spooler');
+      results.push(runFixStep('fix_restart_print_spooler', 'systemctl restart cups'));
+    }
+    return textResult(fixSummary('fix_restart_print_spooler', results));
+  }
+);
+
+const fixRestartAudioService = tool(
+  'fix_restart_audio_service',
+  'AUTO-FIX: Restart the system audio service. Use when the user has no sound, audio devices are missing, or volume controls are unresponsive.',
+  {},
+  async () => {
+    const platform = systemDiagnostics.getPlatform();
+    const results = [];
+    if (platform === 'windows') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_audio_service');
+      results.push(runFixStep('fix_restart_audio_service', 'net stop audiosrv'));
+      results.push(runFixStep('fix_restart_audio_service', 'net start audiosrv'));
+    } else if (platform === 'mac') {
+      if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_restart_audio_service');
+      results.push(runFixStep('fix_restart_audio_service', 'killall coreaudiod'));
+    } else {
+      results.push(runFixStep('fix_restart_audio_service', 'pulseaudio -k'));
+      results.push(runFixStep('fix_restart_audio_service', 'pulseaudio --start'));
+    }
+    return textResult(fixSummary('fix_restart_audio_service', results));
+  }
+);
+
+// ─── Tier 5: Debian package management (Linux only) ──────────────
+//
+// These wrap hardcoded `apt-get` invocations. The agent picks WHICH
+// tool to call; command content is fully hardcoded except for the
+// validated package name in fix_install_safe_package, which is
+// rejected if it isn't on INSTALLABLE_PACKAGE_ALLOWLIST.
+
+const { INSTALLABLE_PACKAGE_ALLOWLIST } = require('../core/sharedConstants');
+
+function notLinuxResult(toolName) {
+  return textResult(`NOT_APPLICABLE: ${toolName} only runs on Linux.`);
+}
+
+const fixAptUpdate = tool(
+  'fix_apt_update',
+  'AUTO-FIX (Debian/Ubuntu): Refresh the apt package lists. Always call this BEFORE fix_apt_safe_upgrade or fix_install_safe_package, otherwise the package metadata may be stale. Quick (~10s). Requires admin.',
+  {},
+  async () => {
+    if (systemDiagnostics.getPlatform() !== 'linux') return notLinuxResult('fix_apt_update');
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_apt_update');
+    const r = runFixStep('fix_apt_update', 'apt-get update -y');
+    return textResult(r.ok ? `OK\n${r.stdout || '(lists refreshed)'}` : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixAptSafeUpgrade = tool(
+  'fix_apt_safe_upgrade',
+  'AUTO-FIX (Debian/Ubuntu): Upgrade already-installed packages to their latest versions WITHOUT pulling in new recommended dependencies. Slow (1-10 min). Requires admin. Always call fix_apt_update first.',
+  {},
+  async () => {
+    if (systemDiagnostics.getPlatform() !== 'linux') return notLinuxResult('fix_apt_safe_upgrade');
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_apt_safe_upgrade');
+    const r = systemDiagnostics.runFixCommand(
+      'apt-get upgrade -y --no-install-recommends',
+      { timeout: 15 * 60 * 1000 }
+    );
+    try {
+      FixLog.create({
+        session_id: _activeAutofixSessionId,
+        user_id: _activeUserId,
+        tool_name: 'fix_apt_safe_upgrade',
+        command: 'apt-get upgrade -y --no-install-recommends',
+        exit_code: r.exitCode,
+        stdout_tail: r.stdout,
+        stderr_tail: r.stderr,
+      });
+    } catch (_) { /* non-critical */ }
+    return textResult(r.ok ? `OK\n${r.stdout || '(no upgrades available)'}` : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixClearAptCache = tool(
+  'fix_clear_apt_cache',
+  'AUTO-FIX (Debian/Ubuntu): Free disk space by removing the cached `.deb` files apt downloaded for past installs. Safe — installed packages are untouched. Requires admin.',
+  {},
+  async () => {
+    if (systemDiagnostics.getPlatform() !== 'linux') return notLinuxResult('fix_clear_apt_cache');
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_clear_apt_cache');
+    const r = runFixStep('fix_clear_apt_cache', 'apt-get clean');
+    return textResult(r.ok ? `OK\nApt cache cleared.` : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixAptAutoremove = tool(
+  'fix_apt_autoremove',
+  'AUTO-FIX (Debian/Ubuntu): Remove orphaned dependency packages no other installed package needs. Frees disk space. Safe in normal circumstances. Requires admin.',
+  {},
+  async () => {
+    if (systemDiagnostics.getPlatform() !== 'linux') return notLinuxResult('fix_apt_autoremove');
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_apt_autoremove');
+    const r = runFixStep('fix_apt_autoremove', 'apt-get autoremove -y');
+    return textResult(r.ok ? `OK\n${r.stdout || '(nothing to remove)'}` : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+const fixInstallSafePackage = tool(
+  'fix_install_safe_package',
+  'AUTO-FIX (Debian/Ubuntu): Install ONE package from the curated Debian allowlist (firefox-esr, chromium, thunderbird, libreoffice, vlc, gimp, inkscape, audacity, evince, gnome-calculator, gedit, transmission-gtk, rhythmbox, gthumb). Anything else is rejected. Requires admin.',
+  {
+    package: z.string().describe(
+      'Package name. Must be on INSTALLABLE_PACKAGE_ALLOWLIST exactly. ' +
+      'Suggested choices: firefox-esr (browser), thunderbird (email), libreoffice (office), vlc (media), gimp (image edit), gnome-calculator, gedit, evince (PDF).'
+    ),
+  },
+  async (args) => {
+    if (systemDiagnostics.getPlatform() !== 'linux') return notLinuxResult('fix_install_safe_package');
+    const requested = (args.package || '').trim().toLowerCase();
+    if (!INSTALLABLE_PACKAGE_ALLOWLIST.includes(requested)) {
+      try {
+        FixLog.create({
+          session_id: _activeAutofixSessionId,
+          user_id: _activeUserId,
+          tool_name: 'fix_install_safe_package',
+          command: `(rejected: ${args.package})`,
+          exit_code: -3,
+          stdout_tail: '',
+          stderr_tail: 'Package not on INSTALLABLE_PACKAGE_ALLOWLIST.',
+        });
+      } catch (_) { /* non-critical */ }
+      return textResult(
+        `REJECTED: "${args.package}" is not on the installable allowlist. ` +
+        `Choose from: ${INSTALLABLE_PACKAGE_ALLOWLIST.join(', ')}.`
+      );
+    }
+    if (!systemDiagnostics.isElevated()) return adminRequiredResult('fix_install_safe_package');
+    // The package name is now safe to interpolate — it's been validated
+    // against a hardcoded allowlist of [a-z0-9.+-] strings.
+    const r = systemDiagnostics.runFixCommand(
+      `apt-get install -y ${requested}`,
+      { timeout: 10 * 60 * 1000 }
+    );
+    try {
+      FixLog.create({
+        session_id: _activeAutofixSessionId,
+        user_id: _activeUserId,
+        tool_name: 'fix_install_safe_package',
+        command: `apt-get install -y ${requested}`,
+        exit_code: r.exitCode,
+        stdout_tail: r.stdout,
+        stderr_tail: r.stderr,
+      });
+    } catch (_) { /* non-critical */ }
+    return textResult(r.ok
+      ? `OK\nInstalled ${requested}.\n${r.stdout || ''}`
+      : `FAILED (exit ${r.exitCode})\n${r.stderr}`);
+  }
+);
+
+// All sandbox-mode-only fix tools — register conditionally below.
+const SANDBOX_FIX_TOOLS = [
+  // Tier 1 — network / WiFi / DNS
+  fixFlushDnsCache,
+  fixRenewDhcpLease,
+  fixResetWinsock,
+  fixRestartNetworkAdapter,
+  // Tier 2 — slow PC / frozen apps
+  fixKillProcessByName,
+  fixRestartExplorer,
+  // Tier 3 — disk cleanup
+  fixClearTempFiles,
+  fixEmptyRecycleBin,
+  // Tier 4 — system integrity
+  fixRunSfcScannow,
+  fixRunDism,
+  fixRestartPrintSpooler,
+  fixRestartAudioService,
+  // Tier 5 — Debian / Ubuntu package management
+  fixAptUpdate,
+  fixAptSafeUpgrade,
+  fixClearAptCache,
+  fixAptAutoremove,
+  fixInstallSafePackage,
+];
+
 // Build the MCP Server
 
-function createPcPalMcpServer() {
+function createPcPalMcpServer(opts = {}) {
+  const mode = opts.mode || 'normal';
+  const sandbox = mode === 'autofix-sandbox';
+
+  // Common tools available in BOTH modes — diagnostics, safety, memory,
+  // user/notes, vision, findings card.
+  const commonTools = [
+    // Diagnostics (sandbox uses these to identify problems before fixing)
+    getSystemInfo,
+    checkNetwork,
+    listRunningApps,
+    readErrorLog,
+    runSafeCommand,
+    checkDiskHealth,
+    checkInstalledSoftware,
+    getBatteryStatus,
+    // Safety — must run in both modes
+    flagEmergency,
+    analyzeScamSituation,
+    // User context
+    saveNoteForUser,
+    getUserNotes,
+    adjustVocabularyLevel,
+    // Vision (sandbox can take a screenshot to verify a fix worked)
+    takeScreenshot,
+    // Memory
+    saveMemory,
+    recallMemories,
+    // Findings card — sandbox uses this to render the final summary
+    createFindings,
+  ];
+
+  // Normal-mode-only tools: teaching scaffolding, learning progression,
+  // step sequences, guides, practice, buddy. None of these belong in
+  // an autonomous-fix workflow.
+  const normalOnlyTools = sandbox ? [] : [
+    logSkillStarted,
+    suggestNextSkill,
+    scheduleSkillReview,
+    startStepSequence,
+    advanceStep,
+    completeStepSequence,
+    showVisualGuide,
+    saveUserGoal,
+    shareProgressWithBuddy,
+    askBuddyForHelp,
+    diagnoseMissingDll,
+    findYoutubeVideos,
+    startPractice,
+    createGuide,
+    lookupSupportResources,
+  ];
+
+  // Sandbox-mode-only tools: the curated fix_* tool set.
+  const sandboxOnlyTools = sandbox ? SANDBOX_FIX_TOOLS : [];
+
   return createSdkMcpServer({
-    name: 'pcpal-tools',
-    tools: [
-      // Diagnostics
-      getSystemInfo,
-      checkNetwork,
-      listRunningApps,
-      readErrorLog,
-      runSafeCommand,
-      checkDiskHealth,
-      checkInstalledSoftware,
-      getBatteryStatus,
-      // Teaching
-      logSkillStarted,
-      suggestNextSkill,
-      scheduleSkillReview,
-      startStepSequence,
-      advanceStep,
-      completeStepSequence,
-      showVisualGuide,
-      // Safety
-      flagEmergency,
-      analyzeScamSituation,
-      // User
-      saveNoteForUser,
-      getUserNotes,
-      saveUserGoal,
-      adjustVocabularyLevel,
-      // Buddy
-      shareProgressWithBuddy,
-      askBuddyForHelp,
-      // Vision
-      takeScreenshot,
-      // DLL Diagnosis
-      diagnoseMissingDll,
-      // Media
-      findYoutubeVideos,
-      // Memory
-      saveMemory,
-      recallMemories,
-      // Practice
-      startPractice,
-      // Artifacts
-      createGuide,
-      createFindings,
-      // Resource grounding
-      lookupSupportResources,
-    ],
+    name: sandbox ? 'pcpal-tools-sandbox' : 'pcpal-tools',
+    tools: [...commonTools, ...normalOnlyTools, ...sandboxOnlyTools],
   });
 }
 
@@ -815,4 +1399,4 @@ function _setLastGuide(g) { _lastGuide = g; }
 function _setLastFindings(f) { _lastFindings = f; }
 function _setLastPractice(p) { _lastPractice = p; }
 
-module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setRequestScreenshotFn, _setLastGuide, _setLastFindings, _setLastPractice };
+module.exports = { createPcPalMcpServer, getAndClearLastGuide, getAndClearLastFindings, getAndClearLastPractice, getAndClearLastScreenshot, setActiveUserContext, setActiveAutofixSession, setRequestScreenshotFn, _setLastGuide, _setLastFindings, _setLastPractice };

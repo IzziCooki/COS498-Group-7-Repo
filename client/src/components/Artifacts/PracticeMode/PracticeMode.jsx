@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import PracticeStep from './PracticeStep';
 import PracticeChecklist from './PracticeChecklist';
 import practiceRegistry from '../../Chat/practiceRegistry';
 import './PracticeMode.css';
 
+const TASK_PICKER_META = {
+  send_email: { icon: '\u270D\uFE0F', label: 'Send an Email' },
+  copy_paste: { icon: '\uD83D\uDCCB', label: 'Copy and Paste' },
+  open_browser: { icon: '\uD83C\uDF10', label: 'Open the Internet' },
+  wifi: { icon: '\uD83D\uDCF6', label: 'Connect to Wi-Fi' },
+  video_call: { icon: '\uD83D\uDCDE', label: 'Join a Video Call' },
+  take_screenshot: { icon: '\uD83D\uDCF8', label: 'Take a Screenshot' },
+  print_document: { icon: '\uD83D\uDDA8\uFE0F', label: 'Print a Document' },
+  change_text_size: { icon: '\uD83D\uDD0E', label: 'Make Text Bigger' },
+};
+
 /**
  * Normalize steps from either built-in registry or custom AI-generated format
  * into a common shape for rendering.
  */
-function getSteps(practice, osType) {
+function getSteps(taskId, practice, osType) {
   const os = osType || 'Windows';
 
   // Custom AI-generated practice
-  if (practice.taskId === 'custom' && practice.customSteps) {
+  if (taskId === 'custom' && practice.customSteps) {
     return {
       title: practice.customTitle || 'Practice Session',
       steps: practice.customSteps.map((s) => ({
@@ -22,12 +33,14 @@ function getSteps(practice, osType) {
         deviceInstructions: s.deviceInstructions,
         afterThis: s.afterThis,
         confusedAlt: s.confusedAlt || null,
+        image: s.image || null,
+        screen: s.screen || null,
       })),
     };
   }
 
   // Built-in registry
-  const content = practiceRegistry[practice.taskId];
+  const content = practiceRegistry[taskId];
   if (!content) return null;
 
   return {
@@ -39,6 +52,8 @@ function getSteps(practice, osType) {
       deviceInstructions: s.variants?.[os] || s.variants?.Windows || '',
       afterThis: s.afterThis,
       confusedAlt: s.confusedAlt || null,
+      image: s.image || null,
+      screen: s.screen || null,
     })),
   };
 }
@@ -56,15 +71,20 @@ function getSteps(practice, osType) {
  * }} props
  */
 function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
+  const [selectedTaskId, setSelectedTaskId] = useState(
+    practice?.taskId === '__picker__' ? null : practice?.taskId || null
+  );
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [showAlt, setShowAlt] = useState({});
+  const [wrongTap, setWrongTap] = useState(false);
 
-  const data = practice ? getSteps(practice) : null;
+  const data = practice && selectedTaskId ? getSteps(selectedTaskId, practice) : null;
   const title = data?.title;
   const steps = data?.steps;
   const totalSteps = steps?.length ?? 0;
   const step = steps?.[currentStep];
+  const isSimStep = step?.screen && step.screen.url;
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -102,7 +122,56 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
     setShowAlt({});
   };
 
+  const handleHotspotTap = useCallback((result) => {
+    if (result === 'wrong') {
+      setWrongTap(true);
+      setTimeout(() => setWrongTap(false), 1500);
+      return;
+    }
+    // Correct tap -- advance
+    handleNext();
+    setWrongTap(false);
+  }, [handleNext]);
+
   if (!practice) return null;
+
+  if (!selectedTaskId) {
+    return (
+      <div className="pcp-practice">
+        <div className="pcp-practice__banner" role="status">
+          PRACTICE MODE -- Nothing will happen to your computer!
+        </div>
+        <div className="pcp-practice-picker">
+          <h1 className="pcp-practice-picker__heading">What would you like to practice?</h1>
+          <p className="pcp-practice-picker__subtitle">
+            Pick a task below. This is just practice -- nothing will change on your computer.
+          </p>
+          <div className="pcp-practice-picker__grid">
+            {Object.entries(TASK_PICKER_META).map(([taskId, meta]) => {
+              const content = practiceRegistry[taskId];
+              return (
+                <button
+                  key={taskId}
+                  type="button"
+                  className="pcp-practice-picker__card"
+                  onClick={() => setSelectedTaskId(taskId)}
+                >
+                  <span className="pcp-practice-picker__card-icon" aria-hidden="true">{meta.icon}</span>
+                  <div className="pcp-practice-picker__card-text">
+                    <span className="pcp-practice-picker__card-title">{meta.label}</span>
+                    {content?.description && (
+                      <span className="pcp-practice-picker__card-desc">{content.description}</span>
+                    )}
+                  </div>
+                  <span className="pcp-practice-picker__card-arrow" aria-hidden="true">{'\u203A'}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!data) {
     return (
@@ -133,6 +202,17 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
           >
             <span aria-hidden="true">&lsaquo;</span> Back to chat
           </button>
+          <button
+            className="pcp-overlay-topbar__back"
+            onClick={() => {
+              setSelectedTaskId(null);
+              setCurrentStep(0);
+              setCompleted(false);
+              setShowAlt({});
+            }}
+          >
+            <span aria-hidden="true">&lsaquo;</span> Back to task list
+          </button>
         </div>
         <div className="pcp-practice__content">
           <PracticeChecklist
@@ -149,6 +229,24 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
 
   return (
     <div className="pcp-practice">
+      {/* Top bar */}
+      <div className="pcp-overlay-topbar">
+        <button className="pcp-overlay-topbar__back" onClick={onClose}>
+          <span aria-hidden="true">&lsaquo;</span> Back to chat
+        </button>
+        <button
+          className="pcp-overlay-topbar__back"
+          onClick={() => {
+            setSelectedTaskId(null);
+            setCurrentStep(0);
+            setCompleted(false);
+            setShowAlt({});
+          }}
+        >
+          <span aria-hidden="true">&lsaquo;</span> Back to task list
+        </button>
+      </div>
+
       {/* Banner */}
       <div className="pcp-practice__banner" role="status">
         PRACTICE MODE -- Nothing will happen to your computer!
@@ -184,32 +282,31 @@ function PracticeMode({ practice, onClose, onSendMessage, titleId }) {
           step={step}
           stepNumber={currentStep + 1}
           showAlt={!!showAlt[currentStep]}
+          onHotspotTap={handleHotspotTap}
+          wrongTap={wrongTap}
         />
       </div>
 
       {/* Navigation */}
       <div className="pcp-practice__nav">
-        <button
-          className="pcp-btn pcp-btn--primary pcp-practice__nav-next"
-          onClick={handleNext}
-        >
-          {currentStep < totalSteps - 1
-            ? 'I understand -- next'
-            : 'I understand -- finish!'}
-        </button>
-        <button
-          className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain"
-          onClick={handleExplainDifferently}
-        >
-          Explain differently
-        </button>
-        {currentStep > 0 && (
-          <button
-            className="pcp-btn pcp-btn--ghost pcp-practice__nav-back"
-            onClick={handleBack}
-          >
-            Go back
-          </button>
+        {isSimStep ? (
+          <>
+            <p className="pcp-practice__nav-hint">Tap the glowing circle on the image above to continue</p>
+            <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain" onClick={handleExplainDifferently}>Explain differently</button>
+            {currentStep > 0 && (
+              <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-back" onClick={handleBack}>Go back</button>
+            )}
+          </>
+        ) : (
+          <>
+            <button className="pcp-btn pcp-btn--primary pcp-practice__nav-next" onClick={handleNext}>
+              {currentStep < totalSteps - 1 ? 'I understand -- next' : 'I understand -- finish!'}
+            </button>
+            <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-explain" onClick={handleExplainDifferently}>Explain differently</button>
+            {currentStep > 0 && (
+              <button className="pcp-btn pcp-btn--ghost pcp-practice__nav-back" onClick={handleBack}>Go back</button>
+            )}
+          </>
         )}
       </div>
     </div>

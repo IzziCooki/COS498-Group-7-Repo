@@ -43,7 +43,7 @@ function GuideCompletionStep({ guide, steps, onDone, onSendMessage }) {
           {steps.map((step, i) => (
             <li key={i} className="pcp-completion__checklist-item">
               <span className="pcp-completion__check" aria-hidden="true">&#10003;</span>
-              <span>{step.title || step.body}</span>
+              <span>{step.title || step.body || step.text}</span>
             </li>
           ))}
         </ul>
